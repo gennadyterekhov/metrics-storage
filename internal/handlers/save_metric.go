@@ -29,6 +29,11 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 	}
 
 	counterValue, gaugeValue, err := validateParameters(metricTypeRaw, nameRaw, valueRaw)
+	if err != nil && err.Error() == fmt.Sprintf("type can be %v or %v", types.Counter, types.Gauge) {
+		http.Error(res, err.Error(), http.StatusNotImplemented)
+		return
+	}
+
 	if err != nil && err.Error() == "name must be a non empty string" {
 		http.Error(res, err.Error(), http.StatusNotFound)
 		return
