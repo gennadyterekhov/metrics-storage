@@ -19,6 +19,10 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 
 	var err error = nil
 	metricTypeRaw, nameRaw, valueRaw, err := parseURL(req.URL)
+	if err != nil && err.Error() == "expected exactly 3 parameters" {
+		http.Error(res, err.Error(), http.StatusNotFound)
+		return
+	}
 	if err != nil {
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
