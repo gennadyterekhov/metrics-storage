@@ -13,7 +13,7 @@ func main() {
 	mux := http.NewServeMux()
 	registerHandlers(mux)
 
-	err := http.ListenAndServe(`localhost:8080`, mux)
+	err := http.ListenAndServe(`0.0.0.0:8080`, mux)
 	if err != nil {
 		panic(err)
 	}
