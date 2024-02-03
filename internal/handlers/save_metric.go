@@ -90,14 +90,14 @@ func validateMetricValue(metricTypeValidated string, valueRaw string) (counterVa
 	if metricTypeValidated == types.Counter {
 		val, err := strconv.ParseInt(valueRaw, 10, 64)
 		if err != nil {
-			return 0, 0, nil
+			return 0, 0, err
 		}
 		return val, 0, nil
 	}
 	if metricTypeValidated == types.Gauge {
 		val, err := strconv.ParseFloat(valueRaw, 64)
 		if err != nil {
-			return 0, 0, nil
+			return 0, 0, err
 		}
 		return 0, val, nil
 	}
