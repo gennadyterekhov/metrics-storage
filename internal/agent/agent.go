@@ -38,8 +38,6 @@ func Agent() (err error) {
 		//time.Sleep(time.Duration(pollInterval * int(time.Second)))
 		time.Sleep(time.Duration(reportInterval * int(time.Second)))
 	}
-
-	return nil
 }
 
 func getURLs(memStats *runtime.MemStats) []string {
