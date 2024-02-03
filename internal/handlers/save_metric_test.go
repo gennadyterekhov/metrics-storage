@@ -45,6 +45,7 @@ func TestSaveMetric(t *testing.T) {
 			SaveMetric(w, request)
 
 			res := w.Result()
+			defer res.Body.Close()
 			assert.Equal(t, tt.want.code, res.StatusCode)
 
 			if tt.want.typ == types.Counter {

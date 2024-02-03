@@ -18,7 +18,7 @@ func Agent() (err error) {
 
 		runtime.ReadMemStats(memStats)
 
-		urls = getUrls(memStats)
+		urls = getURLs(memStats)
 
 		for i := 0; i < len(urls); i++ {
 			err = sendMetric(address + urls[i])
@@ -42,47 +42,48 @@ func Agent() (err error) {
 	return nil
 }
 
-func getUrls(memStats *runtime.MemStats) []string {
+func getURLs(memStats *runtime.MemStats) []string {
 	return []string{
-		getUrl("Alloc", float64(memStats.Alloc)),
-		getUrl("BuckHashSys", float64(memStats.BuckHashSys)),
-		getUrl("Frees", float64(memStats.Frees)),
-		getUrl("GCCPUFraction", float64(memStats.GCCPUFraction)),
-		getUrl("GCSys", float64(memStats.GCSys)),
-		getUrl("HeapAlloc", float64(memStats.HeapAlloc)),
-		getUrl("HeapIdle", float64(memStats.HeapIdle)),
-		getUrl("HeapInuse", float64(memStats.HeapInuse)),
-		getUrl("HeapObjects", float64(memStats.HeapObjects)),
-		getUrl("HeapReleased", float64(memStats.HeapReleased)),
-		getUrl("HeapSys", float64(memStats.HeapSys)),
-		getUrl("LastGC", float64(memStats.LastGC)),
-		getUrl("Lookups", float64(memStats.Lookups)),
-		getUrl("MCacheInuse", float64(memStats.MCacheInuse)),
-		getUrl("MCacheSys", float64(memStats.MCacheSys)),
-		getUrl("MSpanInuse", float64(memStats.MSpanInuse)),
-		getUrl("MSpanSys", float64(memStats.MSpanSys)),
-		getUrl("Mallocs", float64(memStats.Mallocs)),
-		getUrl("NextGC", float64(memStats.NextGC)),
-		getUrl("NumForcedGC", float64(memStats.NumForcedGC)),
-		getUrl("NumGC", float64(memStats.NumGC)),
-		getUrl("OtherSys", float64(memStats.OtherSys)),
-		getUrl("PauseTotalNs", float64(memStats.PauseTotalNs)),
-		getUrl("StackInuse", float64(memStats.StackInuse)),
-		getUrl("StackSys", float64(memStats.StackSys)),
-		getUrl("Sys", float64(memStats.Sys)),
-		getUrl("TotalAlloc", float64(memStats.TotalAlloc)),
+		getURL("Alloc", float64(memStats.Alloc)),
+		getURL("BuckHashSys", float64(memStats.BuckHashSys)),
+		getURL("Frees", float64(memStats.Frees)),
+		getURL("GCCPUFraction", float64(memStats.GCCPUFraction)),
+		getURL("GCSys", float64(memStats.GCSys)),
+		getURL("HeapAlloc", float64(memStats.HeapAlloc)),
+		getURL("HeapIdle", float64(memStats.HeapIdle)),
+		getURL("HeapInuse", float64(memStats.HeapInuse)),
+		getURL("HeapObjects", float64(memStats.HeapObjects)),
+		getURL("HeapReleased", float64(memStats.HeapReleased)),
+		getURL("HeapSys", float64(memStats.HeapSys)),
+		getURL("LastGC", float64(memStats.LastGC)),
+		getURL("Lookups", float64(memStats.Lookups)),
+		getURL("MCacheInuse", float64(memStats.MCacheInuse)),
+		getURL("MCacheSys", float64(memStats.MCacheSys)),
+		getURL("MSpanInuse", float64(memStats.MSpanInuse)),
+		getURL("MSpanSys", float64(memStats.MSpanSys)),
+		getURL("Mallocs", float64(memStats.Mallocs)),
+		getURL("NextGC", float64(memStats.NextGC)),
+		getURL("NumForcedGC", float64(memStats.NumForcedGC)),
+		getURL("NumGC", float64(memStats.NumGC)),
+		getURL("OtherSys", float64(memStats.OtherSys)),
+		getURL("PauseTotalNs", float64(memStats.PauseTotalNs)),
+		getURL("StackInuse", float64(memStats.StackInuse)),
+		getURL("StackSys", float64(memStats.StackSys)),
+		getURL("Sys", float64(memStats.Sys)),
+		getURL("TotalAlloc", float64(memStats.TotalAlloc)),
 	}
 }
 
-func getUrl(name string, val float64) string {
+func getURL(name string, val float64) string {
 	template := "/update/gauge/%v/%v"
 	return fmt.Sprintf(template, name, val)
 }
 
 func sendMetric(url string) (err error) {
-	_, err = http.Post(url, "text/plain", nil)
+	res, err := http.Post(url, "text/plain", nil)
 	if err != nil {
 		return err
 	}
+	defer res.Body.Close()
 	return nil
 }
