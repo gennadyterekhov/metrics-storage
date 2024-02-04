@@ -2,10 +2,9 @@ package agent
 
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
-	"github.com/gennadyterekhov/metrics-storage/internal/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/router"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 )
@@ -16,8 +15,9 @@ func shouldContinueMock(iter int) bool {
 
 func TestAgent(t *testing.T) {
 	testServer := httptest.NewServer(
-		http.HandlerFunc(handlers.SaveMetric),
+		router.GetRouter(),
 	)
+
 	url := testServer.URL
 	tests := []struct {
 		name string
@@ -37,7 +37,7 @@ func TestAgent(t *testing.T) {
 				len(container.Instance.MetricsRepository.GetAllCounters()),
 			)
 			assert.Equal(t,
-				27,
+				27+1,
 				len(container.Instance.MetricsRepository.GetAllGauges()),
 			)
 		})
