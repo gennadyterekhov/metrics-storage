@@ -37,5 +37,9 @@ go build -o agent *.go
 cd ../server
 go build -o server *.go
 
-./metricstest -test.v -test.run=^TestIteration1$ -binary-path=cmd/server/server  
 ./metricstest -test.v -test.run=^TestIteration1$ -agent-binary-path=cmd/agent/agent
+### 1
+./metricstest -test.v -test.run=^TestIteration1$ -binary-path=cmd/server/server  
+### 2
+./metricstest -test.v -test.run=^TestIteration2[AB]*$ -source-path=. -agent-binary-path=cmd/agent/agent
+### 3

@@ -1,19 +1,12 @@
 package main
 
 import (
-	"github.com/gennadyterekhov/metrics-storage/internal/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/router"
 	"net/http"
 )
 
-func registerHandlers(mux *http.ServeMux) {
-	mux.HandleFunc(`/update/`, handlers.SaveMetric)
-}
-
 func main() {
-	mux := http.NewServeMux()
-	registerHandlers(mux)
-
-	err := http.ListenAndServe(`localhost:8080`, mux)
+	err := http.ListenAndServe(`:8080`, router.GetRouter())
 	if err != nil {
 		panic(err)
 	}

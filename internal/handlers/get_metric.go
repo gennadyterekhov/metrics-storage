@@ -5,21 +5,25 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/services"
 	"github.com/gennadyterekhov/metrics-storage/internal/validators"
 	"github.com/go-chi/chi/v5"
+	"io"
 	"net/http"
 )
 
-func SaveMetric(res http.ResponseWriter, req *http.Request) {
-	if req.Method != http.MethodPost {
-		http.Error(res, exceptions.UpdateMetricsMethodNotAllowed, http.StatusMethodNotAllowed)
+func GetMetric(res http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodGet {
+		http.Error(res, exceptions.GetOneMetricsMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
 
-	metricType, name, counterValue, gaugeValue, err := validators.GetDataToSave(
+	metricType, name, err := validators.GetDataToGet(
 		chi.URLParam(req, "metricType"),
 		chi.URLParam(req, "metricName"),
-		chi.URLParam(req, "metricValue"),
 	)
 	if err != nil && err.Error() == exceptions.InvalidMetricTypeChoice {
+		http.Error(res, err.Error(), http.StatusNotFound)
+		return
+	}
+	if err != nil && err.Error() == exceptions.EmptyMetricName {
 		http.Error(res, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -32,5 +36,11 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	services.SaveMetricToMemory(metricType, name, counterValue, gaugeValue)
+	metric := services.GetMetricAsString(metricType, name)
+
+	_, err = io.WriteString(res, metric)
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+		return
+	}
 }
