@@ -7,14 +7,15 @@ import (
 	"time"
 )
 
-func Agent() (err error) {
+type shouldContinueType func() bool
+
+func Agent(address string, shouldContinue shouldContinueType) (err error) {
 	//pollInterval := 2
 	reportInterval := 10
 	memStats := &runtime.MemStats{}
 
-	address := `http://localhost:8080`
 	var urls []string
-	for i := 0; ; i++ {
+	for i := 0; shouldContinue(); i++ {
 
 		runtime.ReadMemStats(memStats)
 
@@ -38,6 +39,7 @@ func Agent() (err error) {
 		//time.Sleep(time.Duration(pollInterval * int(time.Second)))
 		time.Sleep(time.Duration(reportInterval * int(time.Second)))
 	}
+	return nil
 }
 
 func getURLs(memStats *runtime.MemStats) []string {

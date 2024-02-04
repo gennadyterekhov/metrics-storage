@@ -2,8 +2,13 @@ package main
 
 import "github.com/gennadyterekhov/metrics-storage/internal/agent"
 
+func shouldContinue() bool {
+	return true
+}
+
 func main() {
-	err := agent.Agent()
+	url := `http://localhost:8080`
+	err := agent.Agent(url, shouldContinue)
 	if err != nil {
 		panic(err)
 	}
