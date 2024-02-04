@@ -37,7 +37,7 @@ func TestAgent(t *testing.T) {
 				len(container.Instance.MetricsRepository.GetAllCounters()),
 			)
 			assert.Equal(t,
-				14,
+				27,
 				len(container.Instance.MetricsRepository.GetAllGauges()),
 			)
 		})
