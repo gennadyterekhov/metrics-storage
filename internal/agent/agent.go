@@ -2,7 +2,7 @@ package agent
 
 import (
 	"fmt"
-	"net/http"
+	"github.com/go-resty/resty/v2"
 	"runtime"
 	"time"
 )
@@ -82,10 +82,12 @@ func getURL(name string, val float64) string {
 }
 
 func sendMetric(url string) (err error) {
-	res, err := http.Post(url, "text/plain", nil)
+	client := resty.New()
+
+	_, err = client.R().
+		Post(url)
 	if err != nil {
 		return err
 	}
-	defer res.Body.Close()
 	return nil
 }
