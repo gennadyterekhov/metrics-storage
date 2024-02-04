@@ -20,7 +20,7 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 		chi.URLParam(req, "metricValue"),
 	)
 	if err != nil && err.Error() == exceptions.InvalidMetricTypeChoice {
-		http.Error(res, err.Error(), http.StatusNotFound)
+		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
 	if err != nil && err.Error() == exceptions.InvalidMetricType {

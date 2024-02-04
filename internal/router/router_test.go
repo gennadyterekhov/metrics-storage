@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common"
+	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -33,6 +34,11 @@ func TestCanGetUrlParameters(t *testing.T) {
 			name: "Gauge",
 			url:  "/update/gauge/gaugeName/1",
 			want: want{code: http.StatusOK, response: "", typ: "gauge", metricName: "gaugeName", metricValue: 1},
+		},
+		{
+			name: "wrong type status code",
+			url:  "/update/unknown/testCounter/100",
+			want: want{code: http.StatusBadRequest, response: exceptions.InvalidMetricTypeChoice, typ: "gauge", metricName: "gaugeName", metricValue: 1},
 		},
 	}
 
