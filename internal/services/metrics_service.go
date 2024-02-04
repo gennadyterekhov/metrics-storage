@@ -30,7 +30,7 @@ func GetMetricAsString(metricType string, name string) string {
 	return ""
 }
 
-func GetMetricsListAsHtml() string {
+func GetMetricsListAsHTML() string {
 	templateText := `
 <!DOCTYPE html>
 <html>

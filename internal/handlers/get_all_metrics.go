@@ -8,7 +8,7 @@ import (
 
 func GetAllMetrics(res http.ResponseWriter, req *http.Request) {
 
-	htmlPage := services.GetMetricsListAsHtml()
+	htmlPage := services.GetMetricsListAsHTML()
 
 	_, err := io.WriteString(res, htmlPage)
 	if err != nil {
