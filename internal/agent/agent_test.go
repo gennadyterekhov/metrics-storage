@@ -10,6 +10,10 @@ import (
 	"testing"
 )
 
+func shouldContinueMock(iter int) bool {
+	return iter == 0
+}
+
 func TestAgent(t *testing.T) {
 	testServer := httptest.NewServer(
 		http.HandlerFunc(handlers.SaveMetric),
@@ -25,7 +29,7 @@ func TestAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Agent(url, func() bool { return false })
+			err := Agent(url, shouldContinueMock)
 			require.NoError(t, err)
 
 			assert.Equal(t,

@@ -2,7 +2,7 @@ package main
 
 import "github.com/gennadyterekhov/metrics-storage/internal/agent"
 
-func shouldContinue() bool {
+func shouldContinue(iter int) bool {
 	return true
 }
 
