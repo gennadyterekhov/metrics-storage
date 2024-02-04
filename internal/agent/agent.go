@@ -7,7 +7,7 @@ import (
 	"time"
 )
 
-type shouldContinueType func() bool
+type shouldContinueType func(int) bool
 
 func Agent(address string, shouldContinue shouldContinueType) (err error) {
 	//pollInterval := 2
@@ -15,7 +15,7 @@ func Agent(address string, shouldContinue shouldContinueType) (err error) {
 	memStats := &runtime.MemStats{}
 
 	var urls []string
-	for i := 0; shouldContinue(); i++ {
+	for i := 0; shouldContinue(i); i++ {
 
 		runtime.ReadMemStats(memStats)
 
