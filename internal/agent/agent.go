@@ -36,8 +36,10 @@ func Agent(address string, shouldContinue shouldContinueType) (err error) {
 			return err
 		}
 
-		//time.Sleep(time.Duration(pollInterval * int(time.Second)))
-		time.Sleep(time.Duration(reportInterval * int(time.Second)))
+		if shouldContinue(i + 1) {
+			//time.Sleep(time.Duration(pollInterval * int(time.Second)))
+			time.Sleep(time.Duration(reportInterval * int(time.Second)))
+		}
 	}
 	return nil
 }
