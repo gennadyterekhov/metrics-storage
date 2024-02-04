@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -48,7 +49,7 @@ func TestCanGetUrlParameters(t *testing.T) {
 			resp, get := common.SendRequest(t, ts, http.MethodPost, tt.url)
 			defer resp.Body.Close()
 			assert.Equal(t, tt.want.code, resp.StatusCode)
-			assert.Equal(t, tt.want.response, get)
+			assert.Equal(t, tt.want.response, strings.Trim(get, "\n"))
 		})
 	}
 }
