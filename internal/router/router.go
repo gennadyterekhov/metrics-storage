@@ -1,11 +1,14 @@
 package router
 
 import (
+	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/handlers"
 	"github.com/go-chi/chi/v5"
 )
 
 func GetRouter() chi.Router {
+	fmt.Println("func GetRouter")
+
 	router := chi.NewRouter()
 	registerRoutes(router)
 

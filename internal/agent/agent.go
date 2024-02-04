@@ -10,6 +10,8 @@ import (
 type shouldContinueType func(int) bool
 
 func Agent(address string, shouldContinue shouldContinueType) (err error) {
+	fmt.Println("Agent")
+
 	//pollInterval := 2
 	reportInterval := 10
 	memStats := &runtime.MemStats{}
@@ -22,6 +24,8 @@ func Agent(address string, shouldContinue shouldContinueType) (err error) {
 		urls = getURLs(memStats)
 
 		for i := 0; i < len(urls); i++ {
+			fmt.Println("before sendMetric")
+
 			err = sendMetric(address + urls[i])
 			if err != nil {
 				return err
@@ -82,6 +86,8 @@ func getURL(name string, val float64) string {
 }
 
 func sendMetric(url string) (err error) {
+	fmt.Println("func sendMetric")
+
 	client := resty.New()
 
 	_, err = client.R().
