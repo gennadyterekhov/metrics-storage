@@ -40,6 +40,7 @@ func TestCanGetUrlParameters(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 
 			resp, get := common.SendRequest(t, ts, http.MethodPost, tt.url)
+			defer resp.Body.Close()
 			assert.Equal(t, tt.want.code, resp.StatusCode)
 			assert.Equal(t, tt.want.response, get)
 		})
