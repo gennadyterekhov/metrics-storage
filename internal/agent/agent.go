@@ -28,7 +28,9 @@ func Agent(address string, shouldContinue shouldContinueType) (err error) {
 
 			err = sendMetric(address + urls[i])
 			if err != nil {
-				return err
+				fmt.Println("error from sendMetric, ignoring it")
+
+				//return err
 			}
 		}
 		err = sendMetric(address + fmt.Sprintf("/update/counter/PollCount/%v", i))
@@ -90,8 +92,13 @@ func sendMetric(url string) (err error) {
 
 	client := resty.New()
 
-	_, err = client.R().
+	resp, err := client.R().
 		Post(url)
+
+	fmt.Println(resp.Body())
+
+	fmt.Println(err)
+
 	if err != nil {
 		return err
 	}
