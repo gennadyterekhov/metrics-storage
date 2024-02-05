@@ -5,15 +5,8 @@ import (
 	"net/http"
 )
 
-func registerHandlers(mux *http.ServeMux) {
-	mux.HandleFunc(`/update/`, handlers.SaveMetric)
-}
-
 func main() {
-	mux := http.NewServeMux()
-	registerHandlers(mux)
-
-	err := http.ListenAndServe(`localhost:8080`, mux)
+	err := http.ListenAndServe(`:8080`, handlers.GetRouter())
 	if err != nil {
 		panic(err)
 	}

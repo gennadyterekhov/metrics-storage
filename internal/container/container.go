@@ -1,11 +1,14 @@
 package container
 
-import "github.com/gennadyterekhov/metrics-storage/internal/storage"
+import (
+	"github.com/gennadyterekhov/metrics-storage/internal/repositories"
+	"github.com/gennadyterekhov/metrics-storage/internal/storage"
+)
 
 type Container struct {
-	MemStorage *storage.MemStorage
+	MetricsRepository repositories.MetricsRepository
 }
 
 var Instance = &Container{
-	MemStorage: storage.CreateStorage(),
+	MetricsRepository: storage.CreateStorage(),
 }
