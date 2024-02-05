@@ -31,7 +31,12 @@ git fetch template && git checkout template/main .github
 
 Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
 
-## test locally
+## test coverage
+go clean -testcache
+go test -coverprofile cover.out ./...
+go tool cover -html=cover.out
+
+## CI tests locally
 cd cmd/agent
 go build -o agent *.go
 cd ../server

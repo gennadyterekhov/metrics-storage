@@ -1,6 +1,8 @@
 package repositories
 
 type MetricsRepository interface {
+	Clear()
+
 	HasGauge(name string) bool
 	HasCounter(name string) bool
 

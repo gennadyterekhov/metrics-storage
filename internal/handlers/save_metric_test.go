@@ -1,9 +1,11 @@
 package handlers
 
 import (
+	"context"
 	"errors"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/types"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
@@ -13,8 +15,6 @@ import (
 )
 
 func TestSaveMetricHttpMethod(t *testing.T) {
-	t.Skipf("cannot get url parameters from chi when running method without router")
-
 	type want struct {
 		code        int
 		response    string
@@ -42,8 +42,14 @@ func TestSaveMetricHttpMethod(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.method, "/update/counter/cnt/1", nil)
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("metricType", types.Counter)
+			rctx.URLParams.Add("metricName", "cnt")
+			rctx.URLParams.Add("metricValue", "1")
+
+			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 			w := httptest.NewRecorder()
-			SaveMetric(w, request)
+			SaveMetricHandler()(w, request)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -53,7 +59,6 @@ func TestSaveMetricHttpMethod(t *testing.T) {
 }
 
 func TestSaveMetric(t *testing.T) {
-	t.Skipf("cannot get url parameters from chi when running method without router")
 	type want struct {
 		code        int
 		response    string
@@ -69,20 +74,27 @@ func TestSaveMetric(t *testing.T) {
 		{
 			name: "Counter",
 			url:  "/update/counter/cnt/1",
-			want: want{code: http.StatusOK, response: "", typ: "counter", metricName: "cnt", metricValue: 1},
+			want: want{code: http.StatusOK, response: "", typ: types.Counter, metricName: "cnt", metricValue: 1},
 		},
 		{
 			name: "Gauge",
 			url:  "/update/gauge/gaugeName/1",
-			want: want{code: http.StatusOK, response: "", typ: "gauge", metricName: "gaugeName", metricValue: 1},
+			want: want{code: http.StatusOK, response: "", typ: types.Gauge, metricName: "gaugeName", metricValue: 1},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			container.Instance.MetricsRepository.Clear()
+			rctx := chi.NewRouteContext()
+			rctx.URLParams.Add("metricType", tt.want.typ)
+			rctx.URLParams.Add("metricName", tt.want.metricName)
+			rctx.URLParams.Add("metricValue", "1")
 			request := httptest.NewRequest(http.MethodPost, tt.url, nil)
+			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
 			w := httptest.NewRecorder()
-			SaveMetric(w, request)
+			SaveMetricHandler()(w, request)
 
 			res := w.Result()
 			defer res.Body.Close()
@@ -98,15 +110,30 @@ func TestSaveMetric(t *testing.T) {
 	}
 
 	// check counter is added to itself
+	container.Instance.MetricsRepository.AddCounter("cnt", 1)
+	rctx := chi.NewRouteContext()
+	rctx.URLParams.Add("metricType", types.Counter)
+	rctx.URLParams.Add("metricName", "cnt")
+	rctx.URLParams.Add("metricValue", "10")
 	request := httptest.NewRequest(http.MethodPost, "/update/counter/cnt/10", nil)
+	request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
 	w := httptest.NewRecorder()
-	SaveMetric(w, request)
+	SaveMetricHandler()(w, request)
 	assert.Equal(t, int64(10+1), container.Instance.MetricsRepository.GetCounterOrZero("cnt"))
 
 	// check gauge is substituted
+	container.Instance.MetricsRepository.AddGauge("gaugeName", 1)
+
+	rctx = chi.NewRouteContext()
+	rctx.URLParams.Add("metricType", types.Gauge)
+	rctx.URLParams.Add("metricName", "gaugeName")
+	rctx.URLParams.Add("metricValue", "3")
 	request = httptest.NewRequest(http.MethodPost, "/update/gauge/gaugeName/3", nil)
+	request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+
 	w = httptest.NewRecorder()
-	SaveMetric(w, request)
+	SaveMetricHandler()(w, request)
 	assert.Equal(t, float64(3), container.Instance.MetricsRepository.GetGaugeOrZero("gaugeName"))
 }
 
