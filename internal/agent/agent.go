@@ -35,11 +35,15 @@ func Agent(address string, shouldContinue shouldContinueType) (err error) {
 		}
 		err = sendMetric(address + fmt.Sprintf("/update/counter/PollCount/%v", i))
 		if err != nil {
-			return err
+			fmt.Println("error from sendMetric, ignoring it")
+
+			//return err
 		}
 		err = sendMetric(address + fmt.Sprintf("/update/gauge/RandomValue/%v", i))
 		if err != nil {
-			return err
+			fmt.Println("error from sendMetric, ignoring it")
+
+			//return err
 		}
 
 		if shouldContinue(i + 1) {
