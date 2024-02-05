@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 )
 
@@ -43,9 +44,10 @@ func TestGetMetric(t *testing.T) {
 
 			res := w.Result()
 			metricFromResponse, _ := io.ReadAll(res.Body)
+			metricFromResponseAsInt, _ := strconv.ParseInt(string(metricFromResponse), 10, 64)
 			defer res.Body.Close()
 			assert.Equal(t, tt.want.code, res.StatusCode)
-			assert.Equal(t, tt.want.metricValue, metricFromResponse)
+			assert.Equal(t, tt.want.metricValue, metricFromResponseAsInt)
 
 		})
 	}
