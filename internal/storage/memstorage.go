@@ -42,19 +42,33 @@ func (strg *MemStorage) AddGauge(key string, value float64) {
 }
 
 func (strg *MemStorage) GetGauge(name string) (float64, error) {
-	val, ok := strg.gauges[name]
-	if !ok {
+	if !strg.HasGauge(name) {
 		return 0, fmt.Errorf(exceptions.UnknownMetricName)
 	}
-	return val, nil
+	return strg.GetGaugeOrZero(name), nil
 }
 
 func (strg *MemStorage) GetCounter(name string) (int64, error) {
-	val, ok := strg.counters[name]
-	if !ok {
+	if !strg.HasCounter(name) {
 		return 0, fmt.Errorf(exceptions.UnknownMetricName)
 	}
-	return val, nil
+	return strg.GetCounterOrZero(name), nil
+}
+
+func (strg *MemStorage) GetGaugeOrZero(name string) float64 {
+	val, ok := strg.gauges[name]
+	if !ok {
+		return 0
+	}
+	return val
+}
+
+func (strg *MemStorage) GetCounterOrZero(name string) int64 {
+	val, ok := strg.counters[name]
+	if !ok {
+		return 0
+	}
+	return val
 }
 
 func (strg *MemStorage) GetAllGauges() map[string]float64 {
