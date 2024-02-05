@@ -31,7 +31,7 @@ func GetMetricAsString(metricType string, name string) (metric string, err error
 		if err != nil {
 			return "", err
 		}
-		return strconv.FormatFloat(val, 'E', 2, 64), nil
+		return strconv.FormatFloat(val, 'g', -1, 64), nil
 	}
 	return "", fmt.Errorf(exceptions.InvalidMetricTypeChoice)
 }

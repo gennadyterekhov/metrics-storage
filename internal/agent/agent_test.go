@@ -2,7 +2,6 @@ package agent
 
 import (
 	"context"
-	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/handlers"
 	"github.com/gennadyterekhov/metrics-storage/internal/types"
@@ -92,14 +91,10 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 			metricFromResponse, _ := io.ReadAll(res.Body)
 			savedValue := container.Instance.MetricsRepository.GetGaugeOrZero("BuckHashSys")
 
-			fmt.Println("metricFromResponse", metricFromResponse)
-			fmt.Println("savedValue", savedValue)
-			fmt.Println("formatted savedValue", strconv.FormatFloat(savedValue, 'E', -1, 64))
-
 			defer res.Body.Close()
 			assert.Equal(
 				t,
-				strconv.FormatFloat(savedValue, 'E', -1, 64),
+				strconv.FormatFloat(savedValue, 'g', -1, 64),
 				string(metricFromResponse),
 			)
 
