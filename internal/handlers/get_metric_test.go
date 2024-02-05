@@ -34,6 +34,16 @@ func TestGetMetric(t *testing.T) {
 			args: args{url: "/value/counter/unknown"},
 			want: want{code: http.StatusNotFound, metricValue: 0},
 		},
+		{
+			name: "",
+			args: args{url: "/value/unknown/cnt"},
+			want: want{code: http.StatusNotFound, metricValue: 0},
+		},
+		{
+			name: "",
+			args: args{url: "/value/counter/"},
+			want: want{code: http.StatusNotFound, metricValue: 0},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
