@@ -77,12 +77,8 @@ func sendMetric(url string) (err error) {
 
 	client := resty.New()
 
-	resp, err := client.R().
+	_, err = client.R().
 		Post(url)
-
-	fmt.Println(resp.Body())
-
-	fmt.Println(err)
 
 	if err != nil {
 		return err
