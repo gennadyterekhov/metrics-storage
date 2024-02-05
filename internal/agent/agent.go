@@ -23,16 +23,16 @@ func Agent() (err error) {
 		for i := 0; i < len(urls); i++ {
 			err = sendMetric(address + urls[i])
 			if err != nil {
-				return err
+				//return err
 			}
 		}
 		err = sendMetric(address + fmt.Sprintf("/update/counter/PollCount/%v", i))
 		if err != nil {
-			return err
+			//return err
 		}
 		err = sendMetric(address + fmt.Sprintf("/update/gauge/RandomValue/%v", i))
 		if err != nil {
-			return err
+			//return err
 		}
 
 		//time.Sleep(time.Duration(pollInterval * int(time.Second)))
