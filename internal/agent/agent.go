@@ -23,10 +23,10 @@ func Agent(address string, shouldContinue shouldContinueType) (err error) {
 		urls = getURLs(memStats)
 
 		for i := 0; i < len(urls); i++ {
-			err = sendMetric(address + urls[i])
+			_ = sendMetric(address + urls[i])
 		}
-		err = sendMetric(address + fmt.Sprintf("/update/counter/PollCount/%v", i))
-		err = sendMetric(address + fmt.Sprintf("/update/gauge/RandomValue/%v", i))
+		_ = sendMetric(address + fmt.Sprintf("/update/counter/PollCount/%v", i))
+		_ = sendMetric(address + fmt.Sprintf("/update/gauge/RandomValue/%v", i))
 
 		if shouldContinue(i + 1) {
 			//time.Sleep(time.Duration(pollInterval * int(time.Second)))
