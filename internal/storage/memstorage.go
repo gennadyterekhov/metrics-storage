@@ -1,6 +1,10 @@
 package storage
 
-import "github.com/gennadyterekhov/metrics-storage/internal/repositories"
+import (
+	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/repositories"
+)
 
 type MemStorage struct {
 	counters map[string]int64
@@ -12,6 +16,16 @@ func CreateStorage() repositories.MetricsRepository {
 		counters: make(map[string]int64, 0),
 		gauges:   make(map[string]float64, 0),
 	}
+}
+
+func (strg *MemStorage) HasGauge(name string) bool {
+	_, ok := strg.gauges[name]
+	return ok
+}
+
+func (strg *MemStorage) HasCounter(name string) bool {
+	_, ok := strg.counters[name]
+	return ok
 }
 
 func (strg *MemStorage) AddCounter(key string, value int64) {
@@ -27,20 +41,20 @@ func (strg *MemStorage) AddGauge(key string, value float64) {
 	strg.gauges[key] = value
 }
 
-func (strg *MemStorage) GetGauge(name string) float64 {
+func (strg *MemStorage) GetGauge(name string) (float64, error) {
 	val, ok := strg.gauges[name]
 	if !ok {
-		return 0
+		return 0, fmt.Errorf(exceptions.UnknownMetricName)
 	}
-	return val
+	return val, nil
 }
 
-func (strg *MemStorage) GetCounter(name string) int64 {
+func (strg *MemStorage) GetCounter(name string) (int64, error) {
 	val, ok := strg.counters[name]
 	if !ok {
-		return 0
+		return 0, fmt.Errorf(exceptions.UnknownMetricName)
 	}
-	return val
+	return val, nil
 }
 
 func (strg *MemStorage) GetAllGauges() map[string]float64 {
