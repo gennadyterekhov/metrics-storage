@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
+	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/types"
 	"strconv"
 )
@@ -18,18 +19,22 @@ func SaveMetricToMemory(metricType string, name string, counterValue int64, gaug
 	}
 }
 
-func GetMetricAsString(metricType string, name string) string {
+func GetMetricAsString(metricType string, name string) (metric string, err error) {
 	if metricType == types.Counter {
-		val := container.Instance.MetricsRepository.GetCounter(name)
-
-		return strconv.FormatInt(val, 10)
+		val, err := container.Instance.MetricsRepository.GetCounter(name)
+		if err != nil {
+			return "", err
+		}
+		return strconv.FormatInt(val, 10), nil
 	}
 	if metricType == types.Gauge {
-		val := container.Instance.MetricsRepository.GetGauge(name)
-
-		return strconv.FormatFloat(val, 'E', 2, 64)
+		val, err := container.Instance.MetricsRepository.GetGauge(name)
+		if err != nil {
+			return "", err
+		}
+		return strconv.FormatFloat(val, 'E', 2, 64), nil
 	}
-	return ""
+	return "", fmt.Errorf(exceptions.InvalidMetricTypeChoice)
 }
 
 func GetMetricsListAsHTML() string {
