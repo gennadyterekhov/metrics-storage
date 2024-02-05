@@ -4,8 +4,8 @@ type MetricsRepository interface {
 	HasGauge(name string) bool
 	HasCounter(name string) bool
 
-	GetGauge(name string) float64
-	GetCounter(name string) int64
+	GetGauge(name string) (float64, error)
+	GetCounter(name string) (int64, error)
 
 	GetAllGauges() map[string]float64
 	GetAllCounters() map[string]int64
