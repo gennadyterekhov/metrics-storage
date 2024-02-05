@@ -56,7 +56,8 @@ func TestGetMetric(t *testing.T) {
 			url := "/value/" + tt.args.typ + "/" + tt.args.name
 			request := httptest.NewRequest(http.MethodGet, url, nil)
 			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("key", "value")
+			rctx.URLParams.Add("metricType", tt.args.typ)
+			rctx.URLParams.Add("metricName", tt.args.name)
 			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 			w := httptest.NewRecorder()
 			GetMetric(w, request)
