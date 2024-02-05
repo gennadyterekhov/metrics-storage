@@ -32,19 +32,19 @@ func TestSaveMetricToMemory(t *testing.T) {
 			SaveMetricToMemory(tt.args.metricType, tt.args.name, tt.args.counterValue, tt.args.gaugeValue)
 
 			if tt.args.metricType == types.Counter {
-				assert.Equal(t, tt.args.counterValue, container.Instance.MetricsRepository.GetCounter(tt.args.name))
+				assert.Equal(t, tt.args.counterValue, container.Instance.MetricsRepository.GetCounterOrZero(tt.args.name))
 			}
 			if tt.args.metricType == types.Gauge {
-				assert.Equal(t, tt.args.gaugeValue, container.Instance.MetricsRepository.GetGauge(tt.args.name))
+				assert.Equal(t, tt.args.gaugeValue, container.Instance.MetricsRepository.GetGaugeOrZero(tt.args.name))
 			}
 		})
 	}
 
 	// check counter is added to itself
 	SaveMetricToMemory(types.Counter, "cnt", 10, 0)
-	assert.Equal(t, int64(10+1), container.Instance.MetricsRepository.GetCounter("cnt"))
+	assert.Equal(t, int64(10+1), container.Instance.MetricsRepository.GetCounterOrZero("cnt"))
 
 	// check gauge is substituted, (not 2.5+1.6)
 	SaveMetricToMemory(types.Gauge, "gaugeName", 0, 2.5)
-	assert.Equal(t, 2.5, container.Instance.MetricsRepository.GetGauge("gaugeName"))
+	assert.Equal(t, 2.5, container.Instance.MetricsRepository.GetGaugeOrZero("gaugeName"))
 }
