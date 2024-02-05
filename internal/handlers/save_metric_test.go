@@ -89,10 +89,10 @@ func TestSaveMetric(t *testing.T) {
 			assert.Equal(t, tt.want.code, res.StatusCode)
 
 			if tt.want.typ == types.Counter {
-				assert.Equal(t, tt.want.metricValue, container.Instance.MetricsRepository.GetCounter(tt.want.metricName))
+				assert.Equal(t, tt.want.metricValue, container.Instance.MetricsRepository.GetCounterOrZero(tt.want.metricName))
 			}
 			if tt.want.typ == types.Gauge {
-				assert.Equal(t, tt.want.metricValue, int64(container.Instance.MetricsRepository.GetGauge(tt.want.metricName)))
+				assert.Equal(t, tt.want.metricValue, int64(container.Instance.MetricsRepository.GetGaugeOrZero(tt.want.metricName)))
 			}
 		})
 	}
@@ -101,13 +101,13 @@ func TestSaveMetric(t *testing.T) {
 	request := httptest.NewRequest(http.MethodPost, "/update/counter/cnt/10", nil)
 	w := httptest.NewRecorder()
 	SaveMetric(w, request)
-	assert.Equal(t, int64(10+1), container.Instance.MetricsRepository.GetCounter("cnt"))
+	assert.Equal(t, int64(10+1), container.Instance.MetricsRepository.GetCounterOrZero("cnt"))
 
 	// check gauge is substituted
 	request = httptest.NewRequest(http.MethodPost, "/update/gauge/gaugeName/3", nil)
 	w = httptest.NewRecorder()
 	SaveMetric(w, request)
-	assert.Equal(t, float64(3), container.Instance.MetricsRepository.GetGauge("gaugeName"))
+	assert.Equal(t, float64(3), container.Instance.MetricsRepository.GetGaugeOrZero("gaugeName"))
 }
 
 func Test_parseURL(t *testing.T) {
