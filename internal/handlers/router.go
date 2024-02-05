@@ -1,12 +1,10 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/go-chi/chi/v5"
 )
 
 func GetRouter() chi.Router {
-	fmt.Println("func GetRouter")
 
 	router := chi.NewRouter()
 	registerRoutes(router)

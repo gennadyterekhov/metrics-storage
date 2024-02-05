@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/services"
 	"github.com/gennadyterekhov/metrics-storage/internal/validators"
@@ -10,7 +9,6 @@ import (
 )
 
 func SaveMetric(res http.ResponseWriter, req *http.Request) {
-	fmt.Println("func SaveMetric")
 
 	if req.Method != http.MethodPost {
 		http.Error(res, exceptions.UpdateMetricsMethodNotAllowed, http.StatusMethodNotAllowed)
@@ -22,7 +20,6 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 		chi.URLParam(req, "metricName"),
 		chi.URLParam(req, "metricValue"),
 	)
-	fmt.Println("metricType, name, counterValue, gaugeValue", metricType, name, counterValue, gaugeValue)
 
 	if err != nil && err.Error() == exceptions.InvalidMetricTypeChoice {
 		http.Error(res, err.Error(), http.StatusBadRequest)

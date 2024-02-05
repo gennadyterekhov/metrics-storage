@@ -9,7 +9,6 @@ import (
 )
 
 func SaveMetricToMemory(metricType string, name string, counterValue int64, gaugeValue float64) {
-	fmt.Println("func SaveMetricToMemory")
 
 	if metricType == types.Counter {
 		container.Instance.MetricsRepository.AddCounter(name, counterValue)
