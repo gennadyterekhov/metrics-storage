@@ -23,12 +23,12 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, err.Error(), http.StatusNotFound)
 		return
 	}
-	if err != nil && err.Error() == exceptions.EmptyMetricName {
-		http.Error(res, err.Error(), http.StatusNotFound)
-		return
-	}
 	if err != nil && err.Error() == exceptions.InvalidMetricType {
 		http.Error(res, err.Error(), http.StatusNotImplemented)
+		return
+	}
+	if err != nil && err.Error() == exceptions.EmptyMetricName {
+		http.Error(res, err.Error(), http.StatusNotFound)
 		return
 	}
 	if err != nil {
@@ -36,7 +36,20 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	metric := services.GetMetricAsString(metricType, name)
+	metric, err := services.GetMetricAsString(metricType, name)
+
+	if err != nil && err.Error() == exceptions.UnknownMetricName {
+		http.Error(res, err.Error(), http.StatusNotFound)
+		return
+	}
+	if err != nil && err.Error() == exceptions.InvalidMetricTypeChoice {
+		http.Error(res, err.Error(), http.StatusNotFound)
+		return
+	}
+	if err != nil {
+		http.Error(res, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	_, err = io.WriteString(res, metric)
 	if err != nil {
