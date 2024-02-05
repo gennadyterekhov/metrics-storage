@@ -18,6 +18,11 @@ func CreateStorage() repositories.MetricsRepository {
 	}
 }
 
+func (strg *MemStorage) Clear() {
+	strg.counters = make(map[string]int64, 0)
+	strg.gauges = make(map[string]float64, 0)
+}
+
 func (strg *MemStorage) HasGauge(name string) bool {
 	_, ok := strg.gauges[name]
 	return ok
