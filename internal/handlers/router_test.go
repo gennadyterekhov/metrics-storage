@@ -1,4 +1,4 @@
-package router
+package handlers
 
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common"

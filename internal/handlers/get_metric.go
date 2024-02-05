@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/services"
 	"github.com/gennadyterekhov/metrics-storage/internal/validators"
@@ -14,6 +15,10 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, exceptions.GetOneMetricsMethodNotAllowed, http.StatusMethodNotAllowed)
 		return
 	}
+	fmt.Println("req", req)
+
+	fmt.Println("chi1", chi.URLParam(req, "metricType"))
+	fmt.Println("chi2", chi.URLParam(req, "metricName"))
 
 	metricType, name, err := validators.GetDataToGet(
 		chi.URLParam(req, "metricType"),
@@ -32,6 +37,7 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if err != nil {
+		fmt.Println(err.Error())
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -47,6 +53,8 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	if err != nil {
+		fmt.Println(err.Error())
+
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}

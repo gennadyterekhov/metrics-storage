@@ -2,7 +2,7 @@ package agent
 
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
-	"github.com/gennadyterekhov/metrics-storage/internal/router"
+	"github.com/gennadyterekhov/metrics-storage/internal/handlers"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http/httptest"
@@ -15,7 +15,7 @@ func shouldContinueMock(iter int) bool {
 
 func TestAgent(t *testing.T) {
 	testServer := httptest.NewServer(
-		router.GetRouter(),
+		handlers.GetRouter(),
 	)
 
 	url := testServer.URL
