@@ -20,7 +20,6 @@ func (na *NetAddress) String() string {
 }
 
 func (na *NetAddress) Set(flagValue string) error {
-	na.wasInitialized = true
 	hostAndPort := strings.Split(flagValue, ":")
 
 	if len(hostAndPort) != 2 {
@@ -30,6 +29,7 @@ func (na *NetAddress) Set(flagValue string) error {
 	if err != nil {
 		return err
 	}
+	na.wasInitialized = true
 	na.Host = hostAndPort[0]
 	na.Port = parsedPort
 	return nil
