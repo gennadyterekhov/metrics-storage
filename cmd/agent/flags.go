@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"github.com/gennadyterekhov/metrics-storage/internal/cliargs"
+	"log"
+	"os"
+	"strconv"
 )
 
 func parseFlags() (string, int, int) {
@@ -24,8 +27,42 @@ func parseFlags() (string, int, int) {
 		2,
 		"[poll interval] interval of polling metrics from runtime package, in seconds",
 	)
-
 	flag.Parse()
 
-	return netAddressFlag.String(), *reportIntervalFlag, *pollIntervalFlag
+	return getAddress(netAddressFlag), getReportInterval(reportIntervalFlag), getPollInterval(pollIntervalFlag)
+}
+
+func getAddress(netAddressFlag *cliargs.NetAddress) string {
+	rawAddress, ok := os.LookupEnv("ADDRESS")
+	if ok {
+		return rawAddress
+	}
+
+	return netAddressFlag.String()
+}
+
+func getReportInterval(reportIntervalFlag *int) int {
+	rawInterval, ok := os.LookupEnv("REPORT_INTERVAL")
+	if ok {
+		interval, err := strconv.Atoi(rawInterval)
+		if err != nil {
+			log.Fatalln("incorrect format of env var REPORT_INTERVAL")
+		}
+		return interval
+	}
+
+	return *reportIntervalFlag
+}
+
+func getPollInterval(pollIntervalFlag *int) int {
+	rawInterval, ok := os.LookupEnv("POLL_INTERVAL")
+	if ok {
+		interval, err := strconv.Atoi(rawInterval)
+		if err != nil {
+			log.Fatalln("incorrect format of env var POLL_INTERVAL")
+		}
+		return interval
+	}
+
+	return *pollIntervalFlag
 }
