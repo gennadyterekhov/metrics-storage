@@ -35,7 +35,7 @@ func TestAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Agent(url, shouldContinueMock)
+			err := Agent(url, shouldContinueMock, 1, 1)
 			require.NoError(t, err)
 
 			assert.Equal(t,
@@ -66,7 +66,7 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Agent(url, shouldContinueMock)
+			err := Agent(url, shouldContinueMock, 1, 1)
 			require.NoError(t, err)
 
 			assert.Equal(t,
