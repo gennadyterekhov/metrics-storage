@@ -14,7 +14,7 @@ type NetAddress struct {
 
 func (na *NetAddress) String() string {
 	if !na.wasInitialized {
-		return "localhost:8080"
+		return "http://localhost:8080"
 	}
 	return fmt.Sprintf("%v:%v", na.Host, na.Port)
 }
