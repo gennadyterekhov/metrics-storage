@@ -2,6 +2,7 @@ package poller
 
 import (
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -15,6 +16,8 @@ type PollMaker struct {
 	MemStatsPtr *runtime.MemStats
 	Interval    int
 	Channel     chan runtime.MemStats
+	IsRunning   bool
+	IsRunningMu *sync.Mutex
 }
 
 func (pmk *PollMaker) shouldContinue(iter int) bool {
@@ -27,11 +30,15 @@ func (pmk *PollMaker) wait() {
 }
 
 func (pmk *PollMaker) pollRoutine() {
+	pmk.IsRunningMu.Lock()
+	pmk.IsRunning = true
 	pmk.wait()
 
 	runtime.ReadMemStats(pmk.MemStatsPtr)
 	//fmt.Println("updated runtime metrics, saving to channel")
 	pmk.Channel <- *pmk.MemStatsPtr
+	pmk.IsRunningMu.Unlock()
+
 }
 
 func (pmk *PollMaker) Poll() {

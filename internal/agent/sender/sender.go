@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-resty/resty/v2"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -14,9 +15,11 @@ type Sender interface {
 }
 
 type MetricsSender struct {
-	Address  string
-	Interval int
-	Channel  chan runtime.MemStats
+	Address     string
+	Interval    int
+	Channel     chan runtime.MemStats
+	IsRunning   bool
+	IsRunningMu *sync.Mutex
 }
 
 func (pmk *MetricsSender) shouldContinue(iter int) bool {
@@ -34,6 +37,8 @@ func (pmk *MetricsSender) reportRoutine(memStats *runtime.MemStats) {
 }
 
 func (pmk *MetricsSender) Report() {
+	pmk.IsRunningMu.Lock()
+	pmk.IsRunning = true
 	pmk.wait()
 
 	//fmt.Println("reporting runtime metrics, getting from channel")
@@ -41,6 +46,7 @@ func (pmk *MetricsSender) Report() {
 	//fmt.Println("memStats", memStats)
 
 	pmk.reportRoutine(&memStats)
+	pmk.IsRunningMu.Unlock()
 }
 
 func sendAllMetrics(address string, memStats *runtime.MemStats, pollCount int) {
