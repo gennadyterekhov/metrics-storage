@@ -6,7 +6,7 @@ import (
 )
 
 func parseFlags() (string, int, int) {
-	var netAddressFlag = new(cliargs.NetAddress)
+	netAddressFlag := new(cliargs.NetAddress)
 	_ = flag.Value(netAddressFlag)
 	flag.Var(netAddressFlag, "a", "Net address host:port")
 
