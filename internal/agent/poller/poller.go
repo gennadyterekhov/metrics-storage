@@ -30,6 +30,7 @@ func (pmk *PollMaker) pollRoutine() {
 	pmk.wait()
 
 	runtime.ReadMemStats(pmk.MemStatsPtr)
+	//fmt.Println("updated runtime metrics, saving to channel")
 	pmk.Channel <- *pmk.MemStatsPtr
 }
 

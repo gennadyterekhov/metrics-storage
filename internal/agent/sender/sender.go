@@ -29,13 +29,17 @@ func (pmk *MetricsSender) wait() {
 }
 
 func (pmk *MetricsSender) reportRoutine(memStats *runtime.MemStats) {
-	pmk.wait()
 
 	sendAllMetrics(pmk.Address, memStats, 1)
 }
 
 func (pmk *MetricsSender) Report() {
+	pmk.wait()
+
+	//fmt.Println("reporting runtime metrics, getting from channel")
 	memStats := <-pmk.Channel
+	//fmt.Println("memStats", memStats)
+
 	pmk.reportRoutine(&memStats)
 }
 
