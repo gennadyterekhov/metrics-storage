@@ -2,15 +2,12 @@ package handlers
 
 import (
 	"context"
-	"errors"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/types"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 )
 
@@ -135,89 +132,4 @@ func TestSaveMetric(t *testing.T) {
 	w = httptest.NewRecorder()
 	SaveMetricHandler()(w, request)
 	assert.Equal(t, float64(3), container.Instance.MetricsRepository.GetGaugeOrZero("gaugeName"))
-}
-
-func Test_parseURL(t *testing.T) {
-	type args struct {
-		url string
-	}
-	possibleError := errors.New("expected exactly 3 parameters")
-	tests := []struct {
-		name           string
-		args           args
-		wantMetricType string
-		wantName       string
-		wantValue      string
-		wantErr        bool
-	}{
-		{
-			name:           "ok",
-			args:           args{url: "/update/counter/cnt/1"},
-			wantMetricType: "counter",
-			wantName:       "cnt",
-			wantValue:      "1",
-			wantErr:        false,
-		},
-		{
-			name:           "too short 1",
-			args:           args{url: "/update/"},
-			wantMetricType: "counter",
-			wantName:       "cnt",
-			wantValue:      "1",
-			wantErr:        true,
-		},
-		{
-			name:           "too short 2",
-			args:           args{url: "/update/counter"},
-			wantMetricType: "counter",
-			wantName:       "cnt",
-			wantValue:      "1",
-			wantErr:        true,
-		},
-		{
-			name:           "too short 3",
-			args:           args{url: "/update/counter/cnt"},
-			wantMetricType: "counter",
-			wantName:       "cnt",
-			wantValue:      "1",
-			wantErr:        true,
-		},
-		{
-			name:           "too long",
-			args:           args{url: "/update/counter/cnt/1/hello"},
-			wantMetricType: "counter",
-			wantName:       "cnt",
-			wantValue:      "1",
-			wantErr:        true,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-
-			urlPath := &url.URL{Path: tt.args.url}
-
-			gotMetricType, gotName, gotValue, err := parseURL(urlPath)
-			if tt.wantErr {
-				require.Error(t, err)
-				return
-			}
-			if (err != nil) != tt.wantErr {
-				if err != nil {
-					require.NoError(t, err)
-				}
-
-				t.Errorf("parseURL() error = %v, wantErr %v", err, possibleError)
-				return
-			}
-			if gotMetricType != tt.wantMetricType {
-				t.Errorf("parseURL() gotMetricType = %v, want %v", gotMetricType, tt.wantMetricType)
-			}
-			if gotName != tt.wantName {
-				t.Errorf("parseURL() gotName = %v, want %v", gotName, tt.wantName)
-			}
-			if gotValue != tt.wantValue {
-				t.Errorf("parseURL() gotValue = %v, want %v", gotValue, tt.wantValue)
-			}
-		})
-	}
 }

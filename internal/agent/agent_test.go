@@ -15,10 +15,6 @@ import (
 	"testing"
 )
 
-func shouldContinueMock(iter int) bool {
-	return iter == 0
-}
-
 func TestAgent(t *testing.T) {
 	t.Skipf("cannot do it yet")
 	testServer := httptest.NewServer(
@@ -36,7 +32,7 @@ func TestAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Agent(url, shouldContinueMock, 1, 1)
+			err := Agent(url, 1, 1)
 			require.NoError(t, err)
 
 			assert.Equal(t,
@@ -69,7 +65,7 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Agent(url, shouldContinueMock, 1, 1)
+			err := Agent(url, 1, 1)
 			require.NoError(t, err)
 
 			assert.Equal(t,
