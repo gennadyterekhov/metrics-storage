@@ -10,8 +10,9 @@ func shouldContinue(iter int) bool {
 }
 
 func main() {
-	url := `http://localhost:8080`
-	err := agent.Agent(url, shouldContinue)
+	netAddress, reportInterval, pollInterval := parseFlags()
+
+	err := agent.Agent(netAddress, shouldContinue, reportInterval, pollInterval)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
