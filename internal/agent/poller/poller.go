@@ -14,6 +14,7 @@ type Poller interface {
 type PollMaker struct {
 	MemStatsPtr *runtime.MemStats
 	Interval    int
+	Channel     chan runtime.MemStats
 }
 
 func (pmk *PollMaker) shouldContinue(iter int) bool {
@@ -25,22 +26,16 @@ func (pmk *PollMaker) wait() {
 	time.Sleep(time.Duration(pmk.Interval * int(time.Second)))
 }
 
-func (pmk *PollMaker) pollRoutine(metricsChannel chan runtime.MemStats) {
+func (pmk *PollMaker) pollRoutine() {
 	pmk.wait()
 
 	runtime.ReadMemStats(pmk.MemStatsPtr)
-	//metricsChannel <- *pmk.MemStatsPtr
+	pmk.Channel <- *pmk.MemStatsPtr
 }
 
-func (pmk *PollMaker) Poll() (err error) {
-	metricsChannel := make(chan runtime.MemStats)
-
+func (pmk *PollMaker) Poll() {
 	pmk.MemStatsPtr = &runtime.MemStats{}
 	runtime.ReadMemStats(pmk.MemStatsPtr)
 
-	for i := 0; pmk.shouldContinue(i); i += 1 {
-		pmk.pollRoutine(metricsChannel)
-	}
-
-	return nil
+	pmk.pollRoutine()
 }

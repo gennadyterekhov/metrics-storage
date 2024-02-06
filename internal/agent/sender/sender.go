@@ -16,6 +16,7 @@ type Sender interface {
 type MetricsSender struct {
 	Address  string
 	Interval int
+	Channel  chan runtime.MemStats
 }
 
 func (pmk *MetricsSender) shouldContinue(iter int) bool {
@@ -33,15 +34,9 @@ func (pmk *MetricsSender) reportRoutine(memStats *runtime.MemStats) {
 	sendAllMetrics(pmk.Address, memStats, 1)
 }
 
-func (pmk *MetricsSender) Report(memStats *runtime.MemStats) (err error) {
-
-	for i := 0; pmk.shouldContinue(i); i += 1 {
-		fmt.Println("in loop", i)
-
-		pmk.reportRoutine(memStats)
-	}
-
-	return nil
+func (pmk *MetricsSender) Report() {
+	memStats := <-pmk.Channel
+	pmk.reportRoutine(&memStats)
 }
 
 func sendAllMetrics(address string, memStats *runtime.MemStats, pollCount int) {

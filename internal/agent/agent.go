@@ -9,7 +9,7 @@ import (
 type shouldContinueType func(int) bool
 
 func Agent(address string, shouldContinue shouldContinueType, reportInterval int, pollInterval int) (err error) {
-	//metricsChannel := make(chan runtime.MemStats)
+	metricsChannel := make(chan runtime.MemStats)
 
 	memStatsPtr := &runtime.MemStats{}
 	runtime.ReadMemStats(memStatsPtr)
@@ -17,22 +17,20 @@ func Agent(address string, shouldContinue shouldContinueType, reportInterval int
 	pollerInstance := poller.PollMaker{
 		MemStatsPtr: memStatsPtr,
 		Interval:    pollInterval,
+		Channel:     metricsChannel,
 	}
 	senderInstance := sender.MetricsSender{
 		Address:  address,
 		Interval: reportInterval,
+		Channel:  metricsChannel,
 	}
 
-	_ = pollerInstance.Poll()
-
-	_ = senderInstance.Report(memStatsPtr)
-
-	//for {
-	//	// start periodic poll in bg
-	//	go pollRoutine(pollInterval, memStatsPtr, metricsChannel)
-	//	// start periodic send in bg
-	//	go reportRoutine(reportInterval, address, metricsChannel)
-	//}
-
-	return nil
+	for {
+		// start periodic poll in bg
+		go pollerInstance.Poll()
+		//go pollRoutine(pollInterval, memStatsPtr, metricsChannel)
+		// start periodic send in bg
+		go senderInstance.Report()
+		//go reportRoutine(reportInterval, address, metricsChannel)
+	}
 }
