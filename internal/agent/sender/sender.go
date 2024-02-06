@@ -22,31 +22,35 @@ type MetricsSender struct {
 	IsRunningMu *sync.Mutex
 }
 
-func (pmk *MetricsSender) shouldContinue(iter int) bool {
+func (msnd *MetricsSender) shouldContinue(iter int) bool {
 	//return iter == 0
 	return true
 }
 
-func (pmk *MetricsSender) wait() {
-	time.Sleep(time.Duration(pmk.Interval * int(time.Second)))
+func (msnd *MetricsSender) wait() {
+	time.Sleep(time.Duration(msnd.Interval * int(time.Second)))
 }
 
-func (pmk *MetricsSender) reportRoutine(memStats *runtime.MemStats) {
+func (msnd *MetricsSender) reportRoutine(memStats *runtime.MemStats) {
 
-	sendAllMetrics(pmk.Address, memStats, 1)
+	sendAllMetrics(msnd.Address, memStats, 1)
 }
 
-func (pmk *MetricsSender) Report() {
-	pmk.IsRunningMu.Lock()
-	pmk.IsRunning = true
-	pmk.wait()
+func (msnd *MetricsSender) Report(memStatsPtr *runtime.MemStats) {
+	msnd.IsRunningMu.Lock()
+	msnd.IsRunning = true
+	fmt.Println("msnd.IsRunning", msnd.IsRunning)
 
-	//fmt.Println("reporting runtime metrics, getting from channel")
-	memStats := <-pmk.Channel
+	msnd.wait()
+
+	fmt.Println("reporting runtime metrics, getting from channel")
+	//memStats := <-msnd.Channel
 	//fmt.Println("memStats", memStats)
+	fmt.Println("GOT from channel")
 
-	pmk.reportRoutine(&memStats)
-	pmk.IsRunningMu.Unlock()
+	msnd.reportRoutine(memStatsPtr)
+	msnd.IsRunning = false
+	msnd.IsRunningMu.Unlock()
 }
 
 func sendAllMetrics(address string, memStats *runtime.MemStats, pollCount int) {

@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/poller"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/sender"
 	"runtime"
@@ -31,16 +32,17 @@ func Agent(address string, shouldContinue shouldContinueType, reportInterval int
 		IsRunningMu: isRoutineRunningMutex,
 	}
 
+	fmt.Println("pollerInstance.IsRunning", pollerInstance.IsRunning)
 	for {
 		if !pollerInstance.IsRunning {
 			// start periodic poll in bg
-			go pollerInstance.Poll()
+			memStatsPtr = pollerInstance.Poll()
 			//go pollRoutine(pollInterval, memStatsPtr, metricsChannel)
 		}
 
 		if !senderInstance.IsRunning {
 			// start periodic send in bg
-			go senderInstance.Report()
+			senderInstance.Report(memStatsPtr)
 			//go reportRoutine(reportInterval, address, metricsChannel)
 		}
 	}

@@ -1,6 +1,7 @@
 package poller
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 	"time"
@@ -29,21 +30,21 @@ func (pmk *PollMaker) wait() {
 	time.Sleep(time.Duration(pmk.Interval * int(time.Second)))
 }
 
-func (pmk *PollMaker) pollRoutine() {
+func (pmk *PollMaker) Poll() *runtime.MemStats {
 	pmk.IsRunningMu.Lock()
 	pmk.IsRunning = true
+	fmt.Println("pmk.IsRunning", pmk.IsRunning)
 	pmk.wait()
 
-	runtime.ReadMemStats(pmk.MemStatsPtr)
-	//fmt.Println("updated runtime metrics, saving to channel")
-	pmk.Channel <- *pmk.MemStatsPtr
-	pmk.IsRunningMu.Unlock()
-
-}
-
-func (pmk *PollMaker) Poll() {
 	pmk.MemStatsPtr = &runtime.MemStats{}
 	runtime.ReadMemStats(pmk.MemStatsPtr)
 
-	pmk.pollRoutine()
+	fmt.Println("updated runtime metrics, saving to channel")
+	//pmk.Channel <- *pmk.MemStatsPtr
+	fmt.Println("SAVED to channel")
+
+	pmk.IsRunning = false
+
+	pmk.IsRunningMu.Unlock()
+	return pmk.MemStatsPtr
 }

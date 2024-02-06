@@ -13,12 +13,14 @@ func parseFlags() (string, int, int) {
 	reportIntervalFlag := flag.Int(
 		//&reportIntervalFlag,
 		"r",
+		//1,
 		10,
 		"[report interval] interval of reporting metrics to server, in seconds",
 	)
 	pollIntervalFlag := flag.Int(
 		//&pollIntervalFlag,
 		"p",
+		//1,
 		2,
 		"[poll interval] interval of polling metrics from runtime package, in seconds",
 	)
