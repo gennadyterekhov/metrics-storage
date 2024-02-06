@@ -11,7 +11,6 @@ import (
 type Sender interface {
 	Send() error
 	wait()
-	shouldContinue(int)
 }
 
 type MetricsSender struct {
@@ -20,11 +19,6 @@ type MetricsSender struct {
 	Channel     chan runtime.MemStats
 	IsRunning   bool
 	IsRunningMu *sync.Mutex
-}
-
-func (msnd *MetricsSender) shouldContinue(iter int) bool {
-	//return iter == 0
-	return true
 }
 
 func (msnd *MetricsSender) wait() {

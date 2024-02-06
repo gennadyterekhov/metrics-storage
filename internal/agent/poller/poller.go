@@ -10,7 +10,6 @@ import (
 type Poller interface {
 	Poll() error
 	wait()
-	shouldContinue(int)
 }
 
 type PollMaker struct {
@@ -19,11 +18,6 @@ type PollMaker struct {
 	Channel     chan runtime.MemStats
 	IsRunning   bool
 	IsRunningMu *sync.Mutex
-}
-
-func (pmk *PollMaker) shouldContinue(iter int) bool {
-	//return iter == 0
-	return true
 }
 
 func (pmk *PollMaker) wait() {

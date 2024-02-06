@@ -8,9 +8,7 @@ import (
 	"sync"
 )
 
-type shouldContinueType func(int) bool
-
-func Agent(address string, shouldContinue shouldContinueType, reportInterval int, pollInterval int) (err error) {
+func Agent(address string, reportInterval int, pollInterval int) (err error) {
 	metricsChannel := make(chan runtime.MemStats)
 
 	memStatsPtr := &runtime.MemStats{}
