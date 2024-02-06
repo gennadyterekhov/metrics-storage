@@ -102,11 +102,11 @@ func getURL(name string, val float64) string {
 }
 
 func sendMetric(url string) (err error) {
-
+	proto := "http://"
 	client := resty.New()
 
 	_, err = client.R().
-		Post(url)
+		Post(proto + url)
 
 	if err != nil {
 		return err
