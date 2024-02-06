@@ -40,6 +40,8 @@ func (pmk *MetricsSender) Report() {
 }
 
 func sendAllMetrics(address string, memStats *runtime.MemStats, pollCount int) {
+	fmt.Println("sending all metrics ")
+
 	urls := getURLs(memStats)
 	for i := 0; i < len(urls); i++ {
 		_ = sendMetric(address + urls[i])
