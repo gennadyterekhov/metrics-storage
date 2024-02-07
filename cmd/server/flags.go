@@ -2,19 +2,20 @@ package main
 
 import (
 	"flag"
-	"github.com/gennadyterekhov/metrics-storage/internal/cliargs"
 	"os"
 )
 
-func parseFlags() string {
+func getAddress() string {
 	rawAddress, ok := os.LookupEnv("ADDRESS")
 	if ok {
 		return rawAddress
 	}
-	netAddressFlag := new(cliargs.NetAddress)
-	_ = flag.Value(netAddressFlag)
-	flag.Var(netAddressFlag, "a", "Net address host:port")
+	addressFlag := flag.String(
+		"a",
+		"localhost:8080",
+		"Net address host:port without protocol",
+	)
 	flag.Parse()
 
-	return netAddressFlag.String()
+	return *addressFlag
 }

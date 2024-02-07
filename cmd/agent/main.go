@@ -6,9 +6,9 @@ import (
 )
 
 func main() {
-	netAddress, reportInterval, pollInterval := parseFlags()
+	config := getConfig()
 
-	err := agent.Agent(netAddress, reportInterval, pollInterval)
+	err := agent.RunAgent(config.Addr, config.ReportInterval, config.PollInterval)
 	if err != nil {
 		fmt.Println(err.Error())
 	}

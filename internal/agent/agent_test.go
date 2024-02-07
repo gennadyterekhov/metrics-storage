@@ -32,16 +32,16 @@ func TestAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Agent(url, 1, 1)
+			err := RunAgent(url, 1, 1)
 			require.NoError(t, err)
 
 			assert.Equal(t,
 				1,
-				len(container.Instance.MetricsRepository.GetAllCounters()),
+				len(container.MetricsRepository.GetAllCounters()),
 			)
 			assert.Equal(t,
 				27+1,
-				len(container.Instance.MetricsRepository.GetAllGauges()),
+				len(container.MetricsRepository.GetAllGauges()),
 			)
 		})
 	}
@@ -65,16 +65,16 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := Agent(url, 1, 1)
+			err := RunAgent(url, 1, 1)
 			require.NoError(t, err)
 
 			assert.Equal(t,
 				1,
-				len(container.Instance.MetricsRepository.GetAllCounters()),
+				len(container.MetricsRepository.GetAllCounters()),
 			)
 			assert.Equal(t,
 				27+1,
-				len(container.Instance.MetricsRepository.GetAllGauges()),
+				len(container.MetricsRepository.GetAllGauges()),
 			)
 
 			url := "/value/gauge/BuckHashSys"
@@ -88,7 +88,7 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 
 			res := w.Result()
 			metricFromResponse, _ := io.ReadAll(res.Body)
-			savedValue := container.Instance.MetricsRepository.GetGaugeOrZero("BuckHashSys")
+			savedValue := container.MetricsRepository.GetGaugeOrZero("BuckHashSys")
 
 			defer res.Body.Close()
 			assert.Equal(

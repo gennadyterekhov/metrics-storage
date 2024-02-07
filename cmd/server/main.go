@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	address := parseFlags()
+	address := getAddress()
 	fmt.Printf("Server started on %v\n", address)
 	err := http.ListenAndServe(address, handlers.GetRouter())
 	if err != nil {

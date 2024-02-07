@@ -1,4 +1,4 @@
-package common
+package testhelper
 
 import (
 	"github.com/stretchr/testify/require"

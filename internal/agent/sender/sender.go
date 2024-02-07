@@ -2,97 +2,71 @@ package sender
 
 import (
 	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/go-resty/resty/v2"
-	"runtime"
-	"sync"
 	"time"
 )
 
-type Sender interface {
-	Send() error
-	wait()
-}
-
 type MetricsSender struct {
-	Address     string
-	Interval    int
-	Channel     chan runtime.MemStats
-	IsRunning   bool
-	IsRunningMu *sync.Mutex
+	Address   string
+	Interval  int
+	IsRunning bool
 }
 
 func (msnd *MetricsSender) wait() {
 	time.Sleep(time.Duration(msnd.Interval * int(time.Second)))
 }
 
-func (msnd *MetricsSender) reportRoutine(memStats *runtime.MemStats) {
-
-	sendAllMetrics(msnd.Address, memStats, 1)
-}
-
-func (msnd *MetricsSender) Report(memStatsPtr *runtime.MemStats) {
-	msnd.IsRunningMu.Lock()
+func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet) {
 	msnd.IsRunning = true
-	fmt.Println("msnd.IsRunning", msnd.IsRunning)
-
 	msnd.wait()
 
-	fmt.Println("reporting runtime metrics, getting from channel")
-	//memStats := <-msnd.Channel
-	//fmt.Println("memStats", memStats)
-	fmt.Println("GOT from channel")
-
-	msnd.reportRoutine(memStatsPtr)
+	sendAllMetrics(msnd.Address, memStatsPtr)
 	msnd.IsRunning = false
-	msnd.IsRunningMu.Unlock()
 }
 
-func sendAllMetrics(address string, memStats *runtime.MemStats, pollCount int) {
-	fmt.Println("sending all metrics ")
-
+func sendAllMetrics(address string, memStats *metric.MetricsSet) {
 	urls := getURLs(memStats)
 	for i := 0; i < len(urls); i++ {
 		_ = sendMetric(address + urls[i])
 	}
-	_ = sendMetric(address + fmt.Sprintf("/update/counter/PollCount/%v", pollCount))
-	_ = sendMetric(address + fmt.Sprintf("/update/gauge/RandomValue/%v", pollCount))
 }
 
-func getURLs(memStats *runtime.MemStats) []string {
+func getURLs(memStats *metric.MetricsSet) []string {
 	return []string{
-		getURL("Alloc", float64(memStats.Alloc)),
-		getURL("BuckHashSys", float64(memStats.BuckHashSys)),
-		getURL("Frees", float64(memStats.Frees)),
-		getURL("GCCPUFraction", float64(memStats.GCCPUFraction)),
-		getURL("GCSys", float64(memStats.GCSys)),
-		getURL("HeapAlloc", float64(memStats.HeapAlloc)),
-		getURL("HeapIdle", float64(memStats.HeapIdle)),
-		getURL("HeapInuse", float64(memStats.HeapInuse)),
-		getURL("HeapObjects", float64(memStats.HeapObjects)),
-		getURL("HeapReleased", float64(memStats.HeapReleased)),
-		getURL("HeapSys", float64(memStats.HeapSys)),
-		getURL("LastGC", float64(memStats.LastGC)),
-		getURL("Lookups", float64(memStats.Lookups)),
-		getURL("MCacheInuse", float64(memStats.MCacheInuse)),
-		getURL("MCacheSys", float64(memStats.MCacheSys)),
-		getURL("MSpanInuse", float64(memStats.MSpanInuse)),
-		getURL("MSpanSys", float64(memStats.MSpanSys)),
-		getURL("Mallocs", float64(memStats.Mallocs)),
-		getURL("NextGC", float64(memStats.NextGC)),
-		getURL("NumForcedGC", float64(memStats.NumForcedGC)),
-		getURL("NumGC", float64(memStats.NumGC)),
-		getURL("OtherSys", float64(memStats.OtherSys)),
-		getURL("PauseTotalNs", float64(memStats.PauseTotalNs)),
-		getURL("StackInuse", float64(memStats.StackInuse)),
-		getURL("StackSys", float64(memStats.StackSys)),
-		getURL("Sys", float64(memStats.Sys)),
-		getURL("TotalAlloc", float64(memStats.TotalAlloc)),
+		getURL(&memStats.Alloc),
+		getURL(&memStats.BuckHashSys),
+		getURL(&memStats.Frees),
+		getURL(&memStats.GCCPUFraction),
+		getURL(&memStats.GCSys),
+		getURL(&memStats.HeapAlloc),
+		getURL(&memStats.HeapIdle),
+		getURL(&memStats.HeapInuse),
+		getURL(&memStats.HeapObjects),
+		getURL(&memStats.HeapReleased),
+		getURL(&memStats.HeapSys),
+		getURL(&memStats.LastGC),
+		getURL(&memStats.Lookups),
+		getURL(&memStats.MCacheInuse),
+		getURL(&memStats.MCacheSys),
+		getURL(&memStats.MSpanInuse),
+		getURL(&memStats.MSpanSys),
+		getURL(&memStats.Mallocs),
+		getURL(&memStats.NextGC),
+		getURL(&memStats.NumForcedGC),
+		getURL(&memStats.NumGC),
+		getURL(&memStats.OtherSys),
+		getURL(&memStats.PauseTotalNs),
+		getURL(&memStats.StackInuse),
+		getURL(&memStats.StackSys),
+		getURL(&memStats.Sys),
+		getURL(&memStats.TotalAlloc),
 	}
 }
 
-func getURL(name string, val float64) string {
-	template := "/update/gauge/%v/%v"
-	return fmt.Sprintf(template, name, val)
+func getURL(met metric.AbstractMetric) string {
+	template := "/update/%v/%v/%v"
+	return fmt.Sprintf(template, met.GetType(), met.GetName(), met.GetValueAsString())
 }
 
 func sendMetric(url string) (err error) {
