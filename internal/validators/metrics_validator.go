@@ -3,29 +3,36 @@ package validators
 import (
 	"errors"
 	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/dto"
 	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/types"
 	"strconv"
 )
 
-func GetDataToSave(metricType string, metricName string, metricValue string) (typ string, name string, counterValue int64, gaugeValue float64, err error) {
+func GetDataToSave(metricType string, metricName string, metricValue string) (*dto.MetricToSaveDto, error) {
+	filledDto := &dto.MetricToSaveDto{}
 	if metricType == "" {
-		return "", "", 0, 0, fmt.Errorf(exceptions.EmptyMetricType)
+		return filledDto, fmt.Errorf(exceptions.EmptyMetricType)
 	}
 	if metricName == "" {
-		return "", "", 0, 0, fmt.Errorf(exceptions.EmptyMetricName)
+		return filledDto, fmt.Errorf(exceptions.EmptyMetricName)
 	}
 	if metricValue == "" {
-		return "", "", 0, 0, fmt.Errorf(exceptions.EmptyMetricValue)
+		return filledDto, fmt.Errorf(exceptions.EmptyMetricValue)
 	}
-	counterValue, gaugeValue, err = validateParameters(metricType, metricName, metricValue)
+	counterValue, gaugeValue, err := validateParameters(metricType, metricName, metricValue)
 	if err != nil && err.Error() == exceptions.InvalidMetricTypeChoice {
-		return "", "", 0, 0, fmt.Errorf(exceptions.InvalidMetricTypeChoice)
+		return filledDto, fmt.Errorf(exceptions.InvalidMetricTypeChoice)
 	}
 	if err != nil {
-		return "", "", 0, 0, err
+		return filledDto, err
 	}
-	return metricType, metricName, counterValue, gaugeValue, nil
+	filledDto.Name = metricName
+	filledDto.Type = metricType
+	filledDto.CounterValue = counterValue
+	filledDto.GaugeValue = gaugeValue
+
+	return filledDto, nil
 }
 
 func GetDataToGet(metricType string, metricName string) (typ string, name string, err error) {
