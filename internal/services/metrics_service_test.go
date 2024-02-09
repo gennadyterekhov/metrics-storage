@@ -2,6 +2,7 @@ package services
 
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
+	"github.com/gennadyterekhov/metrics-storage/internal/dto"
 	"github.com/gennadyterekhov/metrics-storage/internal/types"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -29,7 +30,10 @@ func TestSaveMetricToMemory(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			SaveMetricToMemory(tt.args.metricType, tt.args.name, tt.args.counterValue, tt.args.gaugeValue)
+			filledDto := &dto.MetricToSaveDto{
+				Type: tt.args.metricType, Name: tt.args.name, CounterValue: tt.args.counterValue, GaugeValue: tt.args.gaugeValue,
+			}
+			SaveMetricToMemory(filledDto)
 
 			if tt.args.metricType == types.Counter {
 				assert.Equal(t, tt.args.counterValue, container.MetricsRepository.GetCounterOrZero(tt.args.name))
@@ -41,10 +45,14 @@ func TestSaveMetricToMemory(t *testing.T) {
 	}
 
 	// check counter is added to itself
-	SaveMetricToMemory(types.Counter, "cnt", 10, 0)
+	SaveMetricToMemory(&dto.MetricToSaveDto{
+		Type: types.Counter, Name: "cnt", CounterValue: 10, GaugeValue: 0,
+	})
 	assert.Equal(t, int64(10+1), container.MetricsRepository.GetCounterOrZero("cnt"))
 
 	// check gauge is substituted, (not 2.5+1.6)
-	SaveMetricToMemory(types.Gauge, "gaugeName", 0, 2.5)
+	SaveMetricToMemory(&dto.MetricToSaveDto{
+		Type: types.Gauge, Name: "gaugeName", CounterValue: 0, GaugeValue: 2.5,
+	})
 	assert.Equal(t, 2.5, container.MetricsRepository.GetGaugeOrZero("gaugeName"))
 }
