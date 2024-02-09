@@ -51,8 +51,8 @@ func GetDataToGet(metricType string, metricName string) (typ string, name string
 	return metricType, metricName, nil
 }
 
-func validateParameters(metricTypeRaw string, nameRaw string, valueRaw string) (counterValue int64, gaugeValue float64, err error) {
-	err = validateMetricType(metricTypeRaw)
+func validateParameters(metricTypeRaw string, nameRaw string, valueRaw string) (int64, float64, error) {
+	err := validateMetricType(metricTypeRaw)
 	if err != nil {
 		return 0, 0, err
 	}
@@ -60,7 +60,7 @@ func validateParameters(metricTypeRaw string, nameRaw string, valueRaw string) (
 	if err != nil {
 		return 0, 0, err
 	}
-	counterValue, gaugeValue, err = validateMetricValue(metricTypeRaw, valueRaw)
+	counterValue, gaugeValue, err := validateMetricValue(metricTypeRaw, valueRaw)
 	if err != nil {
 		return 0, 0, err
 	}
