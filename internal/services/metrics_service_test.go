@@ -31,7 +31,10 @@ func TestSaveMetricToMemory(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			filledDto := &dto.MetricToSaveDto{
-				Type: tt.args.metricType, Name: tt.args.name, CounterValue: tt.args.counterValue, GaugeValue: tt.args.gaugeValue,
+				Type:         tt.args.metricType,
+				Name:         tt.args.name,
+				CounterValue: tt.args.counterValue,
+				GaugeValue:   tt.args.gaugeValue,
 			}
 			SaveMetricToMemory(filledDto)
 
