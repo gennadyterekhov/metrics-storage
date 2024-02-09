@@ -3,18 +3,18 @@ package services
 import (
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
+	"github.com/gennadyterekhov/metrics-storage/internal/dto"
 	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/types"
 	"strconv"
 )
 
-func SaveMetricToMemory(metricType string, name string, counterValue int64, gaugeValue float64) {
-	fmt.Println("saving metrics " + name)
-	if metricType == types.Counter {
-		container.MetricsRepository.AddCounter(name, counterValue)
+func SaveMetricToMemory(filledDto *dto.MetricToSaveDto) {
+	if filledDto.Type == types.Counter {
+		container.MetricsRepository.AddCounter(filledDto.Name, filledDto.CounterValue)
 	}
-	if metricType == types.Gauge {
-		container.MetricsRepository.SetGauge(name, gaugeValue)
+	if filledDto.Type == types.Gauge {
+		container.MetricsRepository.SetGauge(filledDto.Name, filledDto.GaugeValue)
 	}
 }
 
