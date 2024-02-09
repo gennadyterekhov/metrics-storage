@@ -9,7 +9,7 @@ import (
 
 func SaveMetric(res http.ResponseWriter, req *http.Request) {
 
-	metricType, name, counterValue, gaugeValue, err := validators.GetDataToSave(
+	filledDto, err := validators.GetDataToSave(
 		chi.URLParam(req, "metricType"),
 		chi.URLParam(req, "metricName"),
 		chi.URLParam(req, "metricValue"),
@@ -20,5 +20,5 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	services.SaveMetricToMemory(metricType, name, counterValue, gaugeValue)
+	services.SaveMetricToMemory(filledDto)
 }
