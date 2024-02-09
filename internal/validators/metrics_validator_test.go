@@ -258,22 +258,22 @@ func TestGetDataToSave(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotTyp, gotName, gotCounterValue, gotGaugeValue, err := GetDataToSave(tt.args.metricType, tt.args.metricName, tt.args.metricValue)
+			filledDto, err := GetDataToSave(tt.args.metricType, tt.args.metricName, tt.args.metricValue)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("GetDataToSave() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if gotTyp != tt.want.metricType {
-				t.Errorf("GetDataToSave() gotTyp = %v, want %v", gotTyp, tt.want.metricType)
+			if filledDto.Type != tt.want.metricType {
+				t.Errorf("GetDataToSave() gotTyp = %v, want %v", filledDto.Type, tt.want.metricType)
 			}
-			if gotName != tt.want.metricName {
-				t.Errorf("GetDataToSave() gotName = %v, want %v", gotName, tt.want.metricName)
+			if filledDto.Name != tt.want.metricName {
+				t.Errorf("GetDataToSave() gotName = %v, want %v", filledDto.Name, tt.want.metricName)
 			}
-			if gotCounterValue != tt.want.counterValue {
-				t.Errorf("GetDataToSave() gotCounterValue = %v, want %v", gotCounterValue, tt.want.counterValue)
+			if filledDto.CounterValue != tt.want.counterValue {
+				t.Errorf("GetDataToSave() gotCounterValue = %v, want %v", filledDto.CounterValue, tt.want.counterValue)
 			}
-			if gotGaugeValue != tt.want.gaugeValue {
-				t.Errorf("GetDataToSave() gotGaugeValue = %v, want %v", gotGaugeValue, tt.want.gaugeValue)
+			if filledDto.GaugeValue != tt.want.gaugeValue {
+				t.Errorf("GetDataToSave() gotGaugeValue = %v, want %v", filledDto.GaugeValue, tt.want.gaugeValue)
 			}
 		})
 	}
