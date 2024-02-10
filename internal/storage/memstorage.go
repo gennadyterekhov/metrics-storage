@@ -3,7 +3,6 @@ package storage
 import (
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
-	"github.com/gennadyterekhov/metrics-storage/internal/repositories"
 )
 
 type MemStorage struct {
@@ -11,7 +10,7 @@ type MemStorage struct {
 	gauges   map[string]float64
 }
 
-func CreateStorage() repositories.MetricsRepository {
+func CreateStorage() *MemStorage {
 	return &MemStorage{
 		counters: make(map[string]int64, 0),
 		gauges:   make(map[string]float64, 0),
@@ -34,15 +33,10 @@ func (strg *MemStorage) HasCounter(name string) bool {
 }
 
 func (strg *MemStorage) AddCounter(key string, value int64) {
-	_, ok := strg.counters[key]
-	if ok {
-		strg.counters[key] += value
-		return
-	}
-	strg.counters[key] = value
+	strg.counters[key] += value
 }
 
-func (strg *MemStorage) AddGauge(key string, value float64) {
+func (strg *MemStorage) SetGauge(key string, value float64) {
 	strg.gauges[key] = value
 }
 
@@ -82,4 +76,8 @@ func (strg *MemStorage) GetAllGauges() map[string]float64 {
 
 func (strg *MemStorage) GetAllCounters() map[string]int64 {
 	return strg.counters
+}
+
+func (strg *MemStorage) GetAll() (map[string]float64, map[string]int64) {
+	return strg.GetAllGauges(), strg.GetAllCounters()
 }

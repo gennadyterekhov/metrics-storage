@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"github.com/gennadyterekhov/metrics-storage/internal/common"
 	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -46,7 +46,7 @@ func TestCanGetUrlParameters(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 
-			resp, get := common.SendRequest(t, ts, http.MethodPost, tt.url)
+			resp, get := testhelper.SendRequest(t, ts, http.MethodPost, tt.url)
 			defer resp.Body.Close()
 			assert.Equal(t, tt.want.code, resp.StatusCode)
 			assert.Equal(t, tt.want.response, strings.Trim(get, "\n"))

@@ -3,31 +3,31 @@ package services
 import (
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
+	"github.com/gennadyterekhov/metrics-storage/internal/dto"
 	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/types"
 	"strconv"
 )
 
-func SaveMetricToMemory(metricType string, name string, counterValue int64, gaugeValue float64) {
-	fmt.Println("saving metrics " + name)
-	if metricType == types.Counter {
-		container.Instance.MetricsRepository.AddCounter(name, counterValue)
+func SaveMetricToMemory(filledDto *dto.MetricToSaveDto) {
+	if filledDto.Type == types.Counter {
+		container.MetricsRepository.AddCounter(filledDto.Name, filledDto.CounterValue)
 	}
-	if metricType == types.Gauge {
-		container.Instance.MetricsRepository.AddGauge(name, gaugeValue)
+	if filledDto.Type == types.Gauge {
+		container.MetricsRepository.SetGauge(filledDto.Name, filledDto.GaugeValue)
 	}
 }
 
 func GetMetricAsString(metricType string, name string) (metric string, err error) {
 	if metricType == types.Counter {
-		val, err := container.Instance.MetricsRepository.GetCounter(name)
+		val, err := container.MetricsRepository.GetCounter(name)
 		if err != nil {
 			return "", err
 		}
 		return strconv.FormatInt(val, 10), nil
 	}
 	if metricType == types.Gauge {
-		val, err := container.Instance.MetricsRepository.GetGauge(name)
+		val, err := container.MetricsRepository.GetGauge(name)
 		if err != nil {
 			return "", err
 		}
@@ -66,7 +66,7 @@ func GetMetricsListAsHTML() string {
 
 func getGaugeList() string {
 	list := ""
-	for name, val := range container.Instance.MetricsRepository.GetAllGauges() {
+	for name, val := range container.MetricsRepository.GetAllGauges() {
 		list += fmt.Sprintf("<li>%v : %v</li>", name, val)
 	}
 
@@ -75,7 +75,7 @@ func getGaugeList() string {
 
 func getCounterList() string {
 	list := ""
-	for name, val := range container.Instance.MetricsRepository.GetAllCounters() {
+	for name, val := range container.MetricsRepository.GetAllCounters() {
 		list += fmt.Sprintf("<li>%v : %v</li>", name, val)
 	}
 	return list

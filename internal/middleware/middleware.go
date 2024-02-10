@@ -82,7 +82,7 @@ func URLParametersToGetMetricsArePresent(next http.Handler) http.Handler {
 
 func URLParametersToSetMetricsArePresent(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		_, _, _, _, err := validators.GetDataToSave(
+		_, err := validators.GetDataToSave(
 			chi.URLParam(req, "metricType"),
 			chi.URLParam(req, "metricName"),
 			chi.URLParam(req, "metricValue"),

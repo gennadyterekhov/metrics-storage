@@ -14,7 +14,7 @@ import (
 )
 
 func TestGetMetric(t *testing.T) {
-	container.Instance.MetricsRepository.AddCounter("cnt", 1)
+	container.MetricsRepository.AddCounter("cnt", 1)
 
 	type want struct {
 		code        int

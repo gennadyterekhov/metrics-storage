@@ -2,16 +2,23 @@ package main
 
 import (
 	"flag"
-	"github.com/gennadyterekhov/metrics-storage/internal/cliargs"
 	"log"
 	"os"
 	"strconv"
 )
 
-func parseFlags() (string, int, int) {
-	netAddressFlag := new(cliargs.NetAddress)
-	_ = flag.Value(netAddressFlag)
-	flag.Var(netAddressFlag, "a", "Net address host:port without protocol")
+type AgentConfig struct {
+	Addr           string
+	ReportInterval int
+	PollInterval   int
+}
+
+func getConfig() AgentConfig {
+	addressFlag := flag.String(
+		"a",
+		"localhost:8080",
+		"Net address host:port without protocol",
+	)
 
 	reportIntervalFlag := flag.Int(
 		"r",
@@ -25,19 +32,33 @@ func parseFlags() (string, int, int) {
 	)
 	flag.Parse()
 
-	return getAddress(netAddressFlag), getReportInterval(reportIntervalFlag), getPollInterval(pollIntervalFlag)
+	flags := AgentConfig{
+		*addressFlag,
+		*reportIntervalFlag,
+		*pollIntervalFlag,
+	}
+
+	overwriteWithEnv(&flags)
+
+	return flags
 }
 
-func getAddress(netAddressFlag *cliargs.NetAddress) string {
+func overwriteWithEnv(flags *AgentConfig) {
+	flags.Addr = getAddress(flags.Addr)
+	flags.ReportInterval = getReportInterval(flags.ReportInterval)
+	flags.PollInterval = getPollInterval(flags.PollInterval)
+}
+
+func getAddress(current string) string {
 	rawAddress, ok := os.LookupEnv("ADDRESS")
 	if ok {
 		return rawAddress
 	}
 
-	return netAddressFlag.String()
+	return current
 }
 
-func getReportInterval(reportIntervalFlag *int) int {
+func getReportInterval(current int) int {
 	rawInterval, ok := os.LookupEnv("REPORT_INTERVAL")
 	if ok {
 		interval, err := strconv.Atoi(rawInterval)
@@ -47,10 +68,10 @@ func getReportInterval(reportIntervalFlag *int) int {
 		return interval
 	}
 
-	return *reportIntervalFlag
+	return current
 }
 
-func getPollInterval(pollIntervalFlag *int) int {
+func getPollInterval(current int) int {
 	rawInterval, ok := os.LookupEnv("POLL_INTERVAL")
 	if ok {
 		interval, err := strconv.Atoi(rawInterval)
@@ -60,5 +81,5 @@ func getPollInterval(pollIntervalFlag *int) int {
 		return interval
 	}
 
-	return *pollIntervalFlag
+	return current
 }

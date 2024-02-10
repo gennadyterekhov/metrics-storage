@@ -82,7 +82,7 @@ func TestSaveMetric(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			container.Instance.MetricsRepository.Clear()
+			container.MetricsRepository.Clear()
 			rctx := chi.NewRouteContext()
 			rctx.URLParams.Add("metricType", tt.want.typ)
 			rctx.URLParams.Add("metricName", tt.want.metricName)
@@ -98,16 +98,16 @@ func TestSaveMetric(t *testing.T) {
 			assert.Equal(t, tt.want.code, res.StatusCode)
 
 			if tt.want.typ == types.Counter {
-				assert.Equal(t, tt.want.metricValue, container.Instance.MetricsRepository.GetCounterOrZero(tt.want.metricName))
+				assert.Equal(t, tt.want.metricValue, container.MetricsRepository.GetCounterOrZero(tt.want.metricName))
 			}
 			if tt.want.typ == types.Gauge {
-				assert.Equal(t, tt.want.metricValue, int64(container.Instance.MetricsRepository.GetGaugeOrZero(tt.want.metricName)))
+				assert.Equal(t, tt.want.metricValue, int64(container.MetricsRepository.GetGaugeOrZero(tt.want.metricName)))
 			}
 		})
 	}
 
 	// check counter is added to itself
-	container.Instance.MetricsRepository.AddCounter("cnt", 1)
+	container.MetricsRepository.AddCounter("cnt", 1)
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("metricType", types.Counter)
 	rctx.URLParams.Add("metricName", "cnt")
@@ -117,10 +117,10 @@ func TestSaveMetric(t *testing.T) {
 
 	w := httptest.NewRecorder()
 	SaveMetricHandler()(w, request)
-	assert.Equal(t, int64(10+1), container.Instance.MetricsRepository.GetCounterOrZero("cnt"))
+	assert.Equal(t, int64(10+1), container.MetricsRepository.GetCounterOrZero("cnt"))
 
 	// check gauge is substituted
-	container.Instance.MetricsRepository.AddGauge("gaugeName", 1)
+	container.MetricsRepository.SetGauge("gaugeName", 1)
 
 	rctx = chi.NewRouteContext()
 	rctx.URLParams.Add("metricType", types.Gauge)
@@ -131,5 +131,5 @@ func TestSaveMetric(t *testing.T) {
 
 	w = httptest.NewRecorder()
 	SaveMetricHandler()(w, request)
-	assert.Equal(t, float64(3), container.Instance.MetricsRepository.GetGaugeOrZero("gaugeName"))
+	assert.Equal(t, float64(3), container.MetricsRepository.GetGaugeOrZero("gaugeName"))
 }
