@@ -8,7 +8,7 @@ import (
 func main() {
 	config := getConfig()
 
-	err := agent.RunAgent(config.Addr, config.ReportInterval, config.PollInterval)
+	err := agent.RunAgent(config)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
