@@ -30,3 +30,39 @@ git fetch template && git checkout template/main .github
 При мёрже ветки с инкрементом в основную ветку `main` будут запускаться все автотесты.
 
 Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
+
+## test coverage
+go clean -testcache
+go test -coverprofile cover.out ./...
+go tool cover -html=cover.out
+
+## CI tests locally
+cd cmd/agent
+go build -o agent *.go
+cd ../server
+go build -o server *.go
+
+build:
+go build -o cmd/agent/agent cmd/agent/main.go && go build -o cmd/server/server cmd/server/main.go
+go build -o cmd/agent/agent cmd/agent/*.go && go build -o cmd/server/server cmd/server/*.go
+
+
+./metricstest -test.v -test.run=^TestIteration1$ -agent-binary-path=cmd/agent/agent
+
+### all
+./metricstest -test.v -source-path=. -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server
+
+### 1
+./metricstest -test.v -test.run=^TestIteration1$ -binary-path=cmd/server/server  
+### 2
+./metricstest -test.v -test.run=^TestIteration2[AB]*$ -source-path=. -agent-binary-path=cmd/agent/agent
+./metricstest -test.v -source-path=. -agent-binary-path=cmd/agent/agent
+./metricstest -test.v -test.run=^TestIteration*$ -source-path=. -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server
+
+### 3
+./metricstest -test.v -test.run=^TestIteration3$ -source-path=. -agent-binary-path=cmd/agent/agent -binary-path=cmd/server/server
+
+./metricstest -test.v \
+-source-path=. \
+-agent-binary-path=cmd/agent/agent \
+-binary-path=cmd/server/server
