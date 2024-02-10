@@ -64,7 +64,7 @@ func getURLs(memStats *metric.MetricsSet) []string {
 	}
 }
 
-func getURL(met metric.AbstractMetric) string {
+func getURL(met metric.MerticURLFormatter) string {
 	template := "/update/%v/%v/%v"
 	return fmt.Sprintf(template, met.GetType(), met.GetName(), met.GetValueAsString())
 }
