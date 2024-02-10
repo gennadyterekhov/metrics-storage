@@ -2,18 +2,13 @@ package main
 
 import (
 	"flag"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent"
 	"log"
 	"os"
 	"strconv"
 )
 
-type AgentConfig struct {
-	Addr           string
-	ReportInterval int
-	PollInterval   int
-}
-
-func getConfig() AgentConfig {
+func getConfig() *agent.AgentConfig {
 	addressFlag := flag.String(
 		"a",
 		"localhost:8080",
@@ -32,7 +27,7 @@ func getConfig() AgentConfig {
 	)
 	flag.Parse()
 
-	flags := AgentConfig{
+	flags := agent.AgentConfig{
 		*addressFlag,
 		*reportIntervalFlag,
 		*pollIntervalFlag,
@@ -40,10 +35,10 @@ func getConfig() AgentConfig {
 
 	overwriteWithEnv(&flags)
 
-	return flags
+	return &flags
 }
 
-func overwriteWithEnv(flags *AgentConfig) {
+func overwriteWithEnv(flags *agent.AgentConfig) {
 	flags.Addr = getAddress(flags.Addr)
 	flags.ReportInterval = getReportInterval(flags.ReportInterval)
 	flags.PollInterval = getPollInterval(flags.PollInterval)
