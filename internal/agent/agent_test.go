@@ -32,7 +32,11 @@ func TestAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := RunAgent(url, 1, 1)
+			err := RunAgent(&AgentConfig{
+				Addr:           url,
+				ReportInterval: 1,
+				PollInterval:   1,
+			})
 			require.NoError(t, err)
 
 			assert.Equal(t,
@@ -65,7 +69,11 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := RunAgent(url, 1, 1)
+			err := RunAgent(&AgentConfig{
+				Addr:           url,
+				ReportInterval: 1,
+				PollInterval:   1,
+			})
 			require.NoError(t, err)
 
 			assert.Equal(t,
