@@ -70,6 +70,15 @@ func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 }
 
 func initializeCustomWriter(res http.ResponseWriter, req *http.Request) *LoggingResponseWriter {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+	defer logger.Sync()
+
+	// делаем регистратор SugaredLogger
+	ZapSugarLogger = *logger.Sugar()
+
 	responseData := &LogContext{
 		uri:       req.RequestURI,
 		method:    req.Method,
