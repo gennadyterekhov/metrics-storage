@@ -43,9 +43,13 @@ func (lrw *LoggingResponseWriter) log() {
 	)
 }
 func (lrw *LoggingResponseWriter) updateContext(req *http.Request) {
-	lrw.LogContext.uri = req.RequestURI
-	lrw.LogContext.method = req.Method
-	lrw.LogContext.time = time.Since(lrw.LogContext.startTime)
+	if req != nil {
+		lrw.LogContext.uri = req.RequestURI
+		lrw.LogContext.method = req.Method
+		lrw.LogContext.time = time.Since(lrw.LogContext.startTime)
+	} else {
+		ZapSugarLogger.Errorln("could not update log context with actual request info")
+	}
 }
 
 var ZapSugarLogger zap.SugaredLogger
@@ -53,11 +57,15 @@ var ZapSugarLogger zap.SugaredLogger
 func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		customWriter := initializeCustomWriter(res, req)
+		if customWriter == nil {
+			ZapSugarLogger.Errorln("could not set custom logger writer")
+		}
+		next.ServeHTTP(res, req)
 
-		next.ServeHTTP(customWriter, req)
-
-		customWriter.updateContext(req)
-		customWriter.log()
+		if customWriter != nil {
+			customWriter.updateContext(req)
+			customWriter.log()
+		}
 	})
 }
 
