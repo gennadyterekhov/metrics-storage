@@ -1,6 +1,7 @@
 package logger
 
 import (
+	"fmt"
 	"go.uber.org/zap"
 	"net/http"
 	"time"
@@ -30,6 +31,7 @@ func (lrw *LoggingResponseWriter) Write(b []byte) (int, error) {
 
 func (lrw *LoggingResponseWriter) WriteHeader(statusCode int) {
 	lrw.ResponseWriter.WriteHeader(statusCode)
+	fmt.Println("raw print statusCode", statusCode)
 	lrw.LogContext.status = statusCode
 }
 
@@ -60,7 +62,7 @@ func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 		if customWriter == nil {
 			ZapSugarLogger.Errorln("could not set custom logger writer")
 		}
-		next.ServeHTTP(res, req)
+		next.ServeHTTP(customWriter, req)
 
 		if customWriter != nil {
 			customWriter.updateContext(req)
@@ -76,7 +78,6 @@ func initializeCustomWriter(res http.ResponseWriter, req *http.Request) *Logging
 	}
 	defer logger.Sync()
 
-	// делаем регистратор SugaredLogger
 	ZapSugarLogger = *logger.Sugar()
 
 	responseData := &LogContext{
