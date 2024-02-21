@@ -28,9 +28,9 @@ func getConfig() *agent.AgentConfig {
 	flag.Parse()
 
 	flags := agent.AgentConfig{
-		*addressFlag,
-		*reportIntervalFlag,
-		*pollIntervalFlag,
+		Addr:           *addressFlag,
+		ReportInterval: *reportIntervalFlag,
+		PollInterval:   *pollIntervalFlag,
 	}
 
 	overwriteWithEnv(&flags)
