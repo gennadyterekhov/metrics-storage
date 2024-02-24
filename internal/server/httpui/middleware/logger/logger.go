@@ -2,7 +2,8 @@ package logger
 
 import (
 	"fmt"
-	"go.uber.org/zap"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"net/http"
 	"time"
 )
@@ -36,7 +37,7 @@ func (lrw *LoggingResponseWriter) WriteHeader(statusCode int) {
 }
 
 func (lrw *LoggingResponseWriter) log() {
-	ZapSugarLogger.Infoln(
+	logger.ZapSugarLogger.Infoln(
 		"uri", lrw.LogContext.uri,
 		"method", lrw.LogContext.method,
 		"duration", lrw.LogContext.time,
@@ -50,17 +51,26 @@ func (lrw *LoggingResponseWriter) updateContext(req *http.Request) {
 		lrw.LogContext.method = req.Method
 		lrw.LogContext.time = time.Since(lrw.LogContext.startTime)
 	} else {
-		ZapSugarLogger.Errorln("could not update log context with actual request info")
+		logger.ZapSugarLogger.Errorln("could not update log context with actual request info")
 	}
 }
 
-var ZapSugarLogger zap.SugaredLogger
-
 func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		reqBody := make([]byte, 0)
+		_, _ = req.Body.Read(reqBody)
+		defer req.Body.Close()
+		logger.ZapSugarLogger.Debugln(
+			"got request",
+			req.Method,
+			req.RequestURI,
+			req.Header.Get(constants.HeaderContentType),
+			reqBody,
+		)
+
 		customWriter := initializeCustomWriter(res, req)
 		if customWriter == nil {
-			ZapSugarLogger.Errorln("could not set custom logger writer")
+			logger.ZapSugarLogger.Errorln("could not set custom logger writer")
 		}
 		next.ServeHTTP(customWriter, req)
 
@@ -72,14 +82,6 @@ func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 }
 
 func initializeCustomWriter(res http.ResponseWriter, req *http.Request) *LoggingResponseWriter {
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		panic(err)
-	}
-	defer logger.Sync()
-
-	ZapSugarLogger = *logger.Sugar()
-
 	responseData := &LogContext{
 		uri:       req.RequestURI,
 		method:    req.Method,

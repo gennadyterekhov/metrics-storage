@@ -1,24 +1,18 @@
-package services
+package getmetricservice
 
 import (
 	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
-	"github.com/gennadyterekhov/metrics-storage/internal/dto"
-	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
-	"github.com/gennadyterekhov/metrics-storage/internal/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"strconv"
 )
 
-func SaveMetricToMemory(filledDto *dto.MetricToSaveDto) {
-	if filledDto.Type == types.Counter {
-		container.MetricsRepository.AddCounter(filledDto.Name, filledDto.CounterValue)
-	}
-	if filledDto.Type == types.Gauge {
-		container.MetricsRepository.SetGauge(filledDto.Name, filledDto.GaugeValue)
-	}
-}
-
 func GetMetricAsString(metricType string, name string) (metric string, err error) {
+	logger.ZapSugarLogger.Debugln("GetMetricAsString name, metricType", name, metricType)
+
 	if metricType == types.Counter {
 		val, err := container.MetricsRepository.GetCounter(name)
 		if err != nil {
@@ -34,6 +28,33 @@ func GetMetricAsString(metricType string, name string) (metric string, err error
 		return strconv.FormatFloat(val, 'g', -1, 64), nil
 	}
 	return "", fmt.Errorf(exceptions.InvalidMetricTypeChoice)
+}
+
+func GetMetricsAsStruct(metricType string, name string) (metric models.Metrics, err error) {
+	logger.ZapSugarLogger.Debugln("GetMetricsAsStruct name, metricType", name, metricType)
+
+	metric = models.Metrics{
+		ID:    name,
+		MType: metricType,
+	}
+
+	if metricType == types.Counter {
+		val, err := container.MetricsRepository.GetCounter(name)
+		if err != nil {
+			return metric, err
+		}
+		metric.Delta = &val
+		return metric, nil
+	}
+	if metricType == types.Gauge {
+		val, err := container.MetricsRepository.GetGauge(name)
+		if err != nil {
+			return metric, err
+		}
+		metric.Value = &val
+		return metric, nil
+	}
+	return metric, fmt.Errorf(exceptions.InvalidMetricTypeChoice)
 }
 
 func GetMetricsListAsHTML() string {

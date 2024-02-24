@@ -2,9 +2,9 @@ package agent
 
 import (
 	"context"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
-	"github.com/gennadyterekhov/metrics-storage/internal/handlers"
-	"github.com/gennadyterekhov/metrics-storage/internal/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

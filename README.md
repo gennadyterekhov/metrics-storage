@@ -34,6 +34,13 @@ git fetch template && git checkout template/main .github
 ## test locally
 cd internal
 go test ./...
+
+### specific package
+go test github.com/gennadyterekhov/metrics-storage/internal/agent/client
+
+### specific test
+go test github.com/gennadyterekhov/metrics-storage/internal/agent/client -run TestCanSendCounterValue -test.v
+
 ## test coverage
 go clean -testcache
 go test -coverprofile cover.out ./...

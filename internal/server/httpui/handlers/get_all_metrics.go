@@ -1,14 +1,14 @@
 package handlers
 
 import (
-	"github.com/gennadyterekhov/metrics-storage/internal/services"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/app/services/get_metric_service"
 	"io"
 	"net/http"
 )
 
 func GetAllMetrics(res http.ResponseWriter, req *http.Request) {
 
-	htmlPage := services.GetMetricsListAsHTML()
+	htmlPage := getmetricservice.GetMetricsListAsHTML()
 
 	_, err := io.WriteString(res, htmlPage)
 	if err != nil {

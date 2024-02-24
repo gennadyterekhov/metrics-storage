@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"net/http"
 )
 

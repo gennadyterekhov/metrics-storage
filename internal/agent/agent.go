@@ -1,9 +1,11 @@
 package agent
 
 import (
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/healthcheck"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/poller"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/sender"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"time"
 )
 
@@ -41,7 +43,17 @@ func RunAgent(config *AgentConfig) (err error) {
 		}
 
 		if !senderInstance.IsRunning && i%config.ReportInterval == 0 {
+			if !isServerAvailable(config) {
+				logger.ZapSugarLogger.Warnln(
+					"agent will not send metrics because server healthcheck was not successful",
+				)
+				continue
+			}
 			senderInstance.Report(metricsSet)
 		}
 	}
+}
+
+func isServerAvailable(config *AgentConfig) (isAvailable bool) {
+	return healthcheck.MakeHealthcheck(config.Addr)
 }
