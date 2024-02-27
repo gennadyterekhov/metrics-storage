@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func SendMetric(met metric.MetricURLFormatter, domain string) (err error) {
@@ -89,7 +90,12 @@ func getFullURL(domain string) string {
 func sendBody(url string, body []byte) (err error) {
 
 	client := resty.New()
+	_, err = client.R().
+		SetBody(body).
+		SetHeader(constants.HeaderContentType, constants.ApplicationJSON).
+		Post(url)
 	for err != nil {
+		time.Sleep(time.Second)
 		_, err = client.R().
 			SetBody(body).
 			SetHeader(constants.HeaderContentType, constants.ApplicationJSON).
