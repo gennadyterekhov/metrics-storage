@@ -1,9 +1,9 @@
 package sender
 
 import (
-	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
-	"github.com/go-resty/resty/v2"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"time"
 )
 
@@ -26,57 +26,45 @@ func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet) {
 }
 
 func sendAllMetrics(address string, memStats *metric.MetricsSet) {
-	urls := getURLs(memStats)
-	for i := 0; i < len(urls); i++ {
-		_ = sendMetric(address + urls[i])
-	}
+	logger.ZapSugarLogger.Debugln("gonna send metrics to server")
+
+	sendMetric(&memStats.Alloc, address)
+	sendMetric(&memStats.BuckHashSys, address)
+	sendMetric(&memStats.Frees, address)
+	sendMetric(&memStats.GCCPUFraction, address)
+	sendMetric(&memStats.GCSys, address)
+	sendMetric(&memStats.HeapAlloc, address)
+	sendMetric(&memStats.HeapIdle, address)
+	sendMetric(&memStats.HeapInuse, address)
+	sendMetric(&memStats.HeapObjects, address)
+	sendMetric(&memStats.HeapReleased, address)
+	sendMetric(&memStats.HeapSys, address)
+	sendMetric(&memStats.LastGC, address)
+	sendMetric(&memStats.Lookups, address)
+	sendMetric(&memStats.MCacheInuse, address)
+	sendMetric(&memStats.MCacheSys, address)
+	sendMetric(&memStats.MSpanInuse, address)
+	sendMetric(&memStats.MSpanSys, address)
+	sendMetric(&memStats.Mallocs, address)
+	sendMetric(&memStats.NextGC, address)
+	sendMetric(&memStats.NumForcedGC, address)
+	sendMetric(&memStats.NumGC, address)
+	sendMetric(&memStats.OtherSys, address)
+	sendMetric(&memStats.PauseTotalNs, address)
+	sendMetric(&memStats.StackInuse, address)
+	sendMetric(&memStats.StackSys, address)
+	sendMetric(&memStats.Sys, address)
+	sendMetric(&memStats.TotalAlloc, address)
+	sendMetric(&memStats.PollCount, address)
+	sendMetric(&memStats.RandomValue, address)
 }
 
-func getURLs(memStats *metric.MetricsSet) []string {
-	return []string{
-		getURL(&memStats.Alloc),
-		getURL(&memStats.BuckHashSys),
-		getURL(&memStats.Frees),
-		getURL(&memStats.GCCPUFraction),
-		getURL(&memStats.GCSys),
-		getURL(&memStats.HeapAlloc),
-		getURL(&memStats.HeapIdle),
-		getURL(&memStats.HeapInuse),
-		getURL(&memStats.HeapObjects),
-		getURL(&memStats.HeapReleased),
-		getURL(&memStats.HeapSys),
-		getURL(&memStats.LastGC),
-		getURL(&memStats.Lookups),
-		getURL(&memStats.MCacheInuse),
-		getURL(&memStats.MCacheSys),
-		getURL(&memStats.MSpanInuse),
-		getURL(&memStats.MSpanSys),
-		getURL(&memStats.Mallocs),
-		getURL(&memStats.NextGC),
-		getURL(&memStats.NumForcedGC),
-		getURL(&memStats.NumGC),
-		getURL(&memStats.OtherSys),
-		getURL(&memStats.PauseTotalNs),
-		getURL(&memStats.StackInuse),
-		getURL(&memStats.StackSys),
-		getURL(&memStats.Sys),
-		getURL(&memStats.TotalAlloc),
-	}
-}
-
-func getURL(met metric.MerticURLFormatter) string {
-	template := "/update/%v/%v/%v"
-	return fmt.Sprintf(template, met.GetType(), met.GetName(), met.GetValueAsString())
-}
-
-func sendMetric(url string) (err error) {
-	proto := "http://"
-	client := resty.New()
-
-	_, err = client.R().
-		Post(proto + url)
+func sendMetric(met metric.MetricURLFormatter, address string) error {
+	err := client.SendMetric(met, address)
 
 	if err != nil {
+		logger.ZapSugarLogger.Errorln("error when sending metric to server", err.Error())
+
 		return err
 	}
 	return nil

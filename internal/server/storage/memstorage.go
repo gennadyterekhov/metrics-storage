@@ -2,7 +2,7 @@ package storage
 
 import (
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 )
 
 type MemStorage struct {

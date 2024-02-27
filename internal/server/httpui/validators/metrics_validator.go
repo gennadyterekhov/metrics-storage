@@ -3,9 +3,9 @@ package validators
 import (
 	"errors"
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/dto"
-	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
-	"github.com/gennadyterekhov/metrics-storage/internal/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/domain/dto"
 	"strconv"
 )
 

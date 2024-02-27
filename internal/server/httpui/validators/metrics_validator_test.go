@@ -2,8 +2,8 @@ package validators
 
 import (
 	"errors"
-	"github.com/gennadyterekhov/metrics-storage/internal/exceptions"
-	"github.com/gennadyterekhov/metrics-storage/internal/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
