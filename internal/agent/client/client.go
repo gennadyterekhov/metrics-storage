@@ -87,10 +87,14 @@ func getFullURL(domain string) string {
 }
 
 func sendBody(url string, body []byte) (err error) {
+
 	client := resty.New()
-	_, err = client.R().
-		SetBody(body).
-		SetHeader(constants.HeaderContentType, constants.ApplicationJSON).
-		Post(url)
+	for err != nil {
+		_, err = client.R().
+			SetBody(body).
+			SetHeader(constants.HeaderContentType, constants.ApplicationJSON).
+			Post(url)
+	}
+
 	return err
 }
