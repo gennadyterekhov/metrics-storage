@@ -1,10 +1,9 @@
 package handlers
 
 import (
+	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -22,13 +21,7 @@ func TestGetAllMetrics(t *testing.T) {
 			args: args{},
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-
-			GetAllMetrics(w, tt.args.req)
-
-			expected := `
+	expected := `
 <!DOCTYPE html>
 <html>
   <head></head>
@@ -44,13 +37,22 @@ func TestGetAllMetrics(t *testing.T) {
   </body>
 </html>
 `
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			response, responseBody := testhelper.SendRequest(
+				t,
+				testhelper.TestServer,
+				http.MethodGet,
+				"/",
+			)
 
-			res := w.Result()
-			metricFromResponse, _ := io.ReadAll(res.Body)
-			defer res.Body.Close()
+			assert.Equal(t,
+				http.StatusOK,
+				response.StatusCode,
+			)
 			assert.Equal(t,
 				expected,
-				string(metricFromResponse),
+				string(responseBody),
 			)
 
 		})

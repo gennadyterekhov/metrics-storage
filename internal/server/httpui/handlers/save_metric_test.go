@@ -6,8 +6,10 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
+	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -41,21 +43,15 @@ func TestSaveMetricHttpMethodJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			rawJSON := `{"id":"cnt", "type":"counter", "delta":1}`
-			//request := httptest.NewRequest(tt.method, "/update/counter/cnt/1", bytes.NewBuffer([]byte(rawJSON)))
-			request := httptest.NewRequest(tt.method, "/update", bytes.NewBuffer([]byte(rawJSON)))
+			response, _ := testhelper.SendAlreadyJSONedBody(
+				t,
+				testhelper.TestServer,
+				tt.method,
+				"/update/counter/cnt/1",
+				bytes.NewBuffer([]byte(rawJSON)),
+			)
 
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("metricType", types.Counter)
-			rctx.URLParams.Add("metricName", "cnt")
-			rctx.URLParams.Add("metricValue", "1")
-			request.Header.Set(constants.HeaderContentType, constants.ApplicationJSON)
-			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-			w := httptest.NewRecorder()
-			SaveMetricHandler()(w, request)
-
-			res := w.Result()
-			defer res.Body.Close()
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			assert.Equal(t, tt.want.code, response.StatusCode)
 		})
 	}
 }
@@ -117,31 +113,24 @@ func TestSaveMetricJSON(t *testing.T) {
 
 	// check counter is added to itself
 	container.MetricsRepository.AddCounter("cnt", 1)
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("metricType", types.Counter)
-	rctx.URLParams.Add("metricName", "cnt")
-	rctx.URLParams.Add("metricValue", "10")
-	request := httptest.NewRequest(http.MethodPost, "/update/counter/cnt/10", bytes.NewBuffer([]byte(`{"id":"cnt", "type":"counter", "delta":10}`)))
-	request.Header.Set(constants.HeaderContentType, constants.ApplicationJSON)
-	request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-
-	w := httptest.NewRecorder()
-	SaveMetricHandler()(w, request)
+	_, _ = testhelper.SendAlreadyJSONedBody(
+		t,
+		testhelper.TestServer,
+		http.MethodPost,
+		"/update/counter/cnt/10",
+		bytes.NewBuffer([]byte(`{"id":"cnt", "type":"counter", "delta":10}`)),
+	)
 	assert.Equal(t, int64(10+1), container.MetricsRepository.GetCounterOrZero("cnt"))
 
 	// check gauge is substituted
 	container.MetricsRepository.SetGauge("gaugeName", 1)
-
-	rctx = chi.NewRouteContext()
-	rctx.URLParams.Add("metricType", types.Gauge)
-	rctx.URLParams.Add("metricName", "gaugeName")
-	rctx.URLParams.Add("metricValue", "3")
-	request = httptest.NewRequest(http.MethodPost, "/update/gauge/gaugeName/3", bytes.NewBuffer([]byte(`{"id":"gaugeName", "type":"gauge", "value":3}`)))
-	request.Header.Set(constants.HeaderContentType, constants.ApplicationJSON)
-	request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-
-	w = httptest.NewRecorder()
-	SaveMetricHandler()(w, request)
+	_, _ = testhelper.SendAlreadyJSONedBody(
+		t,
+		testhelper.TestServer,
+		http.MethodPost,
+		"/update/gauge/gaugeName/3",
+		bytes.NewBuffer([]byte(`{"id":"gaugeName", "type":"gauge", "value":3}`)),
+	)
 	assert.Equal(t, float64(3), container.MetricsRepository.GetGaugeOrZero("gaugeName"))
 }
 
@@ -172,19 +161,14 @@ func TestSaveMetricHttpMethod(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(tt.method, "/update/counter/cnt/1", nil)
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("metricType", types.Counter)
-			rctx.URLParams.Add("metricName", "cnt")
-			rctx.URLParams.Add("metricValue", "1")
+			response, _ := testhelper.SendRequest(
+				t,
+				testhelper.TestServer,
+				tt.method,
+				"/update/counter/cnt/1",
+			)
 
-			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-			w := httptest.NewRecorder()
-			SaveMetricHandler()(w, request)
-
-			res := w.Result()
-			defer res.Body.Close()
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			assert.Equal(t, tt.want.code, response.StatusCode)
 		})
 	}
 }
@@ -217,19 +201,14 @@ func TestSaveMetric(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			container.MetricsRepository.Clear()
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("metricType", tt.want.typ)
-			rctx.URLParams.Add("metricName", tt.want.metricName)
-			rctx.URLParams.Add("metricValue", "1")
-			request := httptest.NewRequest(http.MethodPost, tt.url, nil)
-			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
+			response, _ := testhelper.SendRequest(
+				t,
+				testhelper.TestServer,
+				http.MethodPost,
+				tt.url,
+			)
 
-			w := httptest.NewRecorder()
-			SaveMetricHandler()(w, request)
-
-			res := w.Result()
-			defer res.Body.Close()
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			assert.Equal(t, tt.want.code, response.StatusCode)
 
 			if tt.want.typ == types.Counter {
 				assert.Equal(t, tt.want.metricValue, container.MetricsRepository.GetCounterOrZero(tt.want.metricName))
@@ -242,28 +221,55 @@ func TestSaveMetric(t *testing.T) {
 
 	// check counter is added to itself
 	container.MetricsRepository.AddCounter("cnt", 1)
-	rctx := chi.NewRouteContext()
-	rctx.URLParams.Add("metricType", types.Counter)
-	rctx.URLParams.Add("metricName", "cnt")
-	rctx.URLParams.Add("metricValue", "10")
-	request := httptest.NewRequest(http.MethodPost, "/update/counter/cnt/10", nil)
-	request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-
-	w := httptest.NewRecorder()
-	SaveMetricHandler()(w, request)
+	_, _ = testhelper.SendRequest(
+		t,
+		testhelper.TestServer,
+		http.MethodPost,
+		"/update/counter/cnt/10",
+	)
 	assert.Equal(t, int64(10+1), container.MetricsRepository.GetCounterOrZero("cnt"))
 
 	// check gauge is substituted
 	container.MetricsRepository.SetGauge("gaugeName", 1)
-
-	rctx = chi.NewRouteContext()
-	rctx.URLParams.Add("metricType", types.Gauge)
-	rctx.URLParams.Add("metricName", "gaugeName")
-	rctx.URLParams.Add("metricValue", "3")
-	request = httptest.NewRequest(http.MethodPost, "/update/gauge/gaugeName/3", nil)
-	request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-
-	w = httptest.NewRecorder()
-	SaveMetricHandler()(w, request)
+	_, _ = testhelper.SendRequest(
+		t,
+		testhelper.TestServer,
+		http.MethodPost,
+		"/update/gauge/gaugeName/3",
+	)
 	assert.Equal(t, float64(3), container.MetricsRepository.GetGaugeOrZero("gaugeName"))
+}
+
+func TestGzipCompression(t *testing.T) {
+	requestBody := `{"id":"cnt", "type":"counter", "delta":1}`
+	successBody := `{"id":"cnt", "type":"counter", "delta":1}`
+
+	t.Run("client can send gzipped request", func(t *testing.T) {
+		container.MetricsRepository.Clear()
+
+		response, _ := testhelper.SendGzipRequest(
+			t,
+			testhelper.TestServer,
+			http.MethodPost,
+			"/update/",
+			requestBody,
+		)
+		require.Equal(t, http.StatusOK, response.StatusCode)
+	})
+
+	t.Run("client can send gzipped request and server can respond with gzipped body", func(t *testing.T) {
+		container.MetricsRepository.Clear()
+
+		container.MetricsRepository.AddCounter("cnt", 1)
+
+		response, responseBody := testhelper.SendGzipRequest(
+			t,
+			testhelper.TestServer,
+			http.MethodPost,
+			"/value",
+			requestBody,
+		)
+		require.Equal(t, http.StatusOK, response.StatusCode)
+		require.JSONEq(t, successBody, string(responseBody))
+	})
 }

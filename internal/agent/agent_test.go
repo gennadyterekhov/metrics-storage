@@ -1,27 +1,27 @@
 package agent
 
 import (
-	"context"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
-	"github.com/go-chi/chi/v5"
+	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 )
 
-func TestAgent(t *testing.T) {
-	t.Skipf("cannot do it yet")
-	testServer := httptest.NewServer(
-		handlers.GetRouter(),
+func TestMain(m *testing.M) {
+	testhelper.BootstrapWithServer(
+		m,
+		httptest.NewServer(
+			handlers.GetRouter(),
+		),
 	)
+}
 
-	url := testServer.URL
+func TestAgent(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
@@ -30,12 +30,14 @@ func TestAgent(t *testing.T) {
 		},
 	}
 
+	oneIteration := 1
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := RunAgent(&AgentConfig{
-				Addr:           url,
-				ReportInterval: 1,
-				PollInterval:   1,
+				Addr:            testhelper.TestServer.URL,
+				ReportInterval:  1,
+				PollInterval:    1,
+				TotalIterations: &oneIteration,
 			})
 			require.NoError(t, err)
 
@@ -51,14 +53,7 @@ func TestAgent(t *testing.T) {
 	}
 }
 
-func TestSameValueReturnedFromServer(t *testing.T) {
-	t.Skipf("cannot do it yet")
-
-	testServer := httptest.NewServer(
-		handlers.GetRouter(),
-	)
-
-	url := testServer.URL
+func TestGzip(t *testing.T) {
 	tests := []struct {
 		name string
 	}{
@@ -67,12 +62,50 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 		},
 	}
 
+	oneIteration := 1
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			err := RunAgent(&AgentConfig{
-				Addr:           url,
-				ReportInterval: 1,
-				PollInterval:   1,
+				Addr:            testhelper.TestServer.URL,
+				ReportInterval:  1,
+				PollInterval:    1,
+				IsGzip:          true,
+				TotalIterations: &oneIteration,
+			})
+			require.NoError(t, err)
+
+			assert.Equal(t,
+				1,
+				len(container.MetricsRepository.GetAllCounters()),
+			)
+			assert.Equal(t,
+				27+1,
+				len(container.MetricsRepository.GetAllGauges()),
+			)
+			savedValue := container.MetricsRepository.GetCounterOrZero("PollCount")
+			assert.Equal(t, 1, savedValue)
+		})
+	}
+}
+
+func TestSameValueReturnedFromServer(t *testing.T) {
+
+	tests := []struct {
+		name string
+	}{
+		{
+			name: "test",
+		},
+	}
+	oneIteration := 1
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := RunAgent(&AgentConfig{
+				Addr:            testhelper.TestServer.URL,
+				ReportInterval:  1,
+				PollInterval:    1,
+				TotalIterations: &oneIteration,
 			})
 			require.NoError(t, err)
 
@@ -86,23 +119,20 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 			)
 
 			url := "/value/gauge/BuckHashSys"
-			request := httptest.NewRequest(http.MethodGet, url, nil)
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("metricType", types.Gauge)
-			rctx.URLParams.Add("metricName", "BuckHashSys")
-			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-			w := httptest.NewRecorder()
-			handlers.GetMetric(w, request)
 
-			res := w.Result()
-			metricFromResponse, _ := io.ReadAll(res.Body)
+			_, responseBody := testhelper.SendRequest(
+				t,
+				testhelper.TestServer,
+				http.MethodGet,
+				url,
+			)
+
 			savedValue := container.MetricsRepository.GetGaugeOrZero("BuckHashSys")
 
-			defer res.Body.Close()
 			assert.Equal(
 				t,
 				strconv.FormatFloat(savedValue, 'g', -1, 64),
-				string(metricFromResponse),
+				string(responseBody),
 			)
 
 		})

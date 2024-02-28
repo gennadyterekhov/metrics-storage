@@ -30,10 +30,10 @@ func GetMetricAsString(metricType string, name string) (metric string, err error
 	return "", fmt.Errorf(exceptions.InvalidMetricTypeChoice)
 }
 
-func GetMetricsAsStruct(metricType string, name string) (metric models.Metrics, err error) {
+func GetMetricsAsStruct(metricType string, name string) (metric *models.Metrics, err error) {
 	logger.ZapSugarLogger.Debugln("GetMetricsAsStruct name, metricType", name, metricType)
 
-	metric = models.Metrics{
+	metric = &models.Metrics{
 		ID:    name,
 		MType: metricType,
 	}
@@ -41,6 +41,7 @@ func GetMetricsAsStruct(metricType string, name string) (metric models.Metrics, 
 	if metricType == types.Counter {
 		val, err := container.MetricsRepository.GetCounter(name)
 		if err != nil {
+			logger.ZapSugarLogger.Warnln("could not get counter by name", name, err.Error())
 			return metric, err
 		}
 		metric.Delta = &val
@@ -49,6 +50,7 @@ func GetMetricsAsStruct(metricType string, name string) (metric models.Metrics, 
 	if metricType == types.Gauge {
 		val, err := container.MetricsRepository.GetGauge(name)
 		if err != nil {
+			logger.ZapSugarLogger.Warnln("could not get gauge by name", name, err.Error())
 			return metric, err
 		}
 		metric.Value = &val
