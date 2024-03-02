@@ -56,7 +56,7 @@ func SendRequest(
 	require.NoError(t, err)
 
 	respBody := iohelpler.ReadFromReadCloserOrDie(response.Body)
-
+	response.Body.Close()
 	return response, string(respBody)
 }
 
@@ -76,6 +76,7 @@ func SendAlreadyJSONedBody(
 	require.NoError(t, err)
 
 	respBody := iohelpler.ReadFromReadCloserOrDie(response.Body)
+	response.Body.Close()
 
 	return response, respBody
 }
@@ -111,6 +112,7 @@ func SendGzipRequest(
 	require.NoError(t, err)
 	// i dont know why, but here it does not decompress automatically in contrast to compressor package
 	respBody := iohelpler.ReadFromGzipReadCloserOrDie(response.Body)
+	response.Body.Close()
 
 	return response, respBody
 }
@@ -138,6 +140,7 @@ func SendGzipNoBodyRequest(
 	require.NoError(t, err)
 	// i dont know why, but here it does not decompress automatically in contrast to compressor package
 	respBody := iohelpler.ReadFromGzipReadCloserOrDie(response.Body)
+	response.Body.Close()
 
 	return response, respBody
 }
