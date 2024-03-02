@@ -30,7 +30,7 @@ func (dcb decompressedBody) Read(b []byte) (int, error) {
 
 func GzipCompressor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		if request != nil && isGzipAvailableForThisRequest(request) {
+		if request != nil && IsGzipAvailableForThisRequest(request) {
 			compressionWriter, err := gzip.NewWriterLevel(response, gzip.BestSpeed)
 			if err != nil {
 				_, err := io.WriteString(response, err.Error())
@@ -87,24 +87,29 @@ func GzipCompressor(next http.Handler) http.Handler {
 	})
 }
 
-func isGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
-	// in tests this wants gzip
-	//        Accept: application/json
-	//        Accept-Encoding: gzip
-	//        Content-Type: application/json
-	// and sometimes
-	// Accept: html/text
+func IsGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
 	//correctContentType := request.Header.Get(constants.HeaderContentType) == constants.ApplicationJSON ||
 	//	request.Header.Get(constants.HeaderContentType) == constants.TextHTML
-	correctContentType := true
+	//correctContentType := true
 	correctAcceptContentType := false
 	correctAcceptEncoding := false
-	correctContentEncoding := false
+	//correctContentEncoding := false
 
 	acceptContentTypes := request.Header.Values("Accept")
 	acceptEncodings := request.Header.Values("Accept-Encoding")
 	contentEncodings := request.Header.Values("Content-Encoding")
 
+	logger.ZapSugarLogger.Debugln("contentEncodings", contentEncodings)
+	logger.ZapSugarLogger.Debugln("acceptContentTypes", acceptContentTypes)
+	logger.ZapSugarLogger.Debugln("acceptEncodings", acceptEncodings)
+
+	for i := 0; i < len(contentEncodings); i += 1 {
+		if strings.Contains(contentEncodings[i], "gzip") {
+			// if body is already encoded no further checks are necessary
+			//correctContentEncoding = true
+			return true
+		}
+	}
 	for i := 0; i < len(acceptContentTypes); i += 1 {
 		if strings.Contains(acceptContentTypes[i], constants.TextHTML) ||
 			strings.Contains(acceptContentTypes[i], "html/text") ||
@@ -119,14 +124,8 @@ func isGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
 			break
 		}
 	}
-	for i := 0; i < len(contentEncodings); i += 1 {
-		if strings.Contains(contentEncodings[i], "gzip") {
-			correctContentEncoding = true
-			break
-		}
-	}
 
-	return correctContentType && correctAcceptContentType && correctAcceptEncoding && correctContentEncoding
+	return correctAcceptContentType && correctAcceptEncoding
 }
 
 func isGzipAcceptedByClient(request *http.Request) (isOk bool) {
