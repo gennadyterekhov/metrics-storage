@@ -103,6 +103,10 @@ func TestGetAllMetricsGzip(t *testing.T) {
 				response.StatusCode,
 			)
 			assert.Equal(t,
+				"text/html",
+				response.Header.Get("Content-Type"),
+			)
+			assert.Equal(t,
 				expected,
 				string(responseBody),
 			)
