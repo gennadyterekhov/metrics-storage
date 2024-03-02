@@ -7,7 +7,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/helper/iohelpler"
 	"github.com/stretchr/testify/require"
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -55,10 +54,8 @@ func SendRequest(
 
 	response, err := ts.Client().Do(req)
 	require.NoError(t, err)
-	defer response.Body.Close()
 
-	respBody, err := io.ReadAll(response.Body)
-	require.NoError(t, err)
+	respBody := iohelpler.ReadFromReadCloserOrDie(response.Body)
 
 	return response, string(respBody)
 }
