@@ -31,7 +31,7 @@ func RunAgent(config *AgentConfig) (err error) {
 		IsRunning: false,
 	}
 
-	for i := 0; config.TotalIterations != nil && i < *config.TotalIterations; i += 1 {
+	for i := 0; (config.TotalIterations != nil && i < *config.TotalIterations) || config.TotalIterations == nil; i += 1 {
 		// TODO fix interval issue
 		// У нас pollInterval 2с, reportInterval 10с
 		// Какой будет метрика PollCount на сервере через 20с?
