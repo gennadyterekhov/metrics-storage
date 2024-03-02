@@ -92,8 +92,11 @@ func isGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
 	//        Accept: application/json
 	//        Accept-Encoding: gzip
 	//        Content-Type: application/json
-	correctContentType := request.Header.Get(constants.HeaderContentType) == constants.ApplicationJSON ||
-		request.Header.Get(constants.HeaderContentType) == constants.TextHTML
+	// and sometimes
+	// Accept: html/text
+	//correctContentType := request.Header.Get(constants.HeaderContentType) == constants.ApplicationJSON ||
+	//	request.Header.Get(constants.HeaderContentType) == constants.TextHTML
+	correctContentType := true
 	correctAcceptContentType := false
 	correctAcceptEncoding := false
 	correctContentEncoding := false
