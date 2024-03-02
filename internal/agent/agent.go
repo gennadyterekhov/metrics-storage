@@ -37,7 +37,9 @@ func RunAgent(config *AgentConfig) (err error) {
 		// Какой будет метрика PollCount на сервере через 20с?
 		// Условно мы 10 раз сделали poll и 2 раза репорт.
 		// В идеальном мире(все операции моментальны) она должна бы быть равна 10, а будет?
-		time.Sleep(time.Second)
+		if config.TotalIterations == nil {
+			time.Sleep(time.Second)
+		}
 
 		if !pollerInstance.IsRunning && i%config.PollInterval == 0 {
 			metricsSet = pollerInstance.Poll()

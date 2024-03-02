@@ -83,7 +83,7 @@ func TestGzip(t *testing.T) {
 				len(container.MetricsRepository.GetAllGauges()),
 			)
 			savedValue := container.MetricsRepository.GetCounterOrZero("PollCount")
-			assert.Equal(t, 1, savedValue)
+			assert.Equal(t, int64(2), savedValue)
 		})
 	}
 }
