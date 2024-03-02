@@ -117,3 +117,30 @@ func SendGzipRequest(
 
 	return response, respBody
 }
+
+func SendGzipNoBodyRequest(
+	t *testing.T,
+	ts *httptest.Server,
+	method,
+	path string,
+) (*http.Response, []byte) {
+
+	request := httptest.NewRequest(method, ts.URL+path, nil)
+
+	request.RequestURI = ""
+	u, err := url.Parse(ts.URL + path)
+	require.NoError(t, err)
+	request.URL = u
+	request.Header.Set(constants.HeaderContentType, constants.ApplicationJSON)
+	request.Header.Set("Accept", "html/text")
+	request.Header.Set("Content-Encoding", "gzip")
+	request.Header.Set("Accept-Encoding", "gzip")
+
+	response, err := ts.Client().Do(request)
+
+	require.NoError(t, err)
+	// i dont know why, but here it does not decompress automatically in contrast to compressor package
+	respBody := iohelpler.ReadFromGzipReadCloserOrDie(response.Body)
+
+	return response, respBody
+}

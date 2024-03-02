@@ -88,6 +88,10 @@ func GzipCompressor(next http.Handler) http.Handler {
 }
 
 func isGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
+	// in tests this wants gzip
+	//        Accept: application/json
+	//        Accept-Encoding: gzip
+	//        Content-Type: application/json
 	correctContentType := request.Header.Get(constants.HeaderContentType) == constants.ApplicationJSON ||
 		request.Header.Get(constants.HeaderContentType) == constants.TextHTML
 	correctAcceptContentType := false
@@ -100,6 +104,7 @@ func isGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
 
 	for i := 0; i < len(acceptContentTypes); i += 1 {
 		if strings.Contains(acceptContentTypes[i], constants.TextHTML) ||
+			strings.Contains(acceptContentTypes[i], "html/text") ||
 			strings.Contains(acceptContentTypes[i], constants.ApplicationJSON) {
 			correctAcceptContentType = true
 			break
