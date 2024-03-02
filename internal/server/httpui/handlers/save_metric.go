@@ -6,6 +6,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/dto"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app/services/save_metric_service"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
@@ -19,6 +20,8 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 		metric := models.Metrics{}
 
 		if err := decoder.Decode(&metric); err != nil {
+			logger.ZapSugarLogger.Debugln("could not decode json body", err.Error())
+
 			http.Error(res, err.Error(), http.StatusBadRequest)
 			return
 		}
@@ -43,7 +46,7 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 
 		encoder := json.NewEncoder(res)
 		if err := encoder.Encode(metric); err != nil {
-			//http.Error(res, err.Error(), http.StatusBadRequest)
+			logger.ZapSugarLogger.Debugln("could not encode json body", err.Error())
 			return
 		}
 		return
@@ -55,6 +58,7 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 	)
 
 	if err != nil {
+		logger.ZapSugarLogger.Debugln("validation error", err.Error())
 		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}

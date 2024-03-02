@@ -5,6 +5,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app/services/get_metric_service"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
@@ -31,13 +32,16 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		//	metrics.Value = metric
 		//}
 		if err != nil {
+			logger.ZapSugarLogger.Warnln("error when getting metric as struct", name, err.Error())
 			http.Error(res, err.Error(), http.StatusNotFound)
 			return
 		}
 		res.Header().Set(constants.HeaderContentType, constants.ApplicationJSON)
+		logger.ZapSugarLogger.Debugln("encoding metric to response body", metric)
 
 		encoder := json.NewEncoder(res)
-		if err := encoder.Encode(metric); err != nil {
+		if err = encoder.Encode(metric); err != nil {
+			logger.ZapSugarLogger.Warnln("error when encoding json response body", err.Error())
 			http.Error(res, err.Error(), http.StatusBadRequest)
 			return
 		}

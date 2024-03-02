@@ -12,8 +12,10 @@ import (
 type Middleware func(http.Handler) http.Handler
 
 func Conveyor(h http.Handler, middlewares ...Middleware) http.Handler {
-	for _, middlewareCallback := range middlewares {
-		h = middlewareCallback(h)
+	middlewaresLength := len(middlewares)
+	// in reverse, so that middlewares are applied in order that they are passed in router
+	for i := middlewaresLength - 1; i >= 0; i -= 1 {
+		h = middlewares[i](h)
 	}
 	return h
 }

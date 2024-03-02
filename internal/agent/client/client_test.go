@@ -12,34 +12,48 @@ import (
 )
 
 func TestCanSendCounterValue(t *testing.T) {
-	container.MetricsRepository.Clear()
 	testServer := httptest.NewServer(
 		handlers.GetRouter(),
 	)
 
-	url := testServer.URL
+	metricsStorageClient := MetricsStorageClient{
+		Address:          testServer.URL,
+		IsGzip:           false,
+		SendWhenNoServer: false,
+	}
+
 	type want struct {
 		counterValue int64
 	}
 	tests := []struct {
-		name string
-		want want
+		name   string
+		isGzip bool
+		want   want
 	}{
 		{
-			name: "send one counter",
-			want: want{10},
+			name:   "send one counter",
+			isGzip: false,
+			want:   want{10},
+		},
+		{
+			name:   "send one counter gzip",
+			isGzip: true,
+			want:   want{10},
 		},
 	}
 	var err error
 	for _, tt := range tests {
+		container.MetricsRepository.Clear()
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.isGzip {
+				metricsStorageClient.IsGzip = true
+			}
 			metrics := metric.CounterMetric{
 				Name:  "nm",
 				Type:  types.Counter,
 				Value: tt.want.counterValue,
 			}
-			err = SendMetric(&metrics, url)
-
+			err = metricsStorageClient.SendMetric(&metrics)
 			require.NoError(t, err)
 
 			assert.Equal(t,
@@ -65,7 +79,11 @@ func TestCanSendGaugeValue(t *testing.T) {
 		handlers.GetRouter(),
 	)
 
-	url := testServer.URL
+	metricsStorageClient := MetricsStorageClient{
+		Address:          testServer.URL,
+		IsGzip:           false,
+		SendWhenNoServer: false,
+	}
 	type want struct {
 		gaugeValue float64
 	}
@@ -86,7 +104,7 @@ func TestCanSendGaugeValue(t *testing.T) {
 				Type:  types.Gauge,
 				Value: tt.want.gaugeValue,
 			}
-			err = SendMetric(&metrics, url)
+			err = metricsStorageClient.SendMetric(&metrics)
 
 			require.NoError(t, err)
 

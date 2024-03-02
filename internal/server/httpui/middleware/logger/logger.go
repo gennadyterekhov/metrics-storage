@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"net/http"
@@ -10,15 +9,15 @@ import (
 
 type (
 	LogContext struct {
-		status    int
-		size      int
 		uri       string
 		method    string
 		startTime time.Time
 		time      time.Duration
+		status    int
+		size      int
 	}
 
-	LoggingResponseWriter struct /* implements http.ResponseWriter*/ {
+	LoggingResponseWriter struct {
 		http.ResponseWriter
 		LogContext *LogContext
 	}
@@ -31,8 +30,8 @@ func (lrw *LoggingResponseWriter) Write(b []byte) (int, error) {
 }
 
 func (lrw *LoggingResponseWriter) WriteHeader(statusCode int) {
+	logger.ZapSugarLogger.Debugln("writing header from log middleware")
 	lrw.ResponseWriter.WriteHeader(statusCode)
-	fmt.Println("raw print statusCode", statusCode)
 	lrw.LogContext.status = statusCode
 }
 
@@ -51,15 +50,21 @@ func (lrw *LoggingResponseWriter) updateContext(req *http.Request) {
 		lrw.LogContext.method = req.Method
 		lrw.LogContext.time = time.Since(lrw.LogContext.startTime)
 	} else {
-		logger.ZapSugarLogger.Errorln("could not update log context with actual request info")
+		logger.ZapSugarLogger.Debugln("could not update log context with actual request info")
 	}
 }
 
 func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
+		if req == nil {
+			logger.ZapSugarLogger.Debugln("logger middleware: request is nil")
+			next.ServeHTTP(res, req)
+			return
+		}
 		reqBody := make([]byte, 0)
 		_, _ = req.Body.Read(reqBody)
-		defer req.Body.Close()
+		// dont close because it will be used in compressor middleware
+		//defer req.Body.Close()
 		logger.ZapSugarLogger.Debugln(
 			"got request",
 			req.Method,
@@ -70,7 +75,7 @@ func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 
 		customWriter := initializeCustomWriter(res, req)
 		if customWriter == nil {
-			logger.ZapSugarLogger.Errorln("could not set custom logger writer")
+			logger.ZapSugarLogger.Debugln("could not set custom logger writer")
 		}
 		next.ServeHTTP(customWriter, req)
 

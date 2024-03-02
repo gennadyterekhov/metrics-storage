@@ -9,9 +9,11 @@ import (
 )
 
 type AgentConfig struct {
-	Addr           string
-	ReportInterval int
-	PollInterval   int
+	Addr            string
+	IsGzip          bool
+	ReportInterval  int
+	PollInterval    int
+	TotalIterations *int
 }
 
 func RunAgent(config *AgentConfig) (err error) {
@@ -24,33 +26,30 @@ func RunAgent(config *AgentConfig) (err error) {
 	}
 	senderInstance := sender.MetricsSender{
 		Address:   config.Addr,
+		IsGzip:    config.IsGzip,
 		Interval:  config.ReportInterval,
 		IsRunning: false,
 	}
 
-	for i := 0; ; i += 1 {
-
+	for i := 0; (config.TotalIterations != nil && i < *config.TotalIterations) || config.TotalIterations == nil; i += 1 {
 		// TODO fix interval issue
 		// У нас pollInterval 2с, reportInterval 10с
 		// Какой будет метрика PollCount на сервере через 20с?
 		// Условно мы 10 раз сделали poll и 2 раза репорт.
 		// В идеальном мире(все операции моментальны) она должна бы быть равна 10, а будет?
-		time.Sleep(time.Second)
+		if config.TotalIterations == nil {
+			time.Sleep(time.Second)
+		}
 
 		if !pollerInstance.IsRunning && i%config.PollInterval == 0 {
 			metricsSet = pollerInstance.Poll()
 		}
 
 		if !senderInstance.IsRunning && i%config.ReportInterval == 0 {
-			//if !isServerAvailable(config) {
-			//	logger.ZapSugarLogger.Warnln(
-			//		"agent will not send metrics because server healthcheck was not successful",
-			//	)
-			//	continue
-			//}
 			senderInstance.Report(metricsSet)
 		}
 	}
+	return nil
 }
 
 func isServerAvailable(config *AgentConfig) (isAvailable bool) {

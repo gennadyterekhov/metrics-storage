@@ -12,9 +12,13 @@ func getConfig() *agent.AgentConfig {
 	addressFlag := flag.String(
 		"a",
 		"localhost:8080",
-		"Net address host:port without protocol",
+		"[address] Net address host:port without protocol",
 	)
-
+	gzipFlag := flag.Bool(
+		"g",
+		true,
+		"[gzip] use gzip",
+	)
 	reportIntervalFlag := flag.Int(
 		"r",
 		10,
@@ -29,6 +33,7 @@ func getConfig() *agent.AgentConfig {
 
 	flags := agent.AgentConfig{
 		Addr:           *addressFlag,
+		IsGzip:         *gzipFlag,
 		ReportInterval: *reportIntervalFlag,
 		PollInterval:   *pollIntervalFlag,
 	}
@@ -40,6 +45,7 @@ func getConfig() *agent.AgentConfig {
 
 func overwriteWithEnv(flags *agent.AgentConfig) {
 	flags.Addr = getAddress(flags.Addr)
+	flags.IsGzip = isGzip(flags.IsGzip)
 	flags.ReportInterval = getReportInterval(flags.ReportInterval)
 	flags.PollInterval = getPollInterval(flags.PollInterval)
 }
@@ -51,6 +57,15 @@ func getAddress(current string) string {
 	}
 
 	return current
+}
+
+func isGzip(gzip bool) bool {
+	fromEnv, ok := os.LookupEnv("GZIP")
+	if ok && (fromEnv == "true" || fromEnv == "TRUE" || fromEnv == "True" || fromEnv == "1") {
+		return true
+	}
+
+	return gzip
 }
 
 func getReportInterval(current int) int {

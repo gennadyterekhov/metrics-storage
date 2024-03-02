@@ -14,13 +14,13 @@ type PollMaker struct {
 	IsRunning  bool
 }
 
-func (pmk *PollMaker) wait() {
-	time.Sleep(time.Duration(pmk.Interval * int(time.Second)))
+func (pmk *PollMaker) Wait() {
+	time.Sleep(time.Duration(pmk.Interval * 950 * int(time.Millisecond)))
 }
 
 func (pmk *PollMaker) Poll() *metric.MetricsSet {
 	pmk.IsRunning = true
-	pmk.wait()
+	pmk.Wait()
 
 	runtimeStats := &runtime.MemStats{}
 	runtime.ReadMemStats(runtimeStats)

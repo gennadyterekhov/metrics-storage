@@ -2,18 +2,14 @@ package handlers
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
-	"github.com/go-chi/chi/v5"
+	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
-	"io"
 	"net/http"
-	"net/http/httptest"
 	"strconv"
 	"testing"
 )
@@ -24,7 +20,6 @@ type args struct {
 }
 
 func TestGetMetricJSON(t *testing.T) {
-	container.MetricsRepository.Clear()
 	container.MetricsRepository.AddCounter("cnt", 1)
 
 	type want struct {
@@ -60,27 +55,21 @@ func TestGetMetricJSON(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			body := getBodyFromArgs(tt.args)
-			request := httptest.NewRequest(http.MethodPost, "/value", body)
-			request.Header.Set(constants.HeaderContentType, constants.ApplicationJSON)
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("metricType", tt.args.typ)
-			rctx.URLParams.Add("metricName", tt.args.name)
-			request.Header.Set(constants.HeaderContentType, constants.ApplicationJSON)
-			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-			w := httptest.NewRecorder()
-			GetMetricJSONHandler()(w, request)
+			response, responseBody := testhelper.SendAlreadyJSONedBody(
+				t,
+				testhelper.TestServer,
+				http.MethodPost,
+				"/value",
+				body,
+			)
 
-			res := w.Result()
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			assert.Equal(t, tt.want.code, response.StatusCode)
 
-			defer res.Body.Close()
-			if res.StatusCode == http.StatusOK {
-
-				metricFromResponse, _ := io.ReadAll(res.Body)
+			if response.StatusCode == http.StatusOK {
 				receivedData := models.Metrics{}
-				_ = json.Unmarshal(metricFromResponse, &receivedData)
+				err := json.Unmarshal(responseBody, &receivedData)
+				assert.NoError(t, err)
 				assert.Equal(t, tt.want.metricValue, *receivedData.Delta)
 			}
 
@@ -135,23 +124,18 @@ func TestGetMetric(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			url := "/value/" + tt.args.typ + "/" + tt.args.name
-			request := httptest.NewRequest(http.MethodGet, url, nil)
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("metricType", tt.args.typ)
-			rctx.URLParams.Add("metricName", tt.args.name)
-			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
-			w := httptest.NewRecorder()
-			GetMetricHandler()(w, request)
 
-			res := w.Result()
-			metricFromResponse, _ := io.ReadAll(res.Body)
-			metricFromResponseAsInt, _ := strconv.ParseInt(string(metricFromResponse), 10, 64)
-			defer res.Body.Close()
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			response, responseBody := testhelper.SendRequest(
+				t,
+				testhelper.TestServer,
+				http.MethodGet,
+				url,
+			)
+
+			metricFromResponseAsInt, _ := strconv.ParseInt(string(responseBody), 10, 64)
+			assert.Equal(t, tt.want.code, response.StatusCode)
 			assert.Equal(t, tt.want.metricValue, metricFromResponseAsInt)
-
 		})
 	}
 }

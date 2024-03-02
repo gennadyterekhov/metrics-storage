@@ -40,7 +40,7 @@ go test github.com/gennadyterekhov/metrics-storage/internal/agent/client
 
 ### specific test
 go test github.com/gennadyterekhov/metrics-storage/internal/agent/client -run TestCanSendCounterValue -test.v
-
+go test -run=TestCanSendCounterValue ./...
 ## test coverage
 go clean -testcache
 go test -coverprofile cover.out ./...
@@ -76,3 +76,16 @@ go build -o cmd/agent/agent cmd/agent/*.go && go build -o cmd/server/server cmd/
 -source-path=. \
 -agent-binary-path=cmd/agent/agent \
 -binary-path=cmd/server/server
+
+### 7
+какая-то фигня тут
+использует параметры не так как предполагается
+TEMP_FILE=tmp
+./metricstest -test.v -test.run=^TestIteration7$ \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=8080 \
+            -source-path=. \
+            -file-storage-path=tmp \
+            -database-dsn=t
+### 8
