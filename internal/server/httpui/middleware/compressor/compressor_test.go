@@ -4,6 +4,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -82,15 +83,19 @@ func TestIsGzipAvailableForThisRequest(t *testing.T) {
 }
 
 func addHeaders(request *http.Request, args args) {
-	for _, val := range args.accepts {
-		request.Header.Set("Accept", val)
-	}
-	for _, val := range args.acceptEncodings {
-		request.Header.Set("Accept-Encoding", val)
-	}
-	for _, val := range args.contentEncodings {
-		request.Header.Set("Content-Encoding", val)
-	}
+	//for _, val := range args.accepts {
+	//	request.Header.Set("Accept", val)
+	//}
+	//for _, val := range args.acceptEncodings {
+	//	request.Header.Set("Accept-Encoding", val)
+	//}
+	//for _, val := range args.contentEncodings {
+	//	request.Header.Set("Content-Encoding", val)
+	//}
+	request.Header.Set("Accept", strings.Join(args.accepts, ","))
+	request.Header.Set("Accept-Encoding", strings.Join(args.acceptEncodings, ","))
+	request.Header.Set("Content-Encoding", strings.Join(args.contentEncodings, ","))
+
 	if args.contenttype != "" {
 		request.Header.Set("Content-Type", args.contenttype)
 	}
