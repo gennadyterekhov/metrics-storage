@@ -15,15 +15,25 @@ type TimeTracker struct {
 var TimeTrackerInstance = NewTimeTracker()
 
 func StartTrackingIntervals() {
-	go routine()
+	ticker := time.NewTicker(time.Duration(config.Conf.StoreInterval) * time.Second)
+	quit := make(chan bool)
+	go routine(ticker, quit)
 }
 
-func routine() {
+func routine(ticker *time.Ticker, quit chan bool) {
 	if config.Conf.StoreInterval == 0 {
 		return
 	}
-	for range time.Tick(time.Duration(config.Conf.StoreInterval) * time.Second) {
-		TimeTrackerInstance.onInterval()
+	for {
+		if <-quit {
+			ticker.Stop()
+			return
+		}
+
+		nextTick := <-ticker.C
+		if &nextTick != nil {
+			TimeTrackerInstance.onInterval()
+		}
 	}
 }
 
