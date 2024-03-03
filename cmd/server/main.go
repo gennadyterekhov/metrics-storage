@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
@@ -16,8 +17,8 @@ func main() {
 		if config.Conf.Restore {
 			err := storage.MetricsRepository.Load(config.Conf.FileStorage)
 			if err != nil {
-				panic(err)
-				return
+				logger.ZapSugarLogger.Debugln("could not load metrics from disk, but not panicking. just loaded empty repository")
+				logger.ZapSugarLogger.Warnln("error when loading metrics from disk", err.Error())
 			}
 		}
 		defer storage.MetricsRepository.Save(config.Conf.FileStorage)
