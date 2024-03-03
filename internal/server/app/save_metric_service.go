@@ -4,6 +4,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/dto"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 )
 
@@ -15,5 +16,9 @@ func SaveMetricToMemory(filledDto *dto.MetricToSaveDto) {
 	}
 	if filledDto.Type == types.Gauge {
 		storage.MetricsRepository.SetGauge(filledDto.Name, filledDto.GaugeValue)
+	}
+
+	if config.Conf.StoreInterval == 0 && config.Conf.FileStorage != "" {
+		storage.MetricsRepository.Save(config.Conf.FileStorage)
 	}
 }
