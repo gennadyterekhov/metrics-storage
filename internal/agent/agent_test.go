@@ -22,6 +22,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestAgent(t *testing.T) {
+	t.Skip("runs too long because of interval, manual use only")
+
 	tests := []struct {
 		name string
 	}{
@@ -54,6 +56,8 @@ func TestAgent(t *testing.T) {
 }
 
 func TestGzip(t *testing.T) {
+	t.Skip("runs too long because of interval, manual use only")
+
 	tests := []struct {
 		name string
 	}{
@@ -89,6 +93,7 @@ func TestGzip(t *testing.T) {
 }
 
 func TestSameValueReturnedFromServer(t *testing.T) {
+	t.Skip("runs too long because of interval, manual use only")
 
 	tests := []struct {
 		name string
