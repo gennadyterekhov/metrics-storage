@@ -24,7 +24,7 @@ func main() {
 	}
 
 	if config.Conf.StoreInterval != 0 {
-		app.StartTackingIntervals()
+		app.StartTrackingIntervals()
 	}
 
 	fmt.Printf("Server started on %v\n", config.Conf.Addr)

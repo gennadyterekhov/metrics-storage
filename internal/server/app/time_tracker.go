@@ -13,7 +13,7 @@ type TimeTracker struct {
 
 var TimeTrackerInstance = NewTimeTracker()
 
-func StartTackingIntervals() {
+func StartTrackingIntervals() {
 	go routine()
 }
 
