@@ -64,6 +64,9 @@ func isGzip(gzip bool) bool {
 	if ok && (fromEnv == "true" || fromEnv == "TRUE" || fromEnv == "True" || fromEnv == "1") {
 		return true
 	}
+	if ok {
+		return false
+	}
 
 	return gzip
 }
