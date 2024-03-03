@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func (strg *MemStorage) Save(filename string) error {
+func (strg *MemStorage) Save(filename string) (err error) {
 	data, err := json.MarshalIndent(strg, "", "   ")
 	if err != nil {
 		logger.ZapSugarLogger.Warnln("error when saving metrics to disk")
@@ -16,14 +16,17 @@ func (strg *MemStorage) Save(filename string) error {
 	return os.WriteFile(filename, data, 0666)
 }
 
-func (strg *MemStorage) Load(fname string) error {
-	fbytes, err := os.ReadFile(fname)
+func (strg *MemStorage) Load(filename string) (err error) {
+	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
+		logger.ZapSugarLogger.Panicln("error when loading metrics from disk")
 		return err
 	}
-	// прочитайте файл с помощью os.ReadFile
-	// десериализуйте данные используя json.Unmarshal
-	// ...
-	tempSettings := &MemStorage{}
-	json.Unmarshal(fbytes, tempSettings)
+
+	err = json.Unmarshal(fileBytes, strg)
+	if err != nil {
+		logger.ZapSugarLogger.Panicln("error when json decoding metrics from disk")
+		return err
+	}
+	return nil
 }
