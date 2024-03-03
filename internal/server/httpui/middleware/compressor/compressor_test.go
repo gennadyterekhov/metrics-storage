@@ -16,13 +16,6 @@ type args struct {
 }
 
 func TestIsGzipAvailableForThisRequest(t *testing.T) {
-	// in tests this wants gzip
-	//        Accept: application/json
-	//        Accept-Encoding: gzip
-	//        Content-Type: application/json
-	// and sometimes
-	// Accept: html/text
-
 	tests := []struct {
 		name string
 		args args
@@ -83,15 +76,6 @@ func TestIsGzipAvailableForThisRequest(t *testing.T) {
 }
 
 func addHeaders(request *http.Request, args args) {
-	//for _, val := range args.accepts {
-	//	request.Header.Set("Accept", val)
-	//}
-	//for _, val := range args.acceptEncodings {
-	//	request.Header.Set("Accept-Encoding", val)
-	//}
-	//for _, val := range args.contentEncodings {
-	//	request.Header.Set("Content-Encoding", val)
-	//}
 	request.Header.Set("Accept", strings.Join(args.accepts, ","))
 	request.Header.Set("Accept-Encoding", strings.Join(args.acceptEncodings, ","))
 	request.Header.Set("Content-Encoding", strings.Join(args.contentEncodings, ","))
