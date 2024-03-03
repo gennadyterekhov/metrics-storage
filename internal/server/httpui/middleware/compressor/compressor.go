@@ -77,10 +77,8 @@ func GzipCompressor(next http.Handler) http.Handler {
 			)
 			response.Header().Set("Content-Encoding", "gzip")
 			return
-
 		} else {
 			logger.ZapSugarLogger.Debugln("gzip not accepted for this request")
-
 		}
 
 		next.ServeHTTP(response, request)
@@ -88,20 +86,12 @@ func GzipCompressor(next http.Handler) http.Handler {
 }
 
 func IsGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
-	//correctContentType := request.Header.Get(constants.HeaderContentType) == constants.ApplicationJSON ||
-	//	request.Header.Get(constants.HeaderContentType) == constants.TextHTML
-	//correctContentType := true
 	correctAcceptContentType := false
 	correctAcceptEncoding := false
-	//correctContentEncoding := false
 
 	acceptContentTypes := request.Header.Values("Accept")
 	acceptEncodings := request.Header.Values("Accept-Encoding")
 	contentEncodings := request.Header.Values("Content-Encoding")
-
-	logger.ZapSugarLogger.Debugln("contentEncodings", contentEncodings)
-	logger.ZapSugarLogger.Debugln("acceptContentTypes", acceptContentTypes)
-	logger.ZapSugarLogger.Debugln("acceptEncodings", acceptEncodings)
 
 	for i := 0; i < len(contentEncodings); i += 1 {
 		if strings.Contains(contentEncodings[i], "gzip") {
@@ -126,21 +116,6 @@ func IsGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
 	}
 
 	return correctAcceptContentType && correctAcceptEncoding
-}
-
-func isGzipAcceptedByClient(request *http.Request) (isOk bool) {
-	encodings := request.Header.Values("Accept-Encoding")
-	contentEncoding := request.Header.Get("Content-Encoding")
-	logger.ZapSugarLogger.Debugln("encodings", encodings)
-	logger.ZapSugarLogger.Debugln("contentEncoding", contentEncoding)
-
-	for i := 0; i < len(encodings); i += 1 {
-		if strings.Contains(encodings[i], "gzip") || contentEncoding == "gzip" {
-			return true
-		}
-	}
-
-	return false
 }
 
 func getDecompressedBodyReader(r *http.Request) (gz *gzip.Reader, err error) {
