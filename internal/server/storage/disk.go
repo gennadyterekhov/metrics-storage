@@ -13,7 +13,12 @@ func (strg *MemStorage) Save(filename string) (err error) {
 		return err
 	}
 
-	return os.WriteFile(filename, data, 0666)
+	err = os.WriteFile(filename, data, 0666)
+	if err != nil {
+		logger.ZapSugarLogger.Warnln("error when writing metrics file to disk")
+		return err
+	}
+	return nil
 }
 
 func (strg *MemStorage) Load(filename string) (err error) {
