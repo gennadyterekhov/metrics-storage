@@ -2,27 +2,28 @@ package main
 
 import (
 	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"net/http"
 )
 
 func main() {
-	config := getConfig()
-	fmt.Printf("Server started on %v\n", config.Addr)
+	fmt.Println("Starting")
 
-	if config.FileStorage != "" {
-		if config.Restore {
-			err := storage.MetricsRepository.Load(config.FileStorage)
+	if config.Conf.FileStorage != "" {
+		if config.Conf.Restore {
+			err := storage.MetricsRepository.Load(config.Conf.FileStorage)
 			if err != nil {
 				panic(err)
 				return
 			}
 		}
-		defer storage.MetricsRepository.Save(config.FileStorage)
+		defer storage.MetricsRepository.Save(config.Conf.FileStorage)
 	}
 
-	err := http.ListenAndServe(config.Addr, handlers.GetRouter())
+	fmt.Printf("Server started on %v\n", config.Conf.Addr)
+	err := http.ListenAndServe(config.Conf.Addr, handlers.GetRouter())
 	if err != nil {
 		panic(err)
 	}
