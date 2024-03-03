@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
@@ -20,6 +21,10 @@ func main() {
 			}
 		}
 		defer storage.MetricsRepository.Save(config.Conf.FileStorage)
+	}
+
+	if config.Conf.StoreInterval != 0 {
+		app.StartTackingIntervals()
 	}
 
 	fmt.Printf("Server started on %v\n", config.Conf.Addr)
