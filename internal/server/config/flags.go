@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"flag"
@@ -13,6 +13,8 @@ type ServerConfig struct {
 	FileStorage   string
 	Restore       bool
 }
+
+var Conf *ServerConfig = getConfig()
 
 func getConfig() *ServerConfig {
 	addressFlag := flag.String(
