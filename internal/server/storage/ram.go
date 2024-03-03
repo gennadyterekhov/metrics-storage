@@ -3,6 +3,7 @@ package storage
 import (
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
+	"reflect"
 )
 
 type MemStorage struct {
@@ -80,4 +81,11 @@ func (strg *MemStorage) GetAllCounters() map[string]int64 {
 
 func (strg *MemStorage) GetAll() (map[string]float64, map[string]int64) {
 	return strg.GetAllGauges(), strg.GetAllCounters()
+}
+
+func (strg *MemStorage) IsEqual(anotherStorage *MemStorage) (eq bool) {
+	gauges, counters := strg.GetAll()
+	gauges2, counters2 := anotherStorage.GetAll()
+
+	return reflect.DeepEqual(gauges, gauges2) && reflect.DeepEqual(counters, counters2)
 }
