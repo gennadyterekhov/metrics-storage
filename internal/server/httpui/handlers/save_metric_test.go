@@ -168,7 +168,6 @@ func TestSaveMetricHttpMethod(t *testing.T) {
 				tt.method,
 				"/update/counter/cnt/1",
 			)
-			response.Body.Close()
 
 			assert.Equal(t, tt.want.code, response.StatusCode)
 		})
@@ -209,7 +208,6 @@ func TestSaveMetric(t *testing.T) {
 				http.MethodPost,
 				tt.url,
 			)
-			response.Body.Close()
 
 			assert.Equal(t, tt.want.code, response.StatusCode)
 
@@ -257,7 +255,6 @@ func TestGzipCompression(t *testing.T) {
 			"/update/",
 			requestBody,
 		)
-		response.Body.Close()
 		require.Equal(t, http.StatusOK, response.StatusCode)
 	})
 
