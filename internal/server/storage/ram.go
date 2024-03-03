@@ -11,6 +11,8 @@ type MemStorage struct {
 	Gauges   map[string]float64 `json:"gauges"`
 }
 
+var MetricsRepository = CreateStorage()
+
 func CreateStorage() *MemStorage {
 	return &MemStorage{
 		Counters: make(map[string]int64, 0),

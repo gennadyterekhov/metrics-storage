@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
 	"net/http"
@@ -20,7 +20,7 @@ type args struct {
 }
 
 func TestGetMetricJSON(t *testing.T) {
-	container.MetricsRepository.AddCounter("cnt", 1)
+	storage.MetricsRepository.AddCounter("cnt", 1)
 
 	type want struct {
 		code        int
@@ -85,8 +85,8 @@ func getBodyFromArgs(arguments args) *bytes.Buffer {
 }
 
 func TestGetMetric(t *testing.T) {
-	container.MetricsRepository.Clear()
-	container.MetricsRepository.AddCounter("cnt", 1)
+	storage.MetricsRepository.Clear()
+	storage.MetricsRepository.AddCounter("cnt", 1)
 
 	type want struct {
 		code        int

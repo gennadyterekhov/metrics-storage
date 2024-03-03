@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"compress/gzip"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/helper/iohelpler"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
@@ -31,7 +31,7 @@ func BootstrapWithServer(m *testing.M, server *httptest.Server) {
 }
 
 func setUp(server *httptest.Server) {
-	container.MetricsRepository.Clear()
+	storage.MetricsRepository.Clear()
 	if server != nil {
 		TestServer = server
 	}
