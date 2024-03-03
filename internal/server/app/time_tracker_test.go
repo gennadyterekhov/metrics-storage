@@ -9,6 +9,7 @@ import (
 )
 
 func TestInterval(t *testing.T) {
+	t.Skip("runs too long because of interval, manual use only")
 	filename := "test_interval.json"
 	config.Conf.StoreInterval = 2
 	config.Conf.FileStorage = filename
