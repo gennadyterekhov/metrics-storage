@@ -6,8 +6,8 @@ import (
 )
 
 type MemStorage struct {
-	Counters map[string]int64
-	Gauges   map[string]float64
+	Counters map[string]int64   `json:"counters"`
+	Gauges   map[string]float64 `json:"gauges"`
 }
 
 func CreateStorage() *MemStorage {
