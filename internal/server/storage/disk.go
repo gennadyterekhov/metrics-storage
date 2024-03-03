@@ -2,20 +2,21 @@ package storage
 
 import (
 	"encoding/json"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"os"
 )
 
-func (settings MemStorage) Save(fname string) error {
-	// сериализуем структуру в JSON формат
-	data, err := json.MarshalIndent(settings, "", "   ")
+func (strg *MemStorage) Save(filename string) error {
+	data, err := json.MarshalIndent(strg, "", "   ")
 	if err != nil {
+		logger.ZapSugarLogger.Warnln("error when saving metrics to disk")
 		return err
 	}
-	// сохраняем данные в файл
-	return os.WriteFile(fname, data, 0666)
+
+	return os.WriteFile(filename, data, 0666)
 }
 
-func (settings *MemStorage) Load(fname string) error {
+func (strg *MemStorage) Load(fname string) error {
 	fbytes, err := os.ReadFile(fname)
 	if err != nil {
 		return err
