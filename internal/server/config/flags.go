@@ -2,6 +2,7 @@ package config
 
 import (
 	"flag"
+	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"log"
 	"os"
 	"strconv"
@@ -17,6 +18,10 @@ type ServerConfig struct {
 var Conf *ServerConfig = getConfig()
 
 func getConfig() *ServerConfig {
+	if testhelper.IsTest() {
+		return &ServerConfig{}
+	}
+
 	addressFlag := flag.String(
 		"a",
 		"localhost:8080",

@@ -18,15 +18,21 @@ func StartTrackingIntervals() {
 }
 
 func routine() {
+	if config.Conf.StoreInterval == 0 {
+		return
+	}
 	for range time.Tick(time.Duration(config.Conf.StoreInterval) * time.Second) {
 		TimeTrackerInstance.onInterval()
 	}
 }
 
 func NewTimeTracker() *TimeTracker {
-
+	var offset int64 = 0
+	if config.Conf.StoreInterval != 0 {
+		offset = time.Now().Unix() % int64(config.Conf.StoreInterval)
+	}
 	return &TimeTracker{
-		ModOffset: time.Now().Unix() % int64(config.Conf.StoreInterval),
+		ModOffset: offset,
 	}
 }
 

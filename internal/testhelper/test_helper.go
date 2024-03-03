@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -143,4 +144,9 @@ func SendGzipNoBodyRequest(
 	response.Body.Close()
 
 	return response, respBody
+}
+
+func IsTest() (test bool) {
+
+	return strings.HasSuffix(os.Args[0], ".test")
 }
