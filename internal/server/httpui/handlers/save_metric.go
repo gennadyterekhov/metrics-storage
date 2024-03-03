@@ -7,7 +7,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/dto"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/app/services/save_metric_service"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
 	"net/http"
@@ -42,7 +42,7 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 		}
 
 		res.Header().Set(constants.HeaderContentType, constants.ApplicationJSON)
-		savemetricservice.SaveMetricToMemory(&filledDto)
+		app.SaveMetricToMemory(&filledDto)
 
 		encoder := json.NewEncoder(res)
 		if err := encoder.Encode(metric); err != nil {
@@ -63,5 +63,5 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	savemetricservice.SaveMetricToMemory(filledDto)
+	app.SaveMetricToMemory(filledDto)
 }

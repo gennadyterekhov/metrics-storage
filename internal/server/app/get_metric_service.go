@@ -1,4 +1,4 @@
-package getmetricservice
+package app
 
 import (
 	"fmt"

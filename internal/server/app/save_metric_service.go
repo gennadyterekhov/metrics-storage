@@ -1,4 +1,4 @@
-package savemetricservice
+package app
 
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
