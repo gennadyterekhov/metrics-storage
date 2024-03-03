@@ -7,6 +7,8 @@ import (
 )
 
 func (strg *MemStorage) Save(filename string) (err error) {
+	logger.ZapSugarLogger.Infoln("saving metrics to disk")
+
 	data, err := json.MarshalIndent(strg, "", "   ")
 	if err != nil {
 		logger.ZapSugarLogger.Warnln("error when saving metrics to disk")
@@ -22,9 +24,15 @@ func (strg *MemStorage) Save(filename string) (err error) {
 }
 
 func (strg *MemStorage) Load(filename string) (err error) {
+	logger.ZapSugarLogger.Infoln("loading metrics from disk")
+
 	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
-		logger.ZapSugarLogger.Panicln("error when loading metrics from disk")
+		logger.ZapSugarLogger.Warnln("error when loading metrics from disk", err.Error())
+		logger.ZapSugarLogger.Infoln("loading metrics from disk")
+		strg.Clear()
+		strg = CreateStorage()
+
 		return err
 	}
 

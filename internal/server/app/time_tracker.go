@@ -1,6 +1,7 @@
 package app
 
 import (
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"time"
@@ -43,6 +44,7 @@ func (ttr *TimeTracker) IsIntervalPassed() (ok bool) {
 }
 
 func (ttr *TimeTracker) onInterval() {
+	logger.ZapSugarLogger.Infoln("STORE_INTERVAL passed, saving metrics to disk")
 	storage.MetricsRepository.Save(config.Conf.FileStorage)
 	ttr.ActionFulfilled += 1
 }
