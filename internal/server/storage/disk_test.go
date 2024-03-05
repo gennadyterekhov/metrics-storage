@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 )
@@ -14,19 +15,18 @@ func TestSaveLoad(t *testing.T) {
 	MetricsRepository.SetGauge("g3", 3.7)
 
 	filename := `metrics.json`
+	var err error
+	err = MetricsRepository.Save(filename)
+	assert.NoError(t, err)
+	assert.NoError(t, err)
 
-	if err := MetricsRepository.Save(filename); err != nil {
-		t.Error(err)
-	}
 	var result MemStorage
-	if err := (&result).Load(filename); err != nil {
-		t.Error(err)
-	}
-	if !MetricsRepository.IsEqual(&result) {
-		t.Errorf(`%+v не равно %+v`, MetricsRepository, result)
-	}
+	err = (&result).Load(filename)
+	assert.NoError(t, err)
 
-	if err := os.Remove(filename); err != nil {
-		t.Error(err)
-	}
+	assert.True(t, MetricsRepository.IsEqual(&result))
+
+	err = os.Remove(filename)
+	assert.NoError(t, err)
+
 }
