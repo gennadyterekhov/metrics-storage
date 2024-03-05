@@ -3,8 +3,8 @@ package client
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http/httptest"
@@ -43,7 +43,7 @@ func TestCanSendCounterValue(t *testing.T) {
 	}
 	var err error
 	for _, tt := range tests {
-		container.MetricsRepository.Clear()
+		storage.MetricsRepository.Clear()
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.isGzip {
 				metricsStorageClient.IsGzip = true
@@ -58,23 +58,23 @@ func TestCanSendCounterValue(t *testing.T) {
 
 			assert.Equal(t,
 				1,
-				len(container.MetricsRepository.GetAllCounters()),
+				len(storage.MetricsRepository.GetAllCounters()),
 			)
 			assert.Equal(t,
 				0,
-				len(container.MetricsRepository.GetAllGauges()),
+				len(storage.MetricsRepository.GetAllGauges()),
 			)
 
 			assert.Equal(t,
 				tt.want.counterValue,
-				container.MetricsRepository.GetCounterOrZero("nm"),
+				storage.MetricsRepository.GetCounterOrZero("nm"),
 			)
 		})
 	}
 }
 
 func TestCanSendGaugeValue(t *testing.T) {
-	container.MetricsRepository.Clear()
+	storage.MetricsRepository.Clear()
 	testServer := httptest.NewServer(
 		handlers.GetRouter(),
 	)
@@ -110,16 +110,16 @@ func TestCanSendGaugeValue(t *testing.T) {
 
 			assert.Equal(t,
 				0,
-				len(container.MetricsRepository.GetAllCounters()),
+				len(storage.MetricsRepository.GetAllCounters()),
 			)
 			assert.Equal(t,
 				1,
-				len(container.MetricsRepository.GetAllGauges()),
+				len(storage.MetricsRepository.GetAllGauges()),
 			)
 
 			assert.Equal(t,
 				tt.want.gaugeValue,
-				container.MetricsRepository.GetGaugeOrZero("nm"),
+				storage.MetricsRepository.GetGaugeOrZero("nm"),
 			)
 		})
 	}

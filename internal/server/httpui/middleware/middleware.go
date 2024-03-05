@@ -3,7 +3,7 @@ package middleware
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/app/services/get_metric_service"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
 	"net/http"
@@ -91,7 +91,7 @@ func URLParametersToGetMetricsArePresent(next http.Handler) http.Handler {
 			return
 		}
 
-		_, err = getmetricservice.GetMetricAsString(metricType, name)
+		_, err = app.GetMetricAsString(metricType, name)
 
 		if err != nil && err.Error() == exceptions.UnknownMetricName {
 			http.Error(res, err.Error(), http.StatusNotFound)
@@ -163,7 +163,7 @@ func URLParametersToGetMetricsArePresentIfNotJSON(next http.Handler) http.Handle
 			return
 		}
 
-		_, err = getmetricservice.GetMetricAsString(metricType, name)
+		_, err = app.GetMetricAsString(metricType, name)
 
 		if err != nil && err.Error() == exceptions.UnknownMetricName {
 			http.Error(res, err.Error(), http.StatusNotFound)

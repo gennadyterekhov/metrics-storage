@@ -6,7 +6,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/app/services/get_metric_service"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
 	"io"
@@ -24,7 +24,7 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		metricType := metrics.MType
 		name := metrics.ID
 
-		metric, err := getmetricservice.GetMetricsAsStruct(metricType, name)
+		metric, err := app.GetMetricsAsStruct(metricType, name)
 		//if metricType == types.Counter {
 		//	metrics.Delta += metric.Delta
 		//
@@ -57,7 +57,7 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	metric, err := getmetricservice.GetMetricAsString(metricType, name)
+	metric, err := app.GetMetricAsString(metricType, name)
 
 	if err != nil && err.Error() == exceptions.UnknownMetricName {
 		http.Error(res, err.Error(), http.StatusNotFound)

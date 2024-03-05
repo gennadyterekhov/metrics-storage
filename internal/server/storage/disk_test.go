@@ -1,0 +1,32 @@
+package storage
+
+import (
+	"github.com/stretchr/testify/assert"
+	"os"
+	"testing"
+)
+
+func TestSaveLoad(t *testing.T) {
+	MetricsRepository.AddCounter("c1", 1)
+	MetricsRepository.AddCounter("c2", 2)
+	MetricsRepository.AddCounter("c3", 3)
+	MetricsRepository.SetGauge("g1", 1.5)
+	MetricsRepository.SetGauge("g2", 2.6)
+	MetricsRepository.SetGauge("g3", 3.7)
+
+	filename := `metrics.json`
+	var err error
+	err = MetricsRepository.Save(filename)
+	assert.NoError(t, err)
+	assert.NoError(t, err)
+
+	var result MemStorage
+	err = (&result).Load(filename)
+	assert.NoError(t, err)
+
+	assert.True(t, MetricsRepository.IsEqual(&result))
+
+	err = os.Remove(filename)
+	assert.NoError(t, err)
+
+}

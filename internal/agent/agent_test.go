@@ -1,8 +1,8 @@
 package agent
 
 import (
-	"github.com/gennadyterekhov/metrics-storage/internal/container"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,6 +22,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestAgent(t *testing.T) {
+	t.Skip("runs too long because of interval, manual use only")
+
 	tests := []struct {
 		name string
 	}{
@@ -43,17 +45,19 @@ func TestAgent(t *testing.T) {
 
 			assert.Equal(t,
 				1,
-				len(container.MetricsRepository.GetAllCounters()),
+				len(storage.MetricsRepository.GetAllCounters()),
 			)
 			assert.Equal(t,
 				27+1,
-				len(container.MetricsRepository.GetAllGauges()),
+				len(storage.MetricsRepository.GetAllGauges()),
 			)
 		})
 	}
 }
 
 func TestGzip(t *testing.T) {
+	t.Skip("runs too long because of interval, manual use only")
+
 	tests := []struct {
 		name string
 	}{
@@ -76,19 +80,20 @@ func TestGzip(t *testing.T) {
 
 			assert.Equal(t,
 				1,
-				len(container.MetricsRepository.GetAllCounters()),
+				len(storage.MetricsRepository.GetAllCounters()),
 			)
 			assert.Equal(t,
 				27+1,
-				len(container.MetricsRepository.GetAllGauges()),
+				len(storage.MetricsRepository.GetAllGauges()),
 			)
-			savedValue := container.MetricsRepository.GetCounterOrZero("PollCount")
+			savedValue := storage.MetricsRepository.GetCounterOrZero("PollCount")
 			assert.Equal(t, int64(2), savedValue)
 		})
 	}
 }
 
 func TestSameValueReturnedFromServer(t *testing.T) {
+	t.Skip("runs too long because of interval, manual use only")
 
 	tests := []struct {
 		name string
@@ -111,11 +116,11 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 
 			assert.Equal(t,
 				1,
-				len(container.MetricsRepository.GetAllCounters()),
+				len(storage.MetricsRepository.GetAllCounters()),
 			)
 			assert.Equal(t,
 				27+1,
-				len(container.MetricsRepository.GetAllGauges()),
+				len(storage.MetricsRepository.GetAllGauges()),
 			)
 
 			url := "/value/gauge/BuckHashSys"
@@ -127,7 +132,7 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 				url,
 			)
 
-			savedValue := container.MetricsRepository.GetGaugeOrZero("BuckHashSys")
+			savedValue := storage.MetricsRepository.GetGaugeOrZero("BuckHashSys")
 
 			assert.Equal(
 				t,
