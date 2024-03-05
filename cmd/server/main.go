@@ -8,6 +8,8 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"net/http"
+	"os"
+	"os/signal"
 )
 
 func main() {
@@ -21,16 +23,30 @@ func main() {
 				logger.ZapSugarLogger.Warnln("error when loading metrics from disk", err.Error())
 			}
 		}
-		defer storage.MetricsRepository.Save(config.Conf.FileStorage)
 	}
 
 	if config.Conf.StoreInterval != 0 {
 		app.StartTrackingIntervals()
 	}
 
+	go onStop()
 	fmt.Printf("Server started on %v\n", config.Conf.Addr)
 	err := http.ListenAndServe(config.Conf.Addr, handlers.GetRouter())
+
 	if err != nil {
 		panic(err)
 	}
+}
+
+func onStop() {
+	sigchan := make(chan os.Signal)
+	signal.Notify(sigchan, os.Interrupt)
+	<-sigchan
+	logger.ZapSugarLogger.Infoln("shutting down gracefully")
+
+	err := storage.MetricsRepository.Save(config.Conf.FileStorage)
+	if err != nil {
+		logger.ZapSugarLogger.Errorln("could not save metrics during shutdown")
+	}
+	os.Exit(0)
 }
