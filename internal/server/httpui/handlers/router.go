@@ -14,6 +14,11 @@ func GetRouter() chi.Router {
 func registerRoutes(router chi.Router) {
 	router.Head("/", HeadHandler)
 
+	router.Get(
+		"/ping",
+		Ping,
+	)
+
 	router.Get("/", GetAllMetricsHandlerFunc())
 
 	router.Get(
