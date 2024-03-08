@@ -6,6 +6,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/helper/iohelpler"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
+	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
@@ -24,11 +25,18 @@ func Bootstrap(m *testing.M) {
 	os.Exit(code)
 }
 
-func BootstrapWithServer(m *testing.M, server *httptest.Server) {
+func bootstrapWithServer(m *testing.M, server *httptest.Server) {
 	setUp(server)
 	code := m.Run()
 	tearDown()
 	os.Exit(code)
+}
+
+func BootstrapWithDefaultServer(m *testing.M, routerInterface chi.Router) {
+	server := httptest.NewServer(
+		routerInterface,
+	)
+	bootstrapWithServer(m, server)
 }
 
 func setUp(server *httptest.Server) {

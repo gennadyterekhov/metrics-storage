@@ -5,34 +5,33 @@ import (
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/domain/dto"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"strconv"
 )
 
-func GetDataToSave(metricType string, metricName string, metricValue string) (*dto.MetricToSaveDto, error) {
-	filledDto := &dto.MetricToSaveDto{}
+func GetDataToSave(metricType string, metricName string, metricValue string) *requests.SaveMetricRequest {
+	filledDto := &requests.SaveMetricRequest{}
 	if metricType == "" {
-		return filledDto, fmt.Errorf(exceptions.EmptyMetricType)
+		filledDto.Error = fmt.Errorf(exceptions.EmptyMetricType)
 	}
 	if metricName == "" {
-		return filledDto, fmt.Errorf(exceptions.EmptyMetricName)
+		filledDto.Error = fmt.Errorf(exceptions.EmptyMetricName)
 	}
 	if metricValue == "" {
-		return filledDto, fmt.Errorf(exceptions.EmptyMetricValue)
+		filledDto.Error = fmt.Errorf(exceptions.EmptyMetricValue)
 	}
 	counterValue, gaugeValue, err := validateParameters(metricType, metricName, metricValue)
-	if err != nil && err.Error() == exceptions.InvalidMetricTypeChoice {
-		return filledDto, fmt.Errorf(exceptions.InvalidMetricTypeChoice)
-	}
 	if err != nil {
-		return filledDto, err
+		filledDto.Error = fmt.Errorf(exceptions.InvalidMetricValueFormat)
+		logger.ZapSugarLogger.Errorln("error when building save request dto", filledDto.Error, err)
 	}
-	filledDto.Name = metricName
-	filledDto.Type = metricType
-	filledDto.CounterValue = counterValue
-	filledDto.GaugeValue = gaugeValue
+	filledDto.MetricName = metricName
+	filledDto.MetricType = metricType
+	filledDto.CounterValue = &counterValue
+	filledDto.GaugeValue = &gaugeValue
 
-	return filledDto, nil
+	return filledDto
 }
 
 func GetDataToGet(metricType string, metricName string) (typ string, name string, err error) {

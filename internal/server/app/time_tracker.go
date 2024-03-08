@@ -12,24 +12,18 @@ type TimeTracker struct {
 	ActionFulfilled int
 }
 
-var TimeTrackerInstance = NewTimeTracker()
+var TimeTrackerInstance = newTimeTracker()
 
 func StartTrackingIntervals() {
 	ticker := time.NewTicker(time.Duration(config.Conf.StoreInterval) * time.Second)
-	quit := make(chan bool)
-	go routine(ticker, quit)
+	go routine(ticker)
 }
 
-func routine(ticker *time.Ticker, quit chan bool) {
+func routine(ticker *time.Ticker) {
 	if config.Conf.StoreInterval == 0 {
 		return
 	}
 	for {
-		if <-quit {
-			ticker.Stop()
-			return
-		}
-
 		nextTick := <-ticker.C
 		if &nextTick != nil {
 			TimeTrackerInstance.onInterval()
@@ -37,7 +31,7 @@ func routine(ticker *time.Ticker, quit chan bool) {
 	}
 }
 
-func NewTimeTracker() *TimeTracker {
+func newTimeTracker() *TimeTracker {
 	var offset int64 = 0
 	if config.Conf.StoreInterval != 0 {
 		offset = time.Now().Unix() % int64(config.Conf.StoreInterval)
@@ -47,8 +41,8 @@ func NewTimeTracker() *TimeTracker {
 	}
 }
 
-// IsIntervalPassed is independent of run time  in contrary to time.Tick
-func (ttr *TimeTracker) IsIntervalPassed() (ok bool) {
+// isIntervalPassed is independent of run time  in contrary to time.Tick
+func (ttr *TimeTracker) isIntervalPassed() (ok bool) {
 
 	return time.Now().Unix()%int64(config.Conf.StoreInterval) == ttr.ModOffset
 }

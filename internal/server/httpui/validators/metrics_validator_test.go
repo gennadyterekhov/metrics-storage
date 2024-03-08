@@ -4,6 +4,8 @@ import (
 	"errors"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"testing"
 )
@@ -250,6 +252,12 @@ func TestGetDataToSave(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:    "metricValue none (invalid because string)",
+			args:    args{metricType: types.Counter, metricName: types.Counter, metricValue: "none"},
+			want:    want{metricType: "", metricName: "", counterValue: int64(0), gaugeValue: float64(0)},
+			wantErr: true,
+		},
+		{
 			name:    "InvalidMetricTypeChoice",
 			args:    args{metricType: "hello", metricName: types.Counter, metricValue: "1"},
 			want:    want{metricType: "", metricName: "", counterValue: int64(0), gaugeValue: float64(0)},
@@ -258,21 +266,24 @@ func TestGetDataToSave(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			filledDto, err := GetDataToSave(tt.args.metricType, tt.args.metricName, tt.args.metricValue)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("GetDataToSave() error = %v, wantErr %v", err, tt.wantErr)
+			filledDto := GetDataToSave(tt.args.metricType, tt.args.metricName, tt.args.metricValue)
+			logger.ZapSugarLogger.Debugln(filledDto)
+
+			if tt.wantErr {
+				assert.Error(t, filledDto.Error)
 				return
 			}
-			if filledDto.Type != tt.want.metricType {
-				t.Errorf("GetDataToSave() gotTyp = %v, want %v", filledDto.Type, tt.want.metricType)
+
+			if filledDto.MetricType != tt.want.metricType {
+				t.Errorf("GetDataToSave() gotTyp = %v, want %v", filledDto.MetricType, tt.want.metricType)
 			}
-			if filledDto.Name != tt.want.metricName {
-				t.Errorf("GetDataToSave() gotName = %v, want %v", filledDto.Name, tt.want.metricName)
+			if filledDto.MetricName != tt.want.metricName {
+				t.Errorf("GetDataToSave() gotName = %v, want %v", filledDto.MetricName, tt.want.metricName)
 			}
-			if filledDto.CounterValue != tt.want.counterValue {
+			if *filledDto.CounterValue != tt.want.counterValue {
 				t.Errorf("GetDataToSave() gotCounterValue = %v, want %v", filledDto.CounterValue, tt.want.counterValue)
 			}
-			if filledDto.GaugeValue != tt.want.gaugeValue {
+			if *filledDto.GaugeValue != tt.want.gaugeValue {
 				t.Errorf("GetDataToSave() gotGaugeValue = %v, want %v", filledDto.GaugeValue, tt.want.gaugeValue)
 			}
 		})

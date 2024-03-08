@@ -2,16 +2,13 @@ package handlers
 
 import (
 	"bytes"
-	"context"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -88,20 +85,16 @@ func TestSaveMetricJSON(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			storage.MetricsRepository.Clear()
-			rctx := chi.NewRouteContext()
-			rctx.URLParams.Add("metricType", tt.want.typ)
-			rctx.URLParams.Add("metricName", tt.want.metricName)
-			rctx.URLParams.Add("metricValue", "1")
-			request := httptest.NewRequest(http.MethodPost, tt.url, bytes.NewBuffer([]byte(tt.rawJSON)))
-			request.Header.Set(constants.HeaderContentType, constants.ApplicationJSON)
-			request = request.WithContext(context.WithValue(request.Context(), chi.RouteCtxKey, rctx))
 
-			w := httptest.NewRecorder()
-			SaveMetricHandler()(w, request)
+			response, _ := testhelper.SendAlreadyJSONedBody(
+				t,
+				testhelper.TestServer,
+				http.MethodPost,
+				tt.url,
+				bytes.NewBuffer([]byte(tt.rawJSON)),
+			)
 
-			res := w.Result()
-			defer res.Body.Close()
-			assert.Equal(t, tt.want.code, res.StatusCode)
+			assert.Equal(t, tt.want.code, response.StatusCode)
 
 			if tt.want.typ == types.Counter {
 				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(tt.want.metricName))
@@ -133,6 +126,25 @@ func TestSaveMetricJSON(t *testing.T) {
 		bytes.NewBuffer([]byte(`{"id":"gaugeName", "type":"gauge", "value":3}`)),
 	)
 	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero("gaugeName"))
+}
+
+func TestSaveMetricJSONReturnsUpdatedValuesInBody(t *testing.T) {
+	rawJSON := `{"id":"cnt", "type":"counter", "delta":10}`
+	storage.MetricsRepository.Clear()
+	storage.MetricsRepository.AddCounter("cnt", 1)
+
+	response, responseBody := testhelper.SendAlreadyJSONedBody(
+		t,
+		testhelper.TestServer,
+		http.MethodPost,
+		"/update/counter/cnt/10",
+		bytes.NewBuffer([]byte(rawJSON)),
+	)
+	assert.Equal(t, http.StatusOK, response.StatusCode)
+
+	logger.ZapSugarLogger.Debugln("responseBody", responseBody)
+
+	assert.Equal(t, `{"type":"counter","id":"cnt","delta":11}`, string(responseBody))
 }
 
 func TestSaveMetricHttpMethod(t *testing.T) {
@@ -196,6 +208,11 @@ func TestSaveMetric(t *testing.T) {
 			name: "Gauge",
 			url:  "/update/gauge/gaugeName/1",
 			want: want{code: http.StatusOK, response: "", typ: types.Gauge, metricName: "gaugeName", metricValue: 1},
+		},
+		{
+			name: "invalid_value",
+			url:  "/update/counter/testCounter/none",
+			want: want{code: http.StatusBadRequest, response: "", typ: types.Counter, metricName: "testCounter", metricValue: 0},
 		},
 	}
 

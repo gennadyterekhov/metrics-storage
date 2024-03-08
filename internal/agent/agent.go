@@ -1,6 +1,7 @@
 package agent
 
 import (
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/healthcheck"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/poller"
@@ -9,11 +10,11 @@ import (
 )
 
 type AgentConfig struct {
-	Addr            string
-	IsGzip          bool
-	ReportInterval  int
-	PollInterval    int
-	TotalIterations *int
+	Addr           string
+	IsGzip         bool
+	ReportInterval int
+	PollInterval   int
+	IsBatch        bool
 }
 
 func RunAgent(config *AgentConfig) (err error) {
@@ -29,25 +30,28 @@ func RunAgent(config *AgentConfig) (err error) {
 		IsGzip:    config.IsGzip,
 		Interval:  config.ReportInterval,
 		IsRunning: false,
+		IsBatch:   config.IsBatch,
 	}
-
-	for i := 0; (config.TotalIterations != nil && i < *config.TotalIterations) || config.TotalIterations == nil; i += 1 {
+	metricsStorageClient := client.MetricsStorageClient{
+		Address: config.Addr,
+		IsGzip:  config.IsGzip,
+	}
+	for i := 0; ; i += 1 {
 		// TODO fix interval issue
 		// У нас pollInterval 2с, reportInterval 10с
 		// Какой будет метрика PollCount на сервере через 20с?
 		// Условно мы 10 раз сделали poll и 2 раза репорт.
 		// В идеальном мире(все операции моментальны) она должна бы быть равна 10, а будет?
-		if config.TotalIterations == nil {
-			time.Sleep(time.Second)
-		}
 
 		if !pollerInstance.IsRunning && i%config.PollInterval == 0 {
 			metricsSet = pollerInstance.Poll()
 		}
 
 		if !senderInstance.IsRunning && i%config.ReportInterval == 0 {
-			senderInstance.Report(metricsSet)
+			senderInstance.Report(metricsSet, &metricsStorageClient)
 		}
+
+		time.Sleep(time.Second)
 	}
 	return nil
 }

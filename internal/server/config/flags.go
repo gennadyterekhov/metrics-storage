@@ -2,10 +2,10 @@ package config
 
 import (
 	"flag"
-	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type ServerConfig struct {
@@ -18,7 +18,7 @@ type ServerConfig struct {
 var Conf *ServerConfig = getConfig()
 
 func getConfig() *ServerConfig {
-	if testhelper.IsTest() {
+	if strings.HasSuffix(os.Args[0], ".test") {
 		return &ServerConfig{}
 	}
 

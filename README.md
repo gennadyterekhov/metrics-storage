@@ -35,6 +35,9 @@ git fetch template && git checkout template/main .github
 cd internal
 go test ./...
 
+### clear test cache
+go clean -testcache
+
 ### specific package
 go test github.com/gennadyterekhov/metrics-storage/internal/agent/client
 

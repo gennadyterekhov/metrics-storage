@@ -2,66 +2,90 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/domain/dto"
-	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 )
 
+func SaveMetricHandler() http.Handler {
+	return middleware.CommonConveyor(
+		http.HandlerFunc(SaveMetric),
+	)
+}
+
+func SaveMetricHandlerFunc() func(http.ResponseWriter, *http.Request) {
+	return SaveMetricHandler().ServeHTTP
+
+}
+
 func SaveMetric(res http.ResponseWriter, req *http.Request) {
-	if req.Header.Get(constants.HeaderContentType) == constants.ApplicationJSON {
-
-		decoder := json.NewDecoder(req.Body)
-		metric := models.Metrics{}
-
-		if err := decoder.Decode(&metric); err != nil {
-			logger.ZapSugarLogger.Debugln("could not decode json body", err.Error())
-
-			http.Error(res, err.Error(), http.StatusBadRequest)
-			return
-		}
-		filledDto := dto.MetricToSaveDto{}
-		if metric.MType == types.Counter {
-			filledDto = dto.MetricToSaveDto{
-				Type:         metric.MType,
-				Name:         metric.ID,
-				CounterValue: *metric.Delta,
-			}
-		} else {
-
-			filledDto = dto.MetricToSaveDto{
-				Type:       metric.MType,
-				Name:       metric.ID,
-				GaugeValue: *metric.Value,
-			}
-		}
-
-		res.Header().Set(constants.HeaderContentType, constants.ApplicationJSON)
-		app.SaveMetricToMemory(&filledDto)
-
-		encoder := json.NewEncoder(res)
-		if err := encoder.Encode(metric); err != nil {
-			logger.ZapSugarLogger.Debugln("could not encode json body", err.Error())
-			return
-		}
+	requestDto := getSaveDtoForService(req)
+	if requestDto.Error != nil {
+		logger.ZapSugarLogger.Debugln("found error during request DTO build process", requestDto.Error)
+		writeErrorToOutput(&res, requestDto.Error)
 		return
 	}
-	filledDto, err := validators.GetDataToSave(
+
+	validatedRequestDto := validateSaveRequest(requestDto)
+	if validatedRequestDto.Error != nil {
+		logger.ZapSugarLogger.Debugln("found error during request validation", requestDto.Error)
+		writeErrorToOutput(&res, validatedRequestDto.Error)
+		return
+	}
+
+	responseDto := app.SaveMetricToMemory(requestDto)
+	if responseDto.Error != nil {
+		logger.ZapSugarLogger.Debugln(
+			"found error during response DTO build process in usecase",
+			requestDto.Error)
+		writeErrorToOutput(&res, responseDto.Error)
+		return
+	}
+
+	writeDtoToOutputIfJSON(&res, responseDto)
+}
+
+func getSaveDtoForService(req *http.Request) *requests.SaveMetricRequest {
+	requestDto := &requests.SaveMetricRequest{
+		IsJson: false,
+	}
+
+	if req.Header.Get(constants.HeaderContentType) == constants.ApplicationJSON {
+		requestDto.IsJson = true
+		decoder := json.NewDecoder(req.Body)
+		err := decoder.Decode(requestDto)
+		requestDto.Error = err
+		return requestDto
+	}
+
+	requestDto = validators.GetDataToSave(
 		chi.URLParam(req, "metricType"),
 		chi.URLParam(req, "metricName"),
 		chi.URLParam(req, "metricValue"),
 	)
+	return requestDto
+}
 
-	if err != nil {
-		logger.ZapSugarLogger.Debugln("validation error", err.Error())
-		http.Error(res, err.Error(), http.StatusBadRequest)
-		return
+func validateSaveRequest(requestDto *requests.SaveMetricRequest) *requests.SaveMetricRequest {
+	validatedRequestDto := requestDto
+	if requestDto.MetricType != types.Counter && requestDto.MetricType != types.Gauge {
+		validatedRequestDto.Error = fmt.Errorf(exceptions.InvalidMetricTypeChoice)
 	}
 
-	app.SaveMetricToMemory(filledDto)
+	return validatedRequestDto
+}
+
+func writeDtoToOutputIfJSON(res *http.ResponseWriter, responseDto *responses.GetMetricResponse) {
+	if responseDto.IsJson {
+		writeDtoToOutput(res, responseDto)
+	}
 }

@@ -5,7 +5,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"math/rand"
 	"runtime"
-	"time"
 )
 
 type PollMaker struct {
@@ -14,13 +13,8 @@ type PollMaker struct {
 	IsRunning  bool
 }
 
-func (pmk *PollMaker) Wait() {
-	time.Sleep(time.Duration(pmk.Interval * 950 * int(time.Millisecond)))
-}
-
 func (pmk *PollMaker) Poll() *metric.MetricsSet {
 	pmk.IsRunning = true
-	pmk.Wait()
 
 	runtimeStats := &runtime.MemStats{}
 	runtime.ReadMemStats(runtimeStats)

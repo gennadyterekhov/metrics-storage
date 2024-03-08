@@ -17,9 +17,8 @@ func TestCanSendCounterValue(t *testing.T) {
 	)
 
 	metricsStorageClient := MetricsStorageClient{
-		Address:          testServer.URL,
-		IsGzip:           false,
-		SendWhenNoServer: false,
+		Address: testServer.URL,
+		IsGzip:  false,
 	}
 
 	type want struct {
@@ -80,9 +79,8 @@ func TestCanSendGaugeValue(t *testing.T) {
 	)
 
 	metricsStorageClient := MetricsStorageClient{
-		Address:          testServer.URL,
-		IsGzip:           false,
-		SendWhenNoServer: false,
+		Address: testServer.URL,
+		IsGzip:  false,
 	}
 	type want struct {
 		gaugeValue float64
