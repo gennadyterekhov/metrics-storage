@@ -30,21 +30,21 @@ func GetMetricHandlerFunc() func(http.ResponseWriter, *http.Request) {
 func GetMetric(res http.ResponseWriter, req *http.Request) {
 	requestDto := getDtoForService(req)
 	if requestDto.Error != nil {
-		logger.ZapSugarLogger.Debugln("found error during request DTO build process")
+		logger.ZapSugarLogger.Debugln("found error during request DTO build process", requestDto.Error)
 		writeErrorToOutput(&res, requestDto.Error)
 		return
 	}
 
 	validatedRequestDto := validateRequest(requestDto)
 	if validatedRequestDto.Error != nil {
-		logger.ZapSugarLogger.Debugln("found error during request validation")
+		logger.ZapSugarLogger.Debugln("found error during request validation", validatedRequestDto.Error)
 		writeErrorToOutput(&res, validatedRequestDto.Error)
 		return
 	}
 
 	responseDto := app.GetMetric(requestDto)
 	if responseDto.Error != nil {
-		logger.ZapSugarLogger.Debugln("found error during response DTO build process in usecase")
+		logger.ZapSugarLogger.Debugln("found error during response DTO build process in usecase", responseDto.Error)
 		writeErrorToOutput(&res, responseDto.Error)
 		return
 	}
