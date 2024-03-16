@@ -51,8 +51,6 @@ func (msc *MetricsStorageClient) SendAllMetricsInOneRequest(memStats *metric.Met
 		return err
 	}
 
-	err = msc.sendRequestToMetricsServer(jsonBytes, true)
-
 	err = retry.Retry(
 		func(attempt uint) error {
 			return msc.sendRequestToMetricsServer(jsonBytes, true)
