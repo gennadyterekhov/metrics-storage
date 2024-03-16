@@ -3,7 +3,6 @@ package sender
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
-	"time"
 )
 
 type MetricsSender struct {
@@ -11,22 +10,18 @@ type MetricsSender struct {
 	IsGzip    bool
 	Interval  int
 	IsRunning bool
+	IsBatch   bool
 }
 
-func (msnd *MetricsSender) wait() {
-	// interval is in seconds, but I wait a little less
-	time.Sleep(time.Duration(msnd.Interval * 950 * int(time.Millisecond)))
-}
-
-func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet) {
+func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet, metricsStorageClient *client.MetricsStorageClient) {
 	msnd.IsRunning = true
-	msnd.wait()
 
-	metricsStorageClient := client.MetricsStorageClient{
-		Address: msnd.Address,
-		IsGzip:  msnd.IsGzip,
+	if msnd.IsBatch {
+		sendAllMetricsInOneRequest(metricsStorageClient, memStatsPtr)
+	} else {
+		sendAllMetrics(metricsStorageClient, memStatsPtr)
 	}
-	sendAllMetrics(&metricsStorageClient, memStatsPtr)
+
 	msnd.IsRunning = false
 }
 
@@ -60,4 +55,8 @@ func sendAllMetrics(metricsStorageClient *client.MetricsStorageClient, memStats 
 	metricsStorageClient.SendMetric(&memStats.TotalAlloc)
 	metricsStorageClient.SendMetric(&memStats.PollCount)
 	metricsStorageClient.SendMetric(&memStats.RandomValue)
+}
+
+func sendAllMetricsInOneRequest(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
+	metricsStorageClient.SendAllMetricsInOneRequest(memStats)
 }

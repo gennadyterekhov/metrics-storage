@@ -39,7 +39,7 @@ func main() {
 }
 
 func onStop() {
-	sigchan := make(chan os.Signal)
+	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, os.Interrupt)
 	<-sigchan
 	logger.ZapSugarLogger.Infoln("shutting down gracefully")

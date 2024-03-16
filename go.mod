@@ -3,6 +3,8 @@ module github.com/gennadyterekhov/metrics-storage
 go 1.20
 
 require (
+	github.com/KyleBanks/depth v1.2.1 // indirect
+	github.com/Rican7/retry v0.3.1 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-chi/chi/v5 v5.0.11 // indirect
 	github.com/go-resty/resty/v2 v2.11.0 // indirect

@@ -63,7 +63,7 @@ func TestGetMetricJSON(t *testing.T) {
 				"/value",
 				body,
 			)
-
+			response.Body.Close()
 			assert.Equal(t, tt.want.code, response.StatusCode)
 
 			if response.StatusCode == http.StatusOK {
@@ -132,6 +132,7 @@ func TestGetMetric(t *testing.T) {
 				http.MethodGet,
 				url,
 			)
+			response.Body.Close()
 
 			metricFromResponseAsInt, _ := strconv.ParseInt(string(responseBody), 10, 64)
 			assert.Equal(t, tt.want.code, response.StatusCode)

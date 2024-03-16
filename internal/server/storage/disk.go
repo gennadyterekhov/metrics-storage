@@ -31,7 +31,7 @@ func (strg *MemStorage) Load(filename string) (err error) {
 		logger.ZapSugarLogger.Warnln("error when reading metrics file", err.Error())
 		logger.ZapSugarLogger.Infoln("loading empty metrics")
 		strg.Clear()
-		strg = CreateStorage()
+		MetricsRepository = CreateStorage()
 
 		return err
 	}

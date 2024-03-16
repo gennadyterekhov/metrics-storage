@@ -2,61 +2,32 @@ package app
 
 import (
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
-	"strconv"
 )
 
-func GetMetricAsString(metricType string, name string) (metric string, err error) {
-	logger.ZapSugarLogger.Debugln("GetMetricAsString name, metricType", name, metricType)
-
-	if metricType == types.Counter {
-		val, err := storage.MetricsRepository.GetCounter(name)
-		if err != nil {
-			return "", err
-		}
-		return strconv.FormatInt(val, 10), nil
+func GetMetric(requestDto *requests.GetMetricRequest) (responseDto *responses.GetMetricResponse) {
+	logger.ZapSugarLogger.Debugln("GetMetricAsString name, metricType", requestDto.MetricName, requestDto.MetricType)
+	responseDto = &responses.GetMetricResponse{
+		MetricType:   requestDto.MetricType,
+		MetricName:   requestDto.MetricName,
+		CounterValue: nil,
+		GaugeValue:   nil,
+		IsJSON:       requestDto.IsJSON,
+		Error:        nil,
 	}
-	if metricType == types.Gauge {
-		val, err := storage.MetricsRepository.GetGauge(name)
-		if err != nil {
-			return "", err
-		}
-		return strconv.FormatFloat(val, 'g', -1, 64), nil
+	if requestDto.MetricType == types.Counter {
+		tmp, err := storage.MetricsRepository.GetCounter(requestDto.MetricName)
+		responseDto.CounterValue, responseDto.Error = &tmp, err
 	}
-	return "", fmt.Errorf(exceptions.InvalidMetricTypeChoice)
-}
-
-func GetMetricsAsStruct(metricType string, name string) (metric *models.Metrics, err error) {
-	logger.ZapSugarLogger.Debugln("GetMetricsAsStruct name, metricType", name, metricType)
-
-	metric = &models.Metrics{
-		ID:    name,
-		MType: metricType,
+	if requestDto.MetricType == types.Gauge {
+		tmp, err := storage.MetricsRepository.GetGauge(requestDto.MetricName)
+		responseDto.GaugeValue, responseDto.Error = &tmp, err
 	}
-
-	if metricType == types.Counter {
-		val, err := storage.MetricsRepository.GetCounter(name)
-		if err != nil {
-			logger.ZapSugarLogger.Warnln("could not get counter by name", name, err.Error())
-			return metric, err
-		}
-		metric.Delta = &val
-		return metric, nil
-	}
-	if metricType == types.Gauge {
-		val, err := storage.MetricsRepository.GetGauge(name)
-		if err != nil {
-			logger.ZapSugarLogger.Warnln("could not get gauge by name", name, err.Error())
-			return metric, err
-		}
-		metric.Value = &val
-		return metric, nil
-	}
-	return metric, fmt.Errorf(exceptions.InvalidMetricTypeChoice)
+	return responseDto
 }
 
 func GetMetricsListAsHTML() string {

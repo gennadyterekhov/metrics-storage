@@ -23,7 +23,7 @@ func TestIsGzipAvailableForThisRequest(t *testing.T) {
 	}{
 		{
 			name: "only json",
-			args: args{contenttype: "json"},
+			args: args{contenttype: "application/json"},
 			ok:   false,
 		},
 		{
@@ -59,7 +59,31 @@ func TestIsGzipAvailableForThisRequest(t *testing.T) {
 		{
 			name: "only contentEncodings",
 			args: args{contentEncodings: []string{"asdf", "gzip", "asdf"}},
-			ok:   true,
+			ok:   false,
+		},
+		{
+			name: " application/json accept gzip",
+			args: args{
+				accepts: []string{"asdf", "application/json", "asdf"},
+				//contenttype:     "application/json",// not required
+				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+			ok: true,
+		},
+		{
+			name: " text/html accept gzip",
+			args: args{
+				accepts: []string{"asdf", "text/html", "asdf"},
+				//contenttype:     "text/html", // not required
+				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+			ok: true,
+		},
+		{
+			name: " html/text accept gzip",
+			args: args{
+				accepts: []string{"asdf", "html/text", "asdf"},
+				//contenttype:     "html/text",// not required
+				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+			ok: true,
 		},
 	}
 

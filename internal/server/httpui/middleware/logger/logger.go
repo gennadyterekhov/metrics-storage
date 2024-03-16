@@ -63,14 +63,14 @@ func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 		}
 		reqBody := make([]byte, 0)
 		_, _ = req.Body.Read(reqBody)
-		// dont close because it will be used in compressor middleware
+		// don't close because it will be used in compressor middleware
 		//defer req.Body.Close()
 		logger.ZapSugarLogger.Debugln(
 			"got request",
 			req.Method,
 			req.RequestURI,
 			req.Header.Get(constants.HeaderContentType),
-			reqBody,
+			string(reqBody),
 		)
 
 		customWriter := initializeCustomWriter(res, req)
