@@ -14,16 +14,18 @@ func GetMetric(requestDto *requests.GetMetricRequest) (responseDto *responses.Ge
 	responseDto = &responses.GetMetricResponse{
 		MetricType:   requestDto.MetricType,
 		MetricName:   requestDto.MetricName,
-		CounterValue: 0,
-		GaugeValue:   0,
+		CounterValue: nil,
+		GaugeValue:   nil,
 		IsJson:       requestDto.IsJson,
 		Error:        nil,
 	}
 	if requestDto.MetricType == types.Counter {
-		responseDto.CounterValue, responseDto.Error = storage.MetricsRepository.GetCounter(requestDto.MetricName)
+		tmp, err := storage.MetricsRepository.GetCounter(requestDto.MetricName)
+		responseDto.CounterValue, responseDto.Error = &tmp, err
 	}
 	if requestDto.MetricType == types.Gauge {
-		responseDto.GaugeValue, responseDto.Error = storage.MetricsRepository.GetGauge(requestDto.MetricName)
+		tmp, err := storage.MetricsRepository.GetGauge(requestDto.MetricName)
+		responseDto.GaugeValue, responseDto.Error = &tmp, err
 	}
 	return responseDto
 }

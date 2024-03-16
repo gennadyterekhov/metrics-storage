@@ -13,8 +13,8 @@ func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *res
 	responseDto = &responses.GetMetricResponse{
 		MetricType:   filledDto.MetricType,
 		MetricName:   filledDto.MetricName,
-		CounterValue: 0,
-		GaugeValue:   0,
+		CounterValue: nil,
+		GaugeValue:   nil,
 		IsJson:       filledDto.IsJson,
 		Error:        nil,
 	}
@@ -22,11 +22,12 @@ func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *res
 		filledDto.MetricName, filledDto.MetricType, filledDto.CounterValue, filledDto.GaugeValue)
 	if filledDto.MetricType == types.Counter && filledDto.CounterValue != nil {
 		storage.MetricsRepository.AddCounter(filledDto.MetricName, *filledDto.CounterValue)
-		responseDto.CounterValue = storage.MetricsRepository.GetCounterOrZero(filledDto.MetricName)
+		updatedCounter := storage.MetricsRepository.GetCounterOrZero(filledDto.MetricName)
+		responseDto.CounterValue = &updatedCounter
 	}
 	if filledDto.MetricType == types.Gauge && filledDto.GaugeValue != nil {
 		storage.MetricsRepository.SetGauge(filledDto.MetricName, *filledDto.GaugeValue)
-		responseDto.GaugeValue = *filledDto.GaugeValue
+		responseDto.GaugeValue = filledDto.GaugeValue
 	}
 
 	if config.Conf.StoreInterval == 0 && config.Conf.FileStorage != "" {

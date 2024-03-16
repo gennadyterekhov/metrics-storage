@@ -110,9 +110,9 @@ func serializeDto(responseDto *responses.GetMetricResponse) []byte {
 	}
 
 	if responseDto.MetricType == types.Counter {
-		return []byte(strconv.FormatInt(responseDto.CounterValue, 10))
+		return []byte(strconv.FormatInt(*responseDto.CounterValue, 10))
 	}
-	return []byte(strconv.FormatFloat(responseDto.GaugeValue, 'g', -1, 64))
+	return []byte(strconv.FormatFloat(*responseDto.GaugeValue, 'g', -1, 64))
 }
 
 func writeErrorToOutput(res *http.ResponseWriter, err error) {
