@@ -24,10 +24,8 @@ func routine(ticker *time.Ticker) {
 		return
 	}
 	for {
-		nextTick := <-ticker.C
-		if &nextTick != nil {
-			TimeTrackerInstance.onInterval()
-		}
+		<-ticker.C
+		TimeTrackerInstance.onInterval()
 	}
 }
 

@@ -206,5 +206,5 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 }
 
 func runAgentRoutine(ctx context.Context, config *AgentConfig) {
-	_ = RunAgent(config)
+	RunAgent(config)
 }

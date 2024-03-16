@@ -17,7 +17,7 @@ type AgentConfig struct {
 	IsBatch        bool
 }
 
-func RunAgent(config *AgentConfig) (err error) {
+func RunAgent(config *AgentConfig) {
 	metricsSet := &metric.MetricsSet{}
 
 	pollerInstance := poller.PollMaker{
@@ -53,7 +53,6 @@ func RunAgent(config *AgentConfig) (err error) {
 
 		time.Sleep(time.Second)
 	}
-	return nil
 }
 
 func isServerAvailable(config *AgentConfig) (isAvailable bool) {
