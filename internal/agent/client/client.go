@@ -249,11 +249,11 @@ func prepareRequest(body []byte) (*resty.Request, error) {
 func getCompressedBody(body []byte) (*bytes.Buffer, error) {
 	bodyBuffer := bytes.NewBuffer(body)
 	compressedBodyWriter, err := gzip.NewWriterLevel(bodyBuffer, gzip.BestSpeed)
-	defer compressedBodyWriter.Close()
 	if err != nil {
 		logger.ZapSugarLogger.Warnln("error when opening gzip writer", err.Error())
 		return nil, err
 	}
+	defer compressedBodyWriter.Close()
 	_, err = compressedBodyWriter.Write(body)
 	if err != nil {
 		logger.ZapSugarLogger.Warnln("error when writing gzip body", err.Error())
