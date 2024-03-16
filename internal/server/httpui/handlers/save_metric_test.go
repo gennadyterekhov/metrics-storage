@@ -266,6 +266,8 @@ func TestSaveMetric(t *testing.T) {
 		http.MethodPost,
 		"/update/gauge/gaugeName/3",
 	)
+	response.Body.Close()
+
 	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero("gaugeName"))
 }
 
