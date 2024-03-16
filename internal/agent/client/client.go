@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"github.com/Rican7/retry"
+	"github.com/Rican7/retry/backoff"
+	"github.com/Rican7/retry/strategy"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
@@ -14,6 +17,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var client *resty.Client
@@ -48,6 +52,15 @@ func (msc *MetricsStorageClient) SendAllMetricsInOneRequest(memStats *metric.Met
 	}
 
 	err = msc.sendRequestToMetricsServer(jsonBytes, true)
+
+	err = retry.Retry(
+		func(attempt uint) error {
+			return msc.sendRequestToMetricsServer(jsonBytes, true)
+		},
+		strategy.Limit(4),
+		strategy.Backoff(backoff.Incremental(-1*time.Second, 2*time.Second)),
+	)
+
 	if err != nil {
 		logger.ZapSugarLogger.Warnln("error when sending metric batch to server", err.Error())
 		return err
