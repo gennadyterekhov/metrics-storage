@@ -93,6 +93,7 @@ func TestSaveMetricJSON(t *testing.T) {
 				tt.url,
 				bytes.NewBuffer([]byte(tt.rawJSON)),
 			)
+			response.Body.Close()
 
 			assert.Equal(t, tt.want.code, response.StatusCode)
 
@@ -107,24 +108,28 @@ func TestSaveMetricJSON(t *testing.T) {
 
 	// check counter is added to itself
 	storage.MetricsRepository.AddCounter("cnt", 1)
-	_, _ = testhelper.SendAlreadyJSONedBody(
+	response, _ := testhelper.SendAlreadyJSONedBody(
 		t,
 		testhelper.TestServer,
 		http.MethodPost,
 		"/update/counter/cnt/10",
 		bytes.NewBuffer([]byte(`{"id":"cnt", "type":"counter", "delta":10}`)),
 	)
+	response.Body.Close()
+
 	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero("cnt"))
 
 	// check gauge is substituted
 	storage.MetricsRepository.SetGauge("gaugeName", 1)
-	_, _ = testhelper.SendAlreadyJSONedBody(
+	response, _ = testhelper.SendAlreadyJSONedBody(
 		t,
 		testhelper.TestServer,
 		http.MethodPost,
 		"/update/gauge/gaugeName/3",
 		bytes.NewBuffer([]byte(`{"id":"gaugeName", "type":"gauge", "value":3}`)),
 	)
+	response.Body.Close()
+
 	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero("gaugeName"))
 }
 
@@ -243,17 +248,19 @@ func TestSaveMetric(t *testing.T) {
 
 	// check counter is added to itself
 	storage.MetricsRepository.AddCounter("cnt", 1)
-	_, _ = testhelper.SendRequest(
+	response, _ := testhelper.SendRequest(
 		t,
 		testhelper.TestServer,
 		http.MethodPost,
 		"/update/counter/cnt/10",
 	)
+	response.Body.Close()
+
 	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero("cnt"))
 
 	// check gauge is substituted
 	storage.MetricsRepository.SetGauge("gaugeName", 1)
-	_, _ = testhelper.SendRequest(
+	response, _ = testhelper.SendRequest(
 		t,
 		testhelper.TestServer,
 		http.MethodPost,
