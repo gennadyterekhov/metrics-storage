@@ -45,7 +45,7 @@ func TestGetAllMetrics(t *testing.T) {
 				http.MethodGet,
 				"/",
 			)
-
+			response.Body.Close()
 			assert.Equal(t,
 				http.StatusOK,
 				response.StatusCode,
@@ -97,6 +97,7 @@ func TestGetAllMetricsGzip(t *testing.T) {
 				http.MethodGet,
 				"/",
 			)
+			response.Body.Close()
 
 			assert.Equal(t,
 				http.StatusOK,

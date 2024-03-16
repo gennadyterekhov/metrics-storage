@@ -180,13 +180,13 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 
 				url := "/value/gauge/BuckHashSys"
 
-				_, responseBody := testhelper.SendRequest(
+				r, responseBody := testhelper.SendRequest(
 					t,
 					testhelper.TestServer,
 					http.MethodGet,
 					url,
 				)
-
+				r.Body.Close()
 				savedValue := storage.MetricsRepository.GetGaugeOrZero("BuckHashSys")
 
 				assert.Equal(
