@@ -11,9 +11,7 @@ type MemStorage struct {
 	Gauges   map[string]float64 `json:"gauges"`
 }
 
-var MetricsRepository = CreateStorage()
-
-func CreateStorage() *MemStorage {
+func CreateRAMStorage() *MemStorage {
 	return &MemStorage{
 		Counters: make(map[string]int64, 0),
 		Gauges:   make(map[string]float64, 0),
@@ -25,12 +23,12 @@ func (strg *MemStorage) Clear() {
 	strg.Gauges = make(map[string]float64, 0)
 }
 
-func (strg *MemStorage) HasGauge(name string) bool {
+func (strg *MemStorage) hasGauge(name string) bool {
 	_, ok := strg.Gauges[name]
 	return ok
 }
 
-func (strg *MemStorage) HasCounter(name string) bool {
+func (strg *MemStorage) hasCounter(name string) bool {
 	_, ok := strg.Counters[name]
 	return ok
 }
@@ -44,14 +42,14 @@ func (strg *MemStorage) SetGauge(key string, value float64) {
 }
 
 func (strg *MemStorage) GetGauge(name string) (float64, error) {
-	if !strg.HasGauge(name) {
+	if !strg.hasGauge(name) {
 		return 0, fmt.Errorf(exceptions.UnknownMetricName)
 	}
 	return strg.GetGaugeOrZero(name), nil
 }
 
 func (strg *MemStorage) GetCounter(name string) (int64, error) {
-	if !strg.HasCounter(name) {
+	if !strg.hasCounter(name) {
 		return 0, fmt.Errorf(exceptions.UnknownMetricName)
 	}
 	return strg.GetCounterOrZero(name), nil
@@ -81,13 +79,21 @@ func (strg *MemStorage) GetAllCounters() map[string]int64 {
 	return strg.Counters
 }
 
-func (strg *MemStorage) GetAll() (map[string]float64, map[string]int64) {
-	return strg.GetAllGauges(), strg.GetAllCounters()
-}
-
-func (strg *MemStorage) IsEqual(anotherStorage *MemStorage) (eq bool) {
-	gauges, counters := strg.GetAll()
-	gauges2, counters2 := anotherStorage.GetAll()
+func (strg *MemStorage) IsEqual(anotherStorage StorageInterface) (eq bool) {
+	gauges, counters := strg.GetAllGauges(), strg.GetAllCounters()
+	gauges2, counters2 := anotherStorage.GetAllGauges(), anotherStorage.GetAllCounters()
 
 	return reflect.DeepEqual(gauges, gauges2) && reflect.DeepEqual(counters, counters2)
+}
+
+func (strg *MemStorage) CloseDB() error {
+	return nil
+}
+
+func (strg *MemStorage) IsDB() bool {
+	return false
+}
+
+func (strg *MemStorage) GetDB() *DBStorage {
+	return nil
 }

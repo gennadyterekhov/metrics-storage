@@ -3,17 +3,14 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
 
 func initDB() (*sql.DB, *sql.Tx) {
-	DBDsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-		`localhost`, `metrics_user`, `metrics_pass`, `metrics_db`)
-
-	dbConnection, err := sql.Open("pgx", DBDsn)
+	dbConnection, err := sql.Open("pgx", constants.TestDBDsn)
 	if err != nil {
 		panic(err)
 	}

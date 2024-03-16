@@ -12,13 +12,29 @@
 sudo -i -u postgres
 psql -U postgres
 postgres=# create database metrics_db;
+postgres=# create database metrics_db_test;
 postgres=# create user metrics_user with encrypted password 'metrics_pass';
 postgres=# grant all privileges on database metrics_db to metrics_user;
+postgres=# grant all privileges on database metrics_db_test to metrics_user;
 alter database metrics_db owner to metrics_user;
+alter database metrics_db_test owner to metrics_user;
 alter schema public owner to metrics_user;
 
 after that, use this to connect to db in cli
 psql -U metrics_user -d metrics_db
+
+or
+psql -U metrics_user -d metrics_db_test
+
+### starting schema (supposedly will not change)
+CREATE TYPE metric_type AS ENUM ('gauge', 'counter');
+create table metrics
+(
+name varchar(255) primary key ,
+type metric_type not null default 'gauge',
+value double precision default null,
+delta numeric default null
+);
 
 ## Обновление шаблона
 

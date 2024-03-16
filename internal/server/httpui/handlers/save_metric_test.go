@@ -2,8 +2,10 @@ package handlers
 
 import (
 	"bytes"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
@@ -306,4 +308,88 @@ func TestGzipCompression(t *testing.T) {
 		require.Equal(t, http.StatusOK, response.StatusCode)
 		require.JSONEq(t, successBody, string(responseBody))
 	})
+}
+
+func TestCanSaveMetricToDB(t *testing.T) {
+	t.Skip("only manual use because depends on host")
+
+	config.Conf.DBDsn = constants.TestDBDsn
+	storage.MetricsRepository = storage.CreateDBStorage()
+	type want struct {
+		code        int
+		response    string
+		typ         string
+		metricName  string
+		metricValue int64
+	}
+	tests := []struct {
+		name string
+		url  string
+		want want
+	}{
+		{
+			name: "Counter",
+			url:  "/update/counter/cnt/1",
+			want: want{code: http.StatusOK, response: "", typ: types.Counter, metricName: "cnt", metricValue: 1},
+		},
+		{
+			name: "Gauge",
+			url:  "/update/gauge/gaugeName/1",
+			want: want{code: http.StatusOK, response: "", typ: types.Gauge, metricName: "gaugeName", metricValue: 1},
+		},
+		{
+			name: "invalid_value",
+			url:  "/update/counter/testCounter/none",
+			want: want{code: http.StatusBadRequest, response: "", typ: types.Counter, metricName: "testCounter", metricValue: 0},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			storage.MetricsRepository.Clear()
+			response, _ := testhelper.SendRequest(
+				t,
+				testhelper.TestServer,
+				http.MethodPost,
+				tt.url,
+			)
+			response.Body.Close()
+
+			assert.Equal(t, tt.want.code, response.StatusCode)
+
+			if tt.want.typ == types.Counter {
+				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(tt.want.metricName))
+			}
+			if tt.want.typ == types.Gauge {
+				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(tt.want.metricName)))
+			}
+		})
+	}
+
+	// check counter is added to itself
+	storage.MetricsRepository.AddCounter("cnt", 1)
+	response, _ := testhelper.SendRequest(
+		t,
+		testhelper.TestServer,
+		http.MethodPost,
+		"/update/counter/cnt/10",
+	)
+	response.Body.Close()
+
+	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero("cnt"))
+
+	// check gauge is substituted
+	storage.MetricsRepository.SetGauge("gaugeName", 1)
+	response, _ = testhelper.SendRequest(
+		t,
+		testhelper.TestServer,
+		http.MethodPost,
+		"/update/gauge/gaugeName/3",
+	)
+	response.Body.Close()
+
+	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero("gaugeName"))
+	config.Conf.DBDsn = ""
+	storage.MetricsRepository.CloseDB()
+	storage.MetricsRepository = storage.CreateRAMStorage()
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
@@ -19,7 +18,7 @@ func main() {
 
 	if config.Conf.FileStorage != "" {
 		if config.Conf.Restore {
-			err := storage.MetricsRepository.Load(config.Conf.FileStorage)
+			err := storage.MetricsRepository.LoadFromDisk(config.Conf.FileStorage)
 			if err != nil {
 				logger.ZapSugarLogger.Debugln("could not load metrics from disk, but not panicking. just loaded empty repository")
 				logger.ZapSugarLogger.Warnln("error when loading metrics from disk", err.Error())
@@ -31,11 +30,7 @@ func main() {
 		app.StartTrackingIntervals()
 	}
 
-	storage.DBConnection, err = sql.Open("pgx", config.Conf.DBDsn)
-	if err != nil {
-		panic(err)
-	}
-	defer storage.DBConnection.Close()
+	defer storage.MetricsRepository.CloseDB()
 
 	go onStop()
 	fmt.Printf("Server started on %v\n", config.Conf.Addr)
@@ -52,7 +47,7 @@ func onStop() {
 	<-sigchan
 	logger.ZapSugarLogger.Infoln("shutting down gracefully")
 
-	err := storage.MetricsRepository.Save(config.Conf.FileStorage)
+	err := storage.MetricsRepository.SaveToDisk(config.Conf.FileStorage)
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("could not save metrics during shutdown")
 	}

@@ -31,7 +31,7 @@ func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *res
 	}
 
 	if config.Conf.StoreInterval == 0 && config.Conf.FileStorage != "" {
-		err := storage.MetricsRepository.Save(config.Conf.FileStorage)
+		err := storage.MetricsRepository.SaveToDisk(config.Conf.FileStorage)
 		if err != nil {
 			logger.ZapSugarLogger.Errorln("error when saving metric to file synchronously")
 		}
@@ -41,6 +41,7 @@ func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *res
 }
 
 func SaveMetricBatchToMemory(filledDto *requests.SaveMetricBatchRequest) {
+	// TODO refactor when db, can use fewer queries
 	logger.ZapSugarLogger.Debugln("saving metric batch")
 
 	storage.MetricsRepository.SetGauge(filledDto.Alloc.MetricName, filledDto.Alloc.GaugeValue)

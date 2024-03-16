@@ -28,6 +28,7 @@ func SaveMetricBatch(res http.ResponseWriter, req *http.Request) {
 	}
 
 	app.SaveMetricBatchToMemory(requestDto)
+	res.WriteHeader(http.StatusOK)
 }
 
 func getSaveBatchDtoForService(req *http.Request) *requests.SaveMetricBatchRequest {

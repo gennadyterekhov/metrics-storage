@@ -16,12 +16,12 @@ func TestSaveLoad(t *testing.T) {
 
 	filename := `metrics.json`
 	var err error
-	err = MetricsRepository.Save(filename)
+	err = MetricsRepository.SaveToDisk(filename)
 	assert.NoError(t, err)
 	assert.NoError(t, err)
 
 	var result MemStorage
-	err = (&result).Load(filename)
+	err = (&result).LoadFromDisk(filename)
 	assert.NoError(t, err)
 
 	assert.True(t, MetricsRepository.IsEqual(&result))
