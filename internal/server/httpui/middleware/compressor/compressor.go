@@ -69,7 +69,9 @@ func IsGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
 func isCorrectContentType(request *http.Request) bool {
 	correctContentType := false
 	contentType := request.Header.Get("Content-Type")
-	correctContentType = contentType == constants.ApplicationJSON || contentType == constants.TextHTML
+	correctContentType = contentType == constants.ApplicationJSON ||
+		contentType == constants.TextHTML ||
+		contentType == "html/text"
 	return correctContentType
 }
 

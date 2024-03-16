@@ -73,6 +73,12 @@ func TestIsGzipAvailableForThisRequest(t *testing.T) {
 				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
 			ok: true,
 		},
+		{
+			name: " html/text accept gzip",
+			args: args{contenttype: "html/text",
+				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+			ok: true,
+		},
 	}
 
 	for _, tt := range tests {
