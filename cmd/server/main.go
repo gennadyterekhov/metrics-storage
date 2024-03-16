@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
@@ -13,6 +14,7 @@ import (
 )
 
 func main() {
+	var err error
 	fmt.Println("Starting")
 
 	if config.Conf.FileStorage != "" {
@@ -29,9 +31,15 @@ func main() {
 		app.StartTrackingIntervals()
 	}
 
+	storage.DBConnection, err = sql.Open("pgx", config.Conf.DBDsn)
+	if err != nil {
+		panic(err)
+	}
+	defer storage.DBConnection.Close()
+
 	go onStop()
 	fmt.Printf("Server started on %v\n", config.Conf.Addr)
-	err := http.ListenAndServe(config.Conf.Addr, handlers.GetRouter())
+	err = http.ListenAndServe(config.Conf.Addr, handlers.GetRouter())
 
 	if err != nil {
 		panic(err)

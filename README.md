@@ -7,6 +7,19 @@
 1. Склонируйте репозиторий в любую подходящую директорию на вашем компьютере.
 2. В корне репозитория выполните команду `go mod init <name>` (где `<name>` — адрес вашего репозитория на GitHub без префикса `https://`) для создания модуля.
 
+## db installation (one-time use)
+
+sudo -i -u postgres
+psql -U postgres
+postgres=# create database metrics_db;
+postgres=# create user metrics_user with encrypted password 'metrics_pass';
+postgres=# grant all privileges on database metrics_db to metrics_user;
+alter database metrics_db owner to metrics_user;
+alter schema public owner to metrics_user;
+
+after that, use this to connect to db in cli
+psql -U metrics_user -d metrics_db
+
 ## Обновление шаблона
 
 Чтобы иметь возможность получать обновления автотестов и других частей шаблона, выполните команду:
@@ -44,6 +57,10 @@ go test github.com/gennadyterekhov/metrics-storage/internal/agent/client
 ### specific test
 go test github.com/gennadyterekhov/metrics-storage/internal/agent/client -run TestCanSendCounterValue -test.v
 go test -run=TestCanSendCounterValue ./...
+
+### mocks
+mockgen -destination=mocks/mock_store.go -package=mocks project/store Store
+
 ## test coverage
 go clean -testcache
 go test -coverprofile cover.out ./...

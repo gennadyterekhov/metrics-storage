@@ -50,7 +50,7 @@ func (lrw *LoggingResponseWriter) updateContext(req *http.Request) {
 		lrw.LogContext.method = req.Method
 		lrw.LogContext.time = time.Since(lrw.LogContext.startTime)
 	} else {
-		logger.ZapSugarLogger.Debugln("could not update log context with actual request info")
+		logger.ZapSugarLogger.Debugln("could not update log ctx with actual request info")
 	}
 }
 
