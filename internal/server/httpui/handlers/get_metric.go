@@ -54,11 +54,11 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 
 func getDtoForService(req *http.Request) *requests.GetMetricRequest {
 	dto := &requests.GetMetricRequest{
-		IsJson: false,
+		IsJSON: false,
 	}
 
 	if req.Header.Get(constants.HeaderContentType) == constants.ApplicationJSON {
-		dto.IsJson = true
+		dto.IsJSON = true
 		decoder := json.NewDecoder(req.Body)
 		err := decoder.Decode(dto)
 		dto.Error = err
@@ -78,7 +78,7 @@ func getDtoForService(req *http.Request) *requests.GetMetricRequest {
 
 func writeDtoToOutput(res *http.ResponseWriter, responseDto *responses.GetMetricResponse) {
 
-	if responseDto.IsJson {
+	if responseDto.IsJSON {
 		(*res).Header().Set(constants.HeaderContentType, constants.ApplicationJSON)
 	}
 
@@ -97,7 +97,7 @@ func writeDtoToOutput(res *http.ResponseWriter, responseDto *responses.GetMetric
 }
 
 func serializeDto(responseDto *responses.GetMetricResponse) []byte {
-	if responseDto.IsJson {
+	if responseDto.IsJSON {
 		responseBytes, err := json.Marshal(responseDto)
 
 		if err != nil {

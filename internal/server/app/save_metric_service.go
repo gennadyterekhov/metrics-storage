@@ -15,7 +15,7 @@ func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *res
 		MetricName:   filledDto.MetricName,
 		CounterValue: nil,
 		GaugeValue:   nil,
-		IsJson:       filledDto.IsJson,
+		IsJSON:       filledDto.IsJSON,
 		Error:        nil,
 	}
 	logger.ZapSugarLogger.Debugln("saving metric",

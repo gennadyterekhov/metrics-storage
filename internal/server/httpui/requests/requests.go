@@ -3,7 +3,7 @@ package requests
 type GetMetricRequest struct {
 	MetricType string `json:"type"`
 	MetricName string `json:"id"`
-	IsJson     bool   `json:"-"`
+	IsJSON     bool   `json:"-"`
 	Error      error  `json:"-"`
 }
 
@@ -14,7 +14,7 @@ type SaveMetricRequest struct {
 	CounterValue *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
 	GaugeValue   *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
 
-	IsJson bool  `json:"-"`
+	IsJSON bool  `json:"-"`
 	Error  error `json:"-"`
 }
 

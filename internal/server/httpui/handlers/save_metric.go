@@ -56,11 +56,11 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 
 func getSaveDtoForService(req *http.Request) *requests.SaveMetricRequest {
 	requestDto := &requests.SaveMetricRequest{
-		IsJson: false,
+		IsJSON: false,
 	}
 
 	if req.Header.Get(constants.HeaderContentType) == constants.ApplicationJSON {
-		requestDto.IsJson = true
+		requestDto.IsJSON = true
 		decoder := json.NewDecoder(req.Body)
 		err := decoder.Decode(requestDto)
 		requestDto.Error = err
@@ -85,7 +85,7 @@ func validateSaveRequest(requestDto *requests.SaveMetricRequest) *requests.SaveM
 }
 
 func writeDtoToOutputIfJSON(res *http.ResponseWriter, responseDto *responses.GetMetricResponse) {
-	if responseDto.IsJson {
+	if responseDto.IsJSON {
 		writeDtoToOutput(res, responseDto)
 	}
 }

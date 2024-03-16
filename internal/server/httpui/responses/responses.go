@@ -5,6 +5,6 @@ type GetMetricResponse struct {
 	MetricName   string   `json:"id"`
 	CounterValue *int64   `json:"delta,omitempty"`
 	GaugeValue   *float64 `json:"value,omitempty"`
-	IsJson       bool     `json:"-"`
+	IsJSON       bool     `json:"-"`
 	Error        error    `json:"-"`
 }

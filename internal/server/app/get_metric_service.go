@@ -16,7 +16,7 @@ func GetMetric(requestDto *requests.GetMetricRequest) (responseDto *responses.Ge
 		MetricName:   requestDto.MetricName,
 		CounterValue: nil,
 		GaugeValue:   nil,
-		IsJson:       requestDto.IsJson,
+		IsJSON:       requestDto.IsJSON,
 		Error:        nil,
 	}
 	if requestDto.MetricType == types.Counter {
