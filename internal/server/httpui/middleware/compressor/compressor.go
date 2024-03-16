@@ -62,8 +62,24 @@ func IsGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
 		return false
 	}
 
-	return isCorrectAcceptEncoding(request) && isCorrectContentType(request)
+	return isCorrectAcceptContentType(request) && isCorrectAcceptEncoding(request) //&& isCorrectContentType(request)
 
+}
+
+func isCorrectAcceptContentType(request *http.Request) bool {
+	correctAcceptContentType := false
+
+	acceptContentTypes := request.Header.Values("Accept")
+
+	for i := 0; i < len(acceptContentTypes); i += 1 {
+		if strings.Contains(acceptContentTypes[i], constants.TextHTML) ||
+			strings.Contains(acceptContentTypes[i], "html/text") ||
+			strings.Contains(acceptContentTypes[i], constants.ApplicationJSON) {
+			correctAcceptContentType = true
+			break
+		}
+	}
+	return correctAcceptContentType
 }
 
 func isCorrectContentType(request *http.Request) bool {
