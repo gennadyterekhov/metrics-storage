@@ -47,6 +47,6 @@ func (ttr *TimeTracker) isIntervalPassed() (ok bool) {
 
 func (ttr *TimeTracker) onInterval() {
 	logger.ZapSugarLogger.Infoln("STORE_INTERVAL passed, saving metrics to disk")
-	storage.MetricsRepository.Save(config.Conf.FileStorage)
+	storage.MetricsRepository.SaveToDisk(config.Conf.FileStorage)
 	ttr.ActionFulfilled += 1
 }

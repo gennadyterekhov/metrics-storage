@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
@@ -139,4 +141,71 @@ func TestGetMetric(t *testing.T) {
 			assert.Equal(t, tt.want.metricValue, metricFromResponseAsInt)
 		})
 	}
+}
+
+func TestCanGetMetricFromDB(t *testing.T) {
+	t.Skip("only manual use because depends on host")
+
+	config.Conf.DBDsn = constants.TestDBDsn
+	storage.MetricsRepository = storage.CreateDBStorage()
+
+	type want struct {
+		code        int
+		metricValue int64
+	}
+	type args struct {
+		typ  string
+		name string
+	}
+	tests := []struct {
+		name string
+		args args
+		want want
+	}{
+		{
+			name: "ok",
+			args: args{typ: types.Counter, name: "cnt"},
+			want: want{code: http.StatusOK, metricValue: 1},
+		},
+		{
+			name: "name unknown",
+			args: args{typ: types.Counter, name: "unknown"},
+			want: want{code: http.StatusNotFound, metricValue: 0},
+		},
+		{
+			name: "type unknown",
+			args: args{typ: "unknown", name: "cnt"},
+			want: want{code: http.StatusNotFound, metricValue: 0},
+		},
+		{
+			name: "name empty",
+			args: args{typ: types.Counter, name: ""},
+			want: want{code: http.StatusNotFound, metricValue: 0},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			storage.MetricsRepository.Clear()
+			if tt.want.code == http.StatusOK {
+				storage.MetricsRepository.AddCounter("cnt", 1)
+			}
+
+			url := "/value/" + tt.args.typ + "/" + tt.args.name
+
+			response, responseBody := testhelper.SendRequest(
+				t,
+				testhelper.TestServer,
+				http.MethodGet,
+				url,
+			)
+			response.Body.Close()
+
+			metricFromResponseAsInt, _ := strconv.ParseInt(string(responseBody), 10, 64)
+			assert.Equal(t, tt.want.code, response.StatusCode)
+			assert.Equal(t, tt.want.metricValue, metricFromResponseAsInt)
+		})
+	}
+	config.Conf.DBDsn = ""
+	storage.MetricsRepository.CloseDB()
+	storage.MetricsRepository = storage.CreateRAMStorage()
 }

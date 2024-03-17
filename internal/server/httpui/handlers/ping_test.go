@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"database/sql"
 	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
@@ -40,9 +40,10 @@ func TestPing(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			DBDsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-				`localhost`, tt.args.username, `metrics_pass`, `metrics_db`)
+				`localhost`, tt.args.username, `metrics_pass`, `metrics_db_test`)
 
-			storage.DBConnection, err = sql.Open("pgx", DBDsn)
+			config.Conf.DBDsn = DBDsn
+			storage.MetricsRepository = storage.CreateDBStorage()
 			assert.NoError(t, err)
 
 			response, _ := testhelper.SendRequest(

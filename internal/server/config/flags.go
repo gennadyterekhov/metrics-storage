@@ -45,8 +45,8 @@ func getConfig() *ServerConfig {
 	)
 	DBDsnFlag := flag.String(
 		"d",
-		"host=localhost user=metrics_user password=metrics_pass dbname=metrics_db sslmode=disable",
-		"[db dsn] format: `host=%s user=%s password=%s dbname=%s sslmode=%s`",
+		"",
+		"[db dsn] format: `host=%s user=%s password=%s dbname=%s sslmode=%s` if empty, ram is used",
 	)
 	flag.Parse()
 

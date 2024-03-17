@@ -6,33 +6,11 @@ import (
 	"io"
 )
 
-func ReadFromReaderPlain(reader *io.Reader) []byte {
-	//bytesBuffer := bytes.NewBuffer(nil)
-	bytesSlice := make([]byte, 0)
-	_, err := (*reader).Read(bytesSlice)
-	if err != nil {
-		logger.ZapSugarLogger.Warnln("error when reading")
-	}
-
-	return bytesSlice
-}
-
-func ReadFromReader(reader *io.Reader) []byte {
-	readBytes, err := io.ReadAll(*reader)
-	if err != nil {
-		logger.ZapSugarLogger.Warnln("error when reading")
-	}
-	logger.ZapSugarLogger.Debugln("readBytes", string(readBytes))
-
-	return readBytes
-}
-
 func ReadFromReaderOrDie(reader io.Reader) []byte {
 	readBytes, err := io.ReadAll(reader)
 	if err != nil {
 		logger.ZapSugarLogger.Panicln("error when reading")
 	}
-	logger.ZapSugarLogger.Debugln("readBytes", string(readBytes))
 
 	return readBytes
 }
