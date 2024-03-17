@@ -1,12 +1,16 @@
 package app
 
 import (
+	"github.com/Rican7/retry"
+	"github.com/Rican7/retry/backoff"
+	"github.com/Rican7/retry/strategy"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
+	"time"
 )
 
 func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *responses.GetMetricResponse) {
@@ -30,17 +34,43 @@ func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *res
 		responseDto.GaugeValue = filledDto.GaugeValue
 	}
 
-	saveToDisk()
+	saveToDiskSynchronously()
 
 	return responseDto
 }
 
-func saveToDisk() {
+func saveToDiskSynchronously() {
 	if config.Conf.StoreInterval == 0 && config.Conf.FileStorage != "" {
-		err := storage.MetricsRepository.SaveToDisk(config.Conf.FileStorage)
-		if err != nil {
-			logger.ZapSugarLogger.Errorln("error when saving metric to file synchronously")
-		}
+		SaveToDisk()
+	}
+}
+
+func SaveToDisk() {
+	err := retry.Retry(
+		func(attempt uint) error {
+			return storage.MetricsRepository.SaveToDisk(config.Conf.FileStorage)
+		},
+		strategy.Limit(4),
+		strategy.Backoff(backoff.Incremental(-1*time.Second, 2*time.Second)),
+	)
+
+	if err != nil {
+		logger.ZapSugarLogger.Errorln("error when saving metric to file synchronously")
+	}
+}
+
+func LoadFromDisk() {
+	err := retry.Retry(
+		func(attempt uint) error {
+			return storage.MetricsRepository.LoadFromDisk(config.Conf.FileStorage)
+		},
+		strategy.Limit(4),
+		strategy.Backoff(backoff.Incremental(-1*time.Second, 2*time.Second)),
+	)
+
+	if err != nil {
+		logger.ZapSugarLogger.Debugln("could not load metrics from disk, loaded empty repository")
+		logger.ZapSugarLogger.Warnln("error when loading metrics from disk", err.Error())
 	}
 }
 
@@ -77,7 +107,7 @@ func SaveMetricBatchToMemory(filledDto *requests.SaveMetricBatchRequest) {
 	setGaugeIfInDto(filledDto.TotalAlloc)
 	setGaugeIfInDto(filledDto.RandomValue)
 	setCounterIfInDto(filledDto.PollCount)
-	saveToDisk()
+	saveToDiskSynchronously()
 }
 
 func SaveMetricListToMemory(filledDto *requests.SaveMetricListRequest) {
