@@ -14,9 +14,10 @@ func SaveMetricBatchHandler() http.Handler {
 		http.HandlerFunc(SaveMetricBatch),
 	)
 }
-
-func SaveMetricBatchHandlerFunc() func(http.ResponseWriter, *http.Request) {
-	return SaveMetricBatchHandler().ServeHTTP
+func SaveMetricListHandler() http.Handler {
+	return middleware.CommonConveyor(
+		http.HandlerFunc(SaveMetricList),
+	)
 }
 
 func SaveMetricBatch(res http.ResponseWriter, req *http.Request) {
@@ -37,4 +38,28 @@ func getSaveBatchDtoForService(req *http.Request) *requests.SaveMetricBatchReque
 	err := decoder.Decode(requestDto)
 	requestDto.Error = err
 	return requestDto
+}
+
+func SaveMetricList(res http.ResponseWriter, req *http.Request) {
+	requestDto, err := getSaveListDtoForService(req)
+	if err != nil {
+		logger.ZapSugarLogger.Debugln("found error during request DTO build process", err.Error())
+		writeErrorToOutput(&res, err)
+		return
+	}
+
+	app.SaveMetricListToMemory(requestDto)
+	res.WriteHeader(http.StatusOK)
+}
+
+func getSaveListDtoForService(req *http.Request) (*requests.SaveMetricListRequest, error) {
+	requestDto := &requests.SaveMetricListRequest{}
+
+	decoder := json.NewDecoder(req.Body)
+	err := decoder.Decode(requestDto)
+	if err != nil {
+		return nil, err
+	}
+
+	return requestDto, nil
 }
