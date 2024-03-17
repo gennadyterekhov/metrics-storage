@@ -19,39 +19,44 @@ func registerRoutes(router chi.Router) {
 		Ping,
 	)
 
-	router.Get("/", GetAllMetricsHandlerFunc())
+	router.Get("/", GetAllMetricsHandler().ServeHTTP)
 
 	router.Get(
 		"/value/{metricType}/{metricName}",
-		GetMetricHandlerFunc(),
+		GetMetricHandler().ServeHTTP,
 	)
 	router.Post(
 		"/value/",
-		GetMetricHandlerFunc(),
+		GetMetricHandler().ServeHTTP,
 	)
 	router.Post(
 		"/value",
-		GetMetricHandlerFunc(),
+		GetMetricHandler().ServeHTTP,
 	)
 
 	router.Post(
 		"/update/{metricType}/{metricName}/{metricValue}",
-		SaveMetricHandlerFunc(),
+		SaveMetricHandler().ServeHTTP,
 	)
 	router.Post(
 		"/update/",
-		SaveMetricHandlerFunc(),
+		SaveMetricHandler().ServeHTTP,
 	)
 	router.Post(
 		"/update",
-		SaveMetricHandlerFunc(),
+		SaveMetricHandler().ServeHTTP,
 	)
 	router.Post(
+		"/updates/",
+		SaveMetricListHandler().ServeHTTP,
+	)
+
+	router.Post(
 		"/update/batch",
-		SaveMetricBatchHandlerFunc(),
+		SaveMetricBatchHandler().ServeHTTP,
 	)
 	router.Post(
 		"/update/batch/",
-		SaveMetricBatchHandlerFunc(),
+		SaveMetricBatchHandler().ServeHTTP,
 	)
 }

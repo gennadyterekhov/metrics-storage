@@ -23,9 +23,6 @@ func GetMetricHandler() http.Handler {
 		http.HandlerFunc(GetMetric),
 	)
 }
-func GetMetricHandlerFunc() func(http.ResponseWriter, *http.Request) {
-	return GetMetricHandler().ServeHTTP
-}
 
 func GetMetric(res http.ResponseWriter, req *http.Request) {
 	requestDto := getDtoForService(req)

@@ -19,11 +19,9 @@ func GetAllMetrics(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
+
 func GetAllMetricsHandler() http.Handler {
 	return middleware.CommonConveyor(
 		http.HandlerFunc(GetAllMetrics),
 	)
-}
-func GetAllMetricsHandlerFunc() func(http.ResponseWriter, *http.Request) {
-	return GetAllMetricsHandler().ServeHTTP
 }

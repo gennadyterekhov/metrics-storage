@@ -30,47 +30,71 @@ func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *res
 		responseDto.GaugeValue = filledDto.GaugeValue
 	}
 
+	saveToDisk()
+
+	return responseDto
+}
+
+func saveToDisk() {
 	if config.Conf.StoreInterval == 0 && config.Conf.FileStorage != "" {
 		err := storage.MetricsRepository.SaveToDisk(config.Conf.FileStorage)
 		if err != nil {
 			logger.ZapSugarLogger.Errorln("error when saving metric to file synchronously")
 		}
 	}
-
-	return responseDto
 }
 
 func SaveMetricBatchToMemory(filledDto *requests.SaveMetricBatchRequest) {
 	// TODO refactor when db, can use fewer queries
 	logger.ZapSugarLogger.Debugln("saving metric batch")
 
-	storage.MetricsRepository.SetGauge(filledDto.Alloc.MetricName, filledDto.Alloc.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.BuckHashSys.MetricName, filledDto.BuckHashSys.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.Frees.MetricName, filledDto.Frees.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.GCCPUFraction.MetricName, filledDto.GCCPUFraction.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.GCSys.MetricName, filledDto.GCSys.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.HeapAlloc.MetricName, filledDto.HeapAlloc.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.HeapIdle.MetricName, filledDto.HeapIdle.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.HeapInuse.MetricName, filledDto.HeapInuse.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.HeapObjects.MetricName, filledDto.HeapObjects.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.HeapReleased.MetricName, filledDto.HeapReleased.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.HeapSys.MetricName, filledDto.HeapSys.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.LastGC.MetricName, filledDto.LastGC.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.Lookups.MetricName, filledDto.Lookups.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.MCacheInuse.MetricName, filledDto.MCacheInuse.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.MCacheSys.MetricName, filledDto.MCacheSys.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.MSpanInuse.MetricName, filledDto.MSpanInuse.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.MSpanSys.MetricName, filledDto.MSpanSys.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.Mallocs.MetricName, filledDto.Mallocs.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.NextGC.MetricName, filledDto.NextGC.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.NumForcedGC.MetricName, filledDto.NumForcedGC.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.NumGC.MetricName, filledDto.NumGC.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.OtherSys.MetricName, filledDto.OtherSys.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.PauseTotalNs.MetricName, filledDto.PauseTotalNs.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.StackInuse.MetricName, filledDto.StackInuse.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.StackSys.MetricName, filledDto.StackSys.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.Sys.MetricName, filledDto.Sys.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.TotalAlloc.MetricName, filledDto.TotalAlloc.GaugeValue)
-	storage.MetricsRepository.SetGauge(filledDto.RandomValue.MetricName, filledDto.RandomValue.GaugeValue)
-	storage.MetricsRepository.AddCounter(filledDto.PollCount.MetricName, filledDto.PollCount.CounterValue)
+	setGaugeIfInDto(filledDto.Alloc)
+	setGaugeIfInDto(filledDto.BuckHashSys)
+	setGaugeIfInDto(filledDto.Frees)
+	setGaugeIfInDto(filledDto.GCCPUFraction)
+	setGaugeIfInDto(filledDto.GCSys)
+	setGaugeIfInDto(filledDto.HeapAlloc)
+	setGaugeIfInDto(filledDto.HeapIdle)
+	setGaugeIfInDto(filledDto.HeapInuse)
+	setGaugeIfInDto(filledDto.HeapObjects)
+	setGaugeIfInDto(filledDto.HeapReleased)
+	setGaugeIfInDto(filledDto.HeapSys)
+	setGaugeIfInDto(filledDto.LastGC)
+	setGaugeIfInDto(filledDto.Lookups)
+	setGaugeIfInDto(filledDto.MCacheInuse)
+	setGaugeIfInDto(filledDto.MCacheSys)
+	setGaugeIfInDto(filledDto.MSpanInuse)
+	setGaugeIfInDto(filledDto.MSpanSys)
+	setGaugeIfInDto(filledDto.Mallocs)
+	setGaugeIfInDto(filledDto.NextGC)
+	setGaugeIfInDto(filledDto.NumForcedGC)
+	setGaugeIfInDto(filledDto.NumGC)
+	setGaugeIfInDto(filledDto.OtherSys)
+	setGaugeIfInDto(filledDto.PauseTotalNs)
+	setGaugeIfInDto(filledDto.StackInuse)
+	setGaugeIfInDto(filledDto.StackSys)
+	setGaugeIfInDto(filledDto.Sys)
+	setGaugeIfInDto(filledDto.TotalAlloc)
+	setGaugeIfInDto(filledDto.RandomValue)
+	setCounterIfInDto(filledDto.PollCount)
+	saveToDisk()
+}
+
+func SaveMetricListToMemory(filledDto *requests.SaveMetricListRequest) {
+	logger.ZapSugarLogger.Debugln("saving metric list")
+	for i := 0; i < len(*filledDto); i += 1 {
+		SaveMetricToMemory(&(*filledDto)[i])
+	}
+}
+
+func setGaugeIfInDto(filledDto *requests.GaugeMetricSubrequest) {
+	if filledDto != nil {
+		storage.MetricsRepository.SetGauge(filledDto.MetricName, filledDto.GaugeValue)
+	}
+}
+
+func setCounterIfInDto(filledDto *requests.CounterMetricSubrequest) {
+	if filledDto != nil {
+		storage.MetricsRepository.AddCounter(filledDto.MetricName, filledDto.CounterValue)
+	}
 }

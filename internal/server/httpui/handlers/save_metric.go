@@ -22,11 +22,6 @@ func SaveMetricHandler() http.Handler {
 	)
 }
 
-func SaveMetricHandlerFunc() func(http.ResponseWriter, *http.Request) {
-	return SaveMetricHandler().ServeHTTP
-
-}
-
 func SaveMetric(res http.ResponseWriter, req *http.Request) {
 	requestDto := getSaveDtoForService(req)
 	if requestDto.Error != nil {
