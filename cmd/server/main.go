@@ -18,11 +18,7 @@ func main() {
 
 	if config.Conf.FileStorage != "" {
 		if config.Conf.Restore {
-			err := storage.MetricsRepository.LoadFromDisk(config.Conf.FileStorage)
-			if err != nil {
-				logger.ZapSugarLogger.Debugln("could not load metrics from disk, but not panicking. just loaded empty repository")
-				logger.ZapSugarLogger.Warnln("error when loading metrics from disk", err.Error())
-			}
+			app.LoadFromDisk()
 		}
 	}
 
@@ -47,9 +43,6 @@ func onStop() {
 	<-sigchan
 	logger.ZapSugarLogger.Infoln("shutting down gracefully")
 
-	err := storage.MetricsRepository.SaveToDisk(config.Conf.FileStorage)
-	if err != nil {
-		logger.ZapSugarLogger.Errorln("could not save metrics during shutdown")
-	}
+	app.SaveToDisk()
 	os.Exit(0)
 }
