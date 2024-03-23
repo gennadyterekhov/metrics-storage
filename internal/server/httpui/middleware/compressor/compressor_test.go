@@ -92,7 +92,7 @@ func TestIsGzipAvailableForThisRequest(t *testing.T) {
 			request := httptest.NewRequest(http.MethodGet, "http://localhost:8080/", nil)
 			addHeaders(request, tt.args)
 
-			ok := IsGzipAvailableForThisRequest(request)
+			ok := isGzipAvailableForThisRequest(request)
 			assert.Equal(t, tt.ok, ok)
 
 		})

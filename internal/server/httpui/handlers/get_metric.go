@@ -98,7 +98,7 @@ func serializeDto(responseDto *responses.GetMetricResponse) []byte {
 		responseBytes, err := json.Marshal(responseDto)
 
 		if err != nil {
-			logger.ZapSugarLogger.Warnln("error when encoding json response body", err.Error())
+			logger.ZapSugarLogger.Errorln("error when encoding json response body", err.Error())
 
 			return []byte(err.Error())
 		}

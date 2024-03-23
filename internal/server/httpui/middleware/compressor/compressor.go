@@ -1,8 +1,8 @@
 package compressor
 
 import (
+	"bytes"
 	"compress/gzip"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"io"
 	"net/http"
@@ -21,7 +21,11 @@ func (w gzipWriter) Write(b []byte) (int, error) {
 func GzipCompressor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
 
-		if IsGzipAvailableForThisRequest(request) {
+		if isRequestCompressed(request) {
+			request = decompressRequest(request)
+		}
+
+		if isGzipAvailableForThisRequest(request) {
 			compressionWriter := getCompressedWriter(response)
 			if compressionWriter == nil {
 				return
@@ -30,7 +34,6 @@ func GzipCompressor(next http.Handler) http.Handler {
 			defer compressionWriter.Close()
 
 			response.Header().Set("Content-Encoding", "gzip")
-			response.Header().Set(constants.HeaderContentType, constants.ApplicationJSON)
 
 			next.ServeHTTP(
 				// here we override simple writer with compression writer
@@ -49,7 +52,7 @@ func getCompressedWriter(response http.ResponseWriter) *gzip.Writer {
 	if err != nil {
 		_, err := io.WriteString(response, err.Error())
 		if err != nil {
-			logger.ZapSugarLogger.Warnln("error when creation gzip writer ", err.Error())
+			logger.ZapSugarLogger.Errorln("error when creation gzip writer ", err.Error())
 		}
 		return nil
 	}
@@ -57,48 +60,66 @@ func getCompressedWriter(response http.ResponseWriter) *gzip.Writer {
 	return compressionWriter
 }
 
-func IsGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
+func decompressRequest(request *http.Request) *http.Request {
+	if request == nil {
+		return request
+	}
+
+	var bodyBuf bytes.Buffer
+	_, err := request.Body.Read(bodyBuf.Bytes())
+	if err != nil && err.Error() == "EOF" {
+		return request
+	}
+	if err != nil {
+		logger.ZapSugarLogger.Errorln("error when reading body ", err.Error())
+		return request
+	}
+	logger.ZapSugarLogger.Debugln("decompressing body ", bodyBuf.String())
+
+	compressionReader, err := gzip.NewReader(request.Body)
+	if err != nil {
+		logger.ZapSugarLogger.Errorln("error when creating gzip reader ", err.Error())
+
+		return request
+	}
+	request.Body = compressionReader
+
+	return request
+}
+
+func isGzipAvailableForThisRequest(request *http.Request) (isOk bool) {
 	if request == nil {
 		return false
 	}
 
-	return isCorrectAcceptContentType(request) && isCorrectAcceptEncoding(request) //&& isCorrectContentType(request)
-
+	return isCorrectAcceptEncoding(request)
 }
 
-func isCorrectAcceptContentType(request *http.Request) bool {
-	correctAcceptContentType := false
+func isRequestCompressed(request *http.Request) (isOk bool) {
+	if request == nil {
+		return false
+	}
 
-	acceptContentTypes := request.Header.Values("Accept")
+	return isContentEncodingGzip(request)
+}
 
-	for i := 0; i < len(acceptContentTypes); i += 1 {
-		if strings.Contains(acceptContentTypes[i], constants.TextHTML) ||
-			strings.Contains(acceptContentTypes[i], "html/text") ||
-			strings.Contains(acceptContentTypes[i], constants.ApplicationJSON) {
-			correctAcceptContentType = true
-			break
+func isContentEncodingGzip(request *http.Request) bool {
+	contentEncoding := request.Header.Values("Content-Encoding")
+
+	for i := 0; i < len(contentEncoding); i += 1 {
+		if strings.Contains(contentEncoding[i], "gzip") {
+			return true
 		}
 	}
-	return correctAcceptContentType
-}
-
-func isCorrectContentType(request *http.Request) bool {
-	correctContentType := false
-	contentType := request.Header.Get("Content-Type")
-	correctContentType = contentType == constants.ApplicationJSON ||
-		contentType == constants.TextHTML ||
-		contentType == "html/text"
-	return correctContentType
+	return false
 }
 
 func isCorrectAcceptEncoding(request *http.Request) bool {
-	correctAcceptEncoding := false
 	acceptEncodings := request.Header.Values("Accept-Encoding")
 	for i := 0; i < len(acceptEncodings); i += 1 {
 		if strings.Contains(acceptEncodings[i], "gzip") {
-			correctAcceptEncoding = true
-			break
+			return true
 		}
 	}
-	return correctAcceptEncoding
+	return false
 }

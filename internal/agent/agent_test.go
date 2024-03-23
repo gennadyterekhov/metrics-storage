@@ -1,3 +1,6 @@
+// because the source for agent and server are in the same internal,
+// we can use server's code without actually launching the server's binary and making requests
+// so, this file uses httptest.Server
 package agent
 
 import (

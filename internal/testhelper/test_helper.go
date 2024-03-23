@@ -98,14 +98,15 @@ func SendGzipRequest(
 	requestBody string,
 ) (*http.Response, []byte) {
 
-	buf := bytes.NewBuffer([]byte(requestBody))
-	gzipBodyWriter := gzip.NewWriter(buf)
+	var buf bytes.Buffer
+
+	gzipBodyWriter := gzip.NewWriter(&buf)
 	_, err := gzipBodyWriter.Write([]byte(requestBody))
 	require.NoError(t, err)
 	err = gzipBodyWriter.Close()
 	require.NoError(t, err)
 
-	request := httptest.NewRequest(method, ts.URL+path, buf)
+	request := httptest.NewRequest(method, ts.URL+path, &buf)
 
 	request.RequestURI = ""
 	u, err := url.Parse(ts.URL + path)

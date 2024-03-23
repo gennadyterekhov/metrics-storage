@@ -16,13 +16,13 @@ func (strg *MemStorage) SaveToDisk(filename string) (err error) {
 
 	data, err := json.MarshalIndent(strg, "", "   ")
 	if err != nil {
-		logger.ZapSugarLogger.Warnln("error when json encoding metrics")
+		logger.ZapSugarLogger.Errorln("error when json encoding metrics")
 		return err
 	}
 
 	err = os.WriteFile(filename, data, 0666)
 	if err != nil {
-		logger.ZapSugarLogger.Warnln("error when writing metrics file to disk")
+		logger.ZapSugarLogger.Errorln("error when writing metrics file to disk")
 		return err
 	}
 	return nil
@@ -33,7 +33,7 @@ func (strg *MemStorage) LoadFromDisk(filename string) (err error) {
 
 	fileBytes, err := os.ReadFile(filename)
 	if err != nil {
-		logger.ZapSugarLogger.Warnln("error when reading metrics file", err.Error())
+		logger.ZapSugarLogger.Errorln("error when reading metrics file", err.Error())
 		logger.ZapSugarLogger.Infoln("loading empty metrics")
 		strg.Clear()
 		MetricsRepository = CreateStorage()
@@ -58,13 +58,13 @@ func (strg *DBStorage) SaveToDisk(filename string) (err error) {
 
 	data, err := json.MarshalIndent(savedOnDisc, "", "   ")
 	if err != nil {
-		logger.ZapSugarLogger.Warnln("error when json encoding metrics")
+		logger.ZapSugarLogger.Errorln("error when json encoding metrics")
 		return err
 	}
 
 	err = os.WriteFile(filename, data, 0666)
 	if err != nil {
-		logger.ZapSugarLogger.Warnln("error when writing metrics file to disk")
+		logger.ZapSugarLogger.Errorln("error when writing metrics file to disk")
 		return err
 	}
 	return nil

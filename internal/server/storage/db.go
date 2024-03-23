@@ -18,7 +18,7 @@ type DBStorage struct {
 func CreateDBStorage() *DBStorage {
 	conn, err := sql.Open("pgx", config.Conf.DBDsn)
 	if err != nil {
-		logger.ZapSugarLogger.Panicln("could not connect to db using dsn: " + config.Conf.DBDsn)
+		logger.ZapSugarLogger.Panicln("could not connect to db using dsn: ", config.Conf.DBDsn, err.Error())
 	}
 
 	createType := `DO $$ BEGIN    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'metric_type') THEN

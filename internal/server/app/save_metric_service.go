@@ -70,7 +70,7 @@ func LoadFromDisk() {
 
 	if err != nil {
 		logger.ZapSugarLogger.Debugln("could not load metrics from disk, loaded empty repository")
-		logger.ZapSugarLogger.Warnln("error when loading metrics from disk", err.Error())
+		logger.ZapSugarLogger.Errorln("error when loading metrics from disk", err.Error())
 	}
 }
 
