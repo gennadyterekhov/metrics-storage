@@ -93,7 +93,3 @@ func (strg *MemStorage) CloseDB() error {
 func (strg *MemStorage) IsDB() bool {
 	return false
 }
-
-func (strg *MemStorage) GetDB() *DBStorage {
-	return nil
-}
