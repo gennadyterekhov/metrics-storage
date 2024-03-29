@@ -1,83 +1,62 @@
 package sender
 
 import (
-	"fmt"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
-	"github.com/go-resty/resty/v2"
-	"time"
 )
 
 type MetricsSender struct {
 	Address   string
+	IsGzip    bool
 	Interval  int
 	IsRunning bool
+	IsBatch   bool
 }
 
-func (msnd *MetricsSender) wait() {
-	time.Sleep(time.Duration(msnd.Interval * int(time.Second)))
-}
-
-func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet) {
+func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet, metricsStorageClient *client.MetricsStorageClient) {
 	msnd.IsRunning = true
-	msnd.wait()
 
-	sendAllMetrics(msnd.Address, memStatsPtr)
+	if msnd.IsBatch {
+		sendAllMetricsInOneRequest(metricsStorageClient, memStatsPtr)
+	} else {
+		sendAllMetrics(metricsStorageClient, memStatsPtr)
+	}
+
 	msnd.IsRunning = false
 }
 
-func sendAllMetrics(address string, memStats *metric.MetricsSet) {
-	urls := getURLs(memStats)
-	for i := 0; i < len(urls); i++ {
-		_ = sendMetric(address + urls[i])
-	}
+func sendAllMetrics(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
+	metricsStorageClient.SendMetric(&memStats.Alloc)
+	metricsStorageClient.SendMetric(&memStats.BuckHashSys)
+	metricsStorageClient.SendMetric(&memStats.Frees)
+	metricsStorageClient.SendMetric(&memStats.GCCPUFraction)
+	metricsStorageClient.SendMetric(&memStats.GCSys)
+	metricsStorageClient.SendMetric(&memStats.HeapAlloc)
+	metricsStorageClient.SendMetric(&memStats.HeapIdle)
+	metricsStorageClient.SendMetric(&memStats.HeapInuse)
+	metricsStorageClient.SendMetric(&memStats.HeapObjects)
+	metricsStorageClient.SendMetric(&memStats.HeapReleased)
+	metricsStorageClient.SendMetric(&memStats.HeapSys)
+	metricsStorageClient.SendMetric(&memStats.LastGC)
+	metricsStorageClient.SendMetric(&memStats.Lookups)
+	metricsStorageClient.SendMetric(&memStats.MCacheInuse)
+	metricsStorageClient.SendMetric(&memStats.MCacheSys)
+	metricsStorageClient.SendMetric(&memStats.MSpanInuse)
+	metricsStorageClient.SendMetric(&memStats.MSpanSys)
+	metricsStorageClient.SendMetric(&memStats.Mallocs)
+	metricsStorageClient.SendMetric(&memStats.NextGC)
+	metricsStorageClient.SendMetric(&memStats.NumForcedGC)
+	metricsStorageClient.SendMetric(&memStats.NumGC)
+	metricsStorageClient.SendMetric(&memStats.OtherSys)
+	metricsStorageClient.SendMetric(&memStats.PauseTotalNs)
+	metricsStorageClient.SendMetric(&memStats.StackInuse)
+	metricsStorageClient.SendMetric(&memStats.StackSys)
+	metricsStorageClient.SendMetric(&memStats.Sys)
+	metricsStorageClient.SendMetric(&memStats.TotalAlloc)
+	metricsStorageClient.SendMetric(&memStats.PollCount)
+	metricsStorageClient.SendMetric(&memStats.RandomValue)
 }
 
-func getURLs(memStats *metric.MetricsSet) []string {
-	return []string{
-		getURL(&memStats.Alloc),
-		getURL(&memStats.BuckHashSys),
-		getURL(&memStats.Frees),
-		getURL(&memStats.GCCPUFraction),
-		getURL(&memStats.GCSys),
-		getURL(&memStats.HeapAlloc),
-		getURL(&memStats.HeapIdle),
-		getURL(&memStats.HeapInuse),
-		getURL(&memStats.HeapObjects),
-		getURL(&memStats.HeapReleased),
-		getURL(&memStats.HeapSys),
-		getURL(&memStats.LastGC),
-		getURL(&memStats.Lookups),
-		getURL(&memStats.MCacheInuse),
-		getURL(&memStats.MCacheSys),
-		getURL(&memStats.MSpanInuse),
-		getURL(&memStats.MSpanSys),
-		getURL(&memStats.Mallocs),
-		getURL(&memStats.NextGC),
-		getURL(&memStats.NumForcedGC),
-		getURL(&memStats.NumGC),
-		getURL(&memStats.OtherSys),
-		getURL(&memStats.PauseTotalNs),
-		getURL(&memStats.StackInuse),
-		getURL(&memStats.StackSys),
-		getURL(&memStats.Sys),
-		getURL(&memStats.TotalAlloc),
-	}
-}
-
-func getURL(met metric.AbstractMetric) string {
-	template := "/update/%v/%v/%v"
-	return fmt.Sprintf(template, met.GetType(), met.GetName(), met.GetValueAsString())
-}
-
-func sendMetric(url string) (err error) {
-	proto := "http://"
-	client := resty.New()
-
-	_, err = client.R().
-		Post(proto + url)
-
-	if err != nil {
-		return err
-	}
-	return nil
+func sendAllMetricsInOneRequest(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
+	metricsStorageClient.SendAllMetricsInOneRequest(memStats)
 }
