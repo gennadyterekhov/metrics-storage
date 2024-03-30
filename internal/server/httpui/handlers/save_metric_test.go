@@ -394,30 +394,6 @@ func TestCanSaveMetricToDB(t *testing.T) {
 	storage.MetricsRepository = storage.CreateRAMStorage()
 }
 
-func TestSaveMetricBatch(t *testing.T) {
-	storage.MetricsRepository.Clear()
-	rawJSON := `{
-					"Alloc":{"id":"Alloc", "type":"gauge", "value":1.1},
-					"BuckHashSys":{"id":"BuckHashSys", "type":"gauge", "value":2.2},
-					"PollCount":{"id":"PollCount", "type":"counter", "delta":3}
-	}`
-	t.Run("map", func(t *testing.T) {
-		response, _ := testhelper.SendAlreadyJSONedBody(
-			t,
-			testhelper.TestServer,
-			http.MethodPost,
-			"/update/batch",
-			bytes.NewBuffer([]byte(rawJSON)),
-		)
-		response.Body.Close()
-
-		assert.Equal(t, http.StatusOK, response.StatusCode)
-
-		assert.Equal(t, 2, len(storage.MetricsRepository.GetAllGauges()))
-		assert.Equal(t, 1, len(storage.MetricsRepository.GetAllCounters()))
-	})
-}
-
 func TestSaveMetricList(t *testing.T) {
 	storage.MetricsRepository.Clear()
 	rawJSON := `[
@@ -425,7 +401,7 @@ func TestSaveMetricList(t *testing.T) {
 					{"id":"BuckHashSys", "type":"gauge", "value":2.2},
 					{"id":"PollCount", "type":"counter", "delta":3}
 	]`
-	t.Run("map", func(t *testing.T) {
+	t.Run("save list", func(t *testing.T) {
 		response, _ := testhelper.SendAlreadyJSONedBody(
 			t,
 			testhelper.TestServer,
