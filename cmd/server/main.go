@@ -18,7 +18,11 @@ func main() {
 
 	if config.Conf.FileStorage != "" {
 		if config.Conf.Restore {
-			app.LoadFromDisk()
+			err = storage.MetricsRepository.LoadFromDisk(config.Conf.FileStorage)
+			if err != nil {
+				logger.ZapSugarLogger.Debugln("could not load metrics from disk, loaded empty repository")
+				logger.ZapSugarLogger.Errorln("error when loading metrics from disk", err.Error())
+			}
 		}
 	}
 

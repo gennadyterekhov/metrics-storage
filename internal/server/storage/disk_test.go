@@ -30,3 +30,19 @@ func TestSaveLoad(t *testing.T) {
 	assert.NoError(t, err)
 
 }
+
+func TestLoadEmptyWhenError(t *testing.T) {
+	originalRepository := MetricsRepository
+	originalRepository.AddCounter("c1", 1)
+
+	filename := `metrics.json`
+	var err error
+	var result MemStorage
+	err = (&result).LoadFromDisk(filename)
+	assert.Error(t, err)
+
+	_, err = result.GetCounter("c1")
+	assert.Error(t, err)
+
+	assert.False(t, originalRepository.IsEqual(&result))
+}

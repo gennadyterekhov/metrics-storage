@@ -35,13 +35,13 @@ func getConfig() *ServerConfig {
 	)
 	fileStorageFlag := flag.String(
 		"f",
-		"/tmp/metrics-2_db.json",
+		"/tmp/metrics-db.json",
 		"[file storage] absolute path to json 2_db. on omission, dont write to 2_db",
 	)
 	restoreFlag := flag.Bool(
 		"r",
 		true,
-		"[restore] on true, loads 2_db from file on start",
+		"[restore] on true, loads db from file on start",
 	)
 	DBDsnFlag := flag.String(
 		"d",
