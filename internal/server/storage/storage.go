@@ -1,5 +1,7 @@
 package storage
 
+import "github.com/gennadyterekhov/metrics-storage/internal/server/config"
+
 type StorageInterface interface {
 	Clear()
 
@@ -19,6 +21,7 @@ type StorageInterface interface {
 	LoadFromDisk(filename string) (err error)
 
 	IsDB() bool
+	GetDB() *DBStorage
 
 	CloseDB() error
 }
@@ -26,6 +29,8 @@ type StorageInterface interface {
 var MetricsRepository = CreateStorage()
 
 func CreateStorage() StorageInterface {
-	return CreateRAMStorage()
-
+	if config.Conf.DBDsn == "" {
+		return CreateRAMStorage()
+	}
+	return CreateDBStorage()
 }
