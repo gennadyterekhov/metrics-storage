@@ -78,36 +78,36 @@ func getBody(met metric.MetricURLFormatter) ([]byte, error) {
 
 func getBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
 
-	metricToEncode := requests.SaveMetricBatchRequest{
-		Alloc:         getGaugeSubrequest(&memStats.Alloc),
-		BuckHashSys:   getGaugeSubrequest(&memStats.BuckHashSys),
-		Frees:         getGaugeSubrequest(&memStats.Frees),
-		GCCPUFraction: getGaugeSubrequest(&memStats.GCCPUFraction),
-		GCSys:         getGaugeSubrequest(&memStats.GCSys),
-		HeapAlloc:     getGaugeSubrequest(&memStats.HeapAlloc),
-		HeapIdle:      getGaugeSubrequest(&memStats.HeapIdle),
-		HeapInuse:     getGaugeSubrequest(&memStats.HeapInuse),
-		HeapObjects:   getGaugeSubrequest(&memStats.HeapObjects),
-		HeapReleased:  getGaugeSubrequest(&memStats.HeapReleased),
-		HeapSys:       getGaugeSubrequest(&memStats.HeapSys),
-		LastGC:        getGaugeSubrequest(&memStats.LastGC),
-		Lookups:       getGaugeSubrequest(&memStats.Lookups),
-		MCacheInuse:   getGaugeSubrequest(&memStats.MCacheInuse),
-		MCacheSys:     getGaugeSubrequest(&memStats.MCacheSys),
-		MSpanInuse:    getGaugeSubrequest(&memStats.MSpanInuse),
-		MSpanSys:      getGaugeSubrequest(&memStats.MSpanSys),
-		Mallocs:       getGaugeSubrequest(&memStats.Mallocs),
-		NextGC:        getGaugeSubrequest(&memStats.NextGC),
-		NumForcedGC:   getGaugeSubrequest(&memStats.NumForcedGC),
-		NumGC:         getGaugeSubrequest(&memStats.NumGC),
-		OtherSys:      getGaugeSubrequest(&memStats.OtherSys),
-		PauseTotalNs:  getGaugeSubrequest(&memStats.PauseTotalNs),
-		StackInuse:    getGaugeSubrequest(&memStats.StackInuse),
-		StackSys:      getGaugeSubrequest(&memStats.StackSys),
-		Sys:           getGaugeSubrequest(&memStats.Sys),
-		TotalAlloc:    getGaugeSubrequest(&memStats.TotalAlloc),
-		PollCount:     getCounterSubrequest(&memStats.PollCount),
-		RandomValue:   getGaugeSubrequest(&memStats.RandomValue),
+	metricToEncode := requests.SaveMetricListRequest{
+		getSubrequest(&memStats.Alloc),
+		getSubrequest(&memStats.BuckHashSys),
+		getSubrequest(&memStats.Frees),
+		getSubrequest(&memStats.GCCPUFraction),
+		getSubrequest(&memStats.GCSys),
+		getSubrequest(&memStats.HeapAlloc),
+		getSubrequest(&memStats.HeapIdle),
+		getSubrequest(&memStats.HeapInuse),
+		getSubrequest(&memStats.HeapObjects),
+		getSubrequest(&memStats.HeapReleased),
+		getSubrequest(&memStats.HeapSys),
+		getSubrequest(&memStats.LastGC),
+		getSubrequest(&memStats.Lookups),
+		getSubrequest(&memStats.MCacheInuse),
+		getSubrequest(&memStats.MCacheSys),
+		getSubrequest(&memStats.MSpanInuse),
+		getSubrequest(&memStats.MSpanSys),
+		getSubrequest(&memStats.Mallocs),
+		getSubrequest(&memStats.NextGC),
+		getSubrequest(&memStats.NumForcedGC),
+		getSubrequest(&memStats.NumGC),
+		getSubrequest(&memStats.OtherSys),
+		getSubrequest(&memStats.PauseTotalNs),
+		getSubrequest(&memStats.StackInuse),
+		getSubrequest(&memStats.StackSys),
+		getSubrequest(&memStats.Sys),
+		getSubrequest(&memStats.TotalAlloc),
+		getSubrequest(&memStats.PollCount),
+		getSubrequest(&memStats.RandomValue),
 	}
 	jsonBytes, err := json.Marshal(metricToEncode)
 	if err != nil {
@@ -118,25 +118,17 @@ func getBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
 	return jsonBytes, nil
 }
 
-func getGaugeSubrequest(met metric.MetricURLFormatter) *requests.GaugeMetricSubrequest {
-	_, gauge, err := getMetricValues(met)
+func getSubrequest(met metric.MetricURLFormatter) *requests.SaveMetricRequest {
+	counter, gauge, err := getMetricValues(met)
 	if err != nil {
 		return nil
 	}
 
-	return &requests.GaugeMetricSubrequest{MetricName: met.GetName(), MetricType: met.GetType(), GaugeValue: gauge}
-}
-
-func getCounterSubrequest(met metric.MetricURLFormatter) *requests.CounterMetricSubrequest {
-	counter, _, err := getMetricValues(met)
-	if err != nil {
-		return nil
-	}
-
-	return &requests.CounterMetricSubrequest{
+	return &requests.SaveMetricRequest{
 		MetricName:   met.GetName(),
 		MetricType:   met.GetType(),
-		CounterValue: counter,
+		CounterValue: &counter,
+		GaugeValue:   &gauge,
 	}
 }
 
@@ -181,9 +173,11 @@ func getFullURL(domain string, isBatch bool) string {
 		domain = proto + domain
 	}
 
-	fullURL := domain + "/update/"
+	fullURL := domain
 	if isBatch {
-		fullURL += "batch/"
+		fullURL += "/updates/"
+	} else {
+		fullURL += "/update/"
 	}
 	return fullURL
 }

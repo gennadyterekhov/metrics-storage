@@ -50,13 +50,4 @@ func registerRoutes(router chi.Router) {
 		"/updates/",
 		SaveMetricListHandler().ServeHTTP,
 	)
-
-	router.Post(
-		"/update/batch",
-		SaveMetricBatchHandler().ServeHTTP,
-	)
-	router.Post(
-		"/update/batch/",
-		SaveMetricBatchHandler().ServeHTTP,
-	)
 }

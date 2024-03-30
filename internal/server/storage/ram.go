@@ -1,14 +1,16 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"reflect"
 )
 
 type MemStorage struct {
-	Counters map[string]int64   `json:"counters"`
-	Gauges   map[string]float64 `json:"gauges"`
+	Counters           map[string]int64   `json:"counters"`
+	Gauges             map[string]float64 `json:"gauges"`
+	HTTPRequestContext context.Context
 }
 
 func CreateRAMStorage() *MemStorage {
@@ -96,4 +98,8 @@ func (strg *MemStorage) IsDB() bool {
 
 func (strg *MemStorage) GetDB() *DBStorage {
 	return nil
+}
+
+func (strg *MemStorage) SetContext(ctx context.Context) {
+	strg.HTTPRequestContext = ctx
 }

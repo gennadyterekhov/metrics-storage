@@ -30,38 +30,4 @@ type CounterMetricSubrequest struct {
 	CounterValue int64  `json:"delta"`
 }
 
-type SaveMetricBatchRequest struct {
-	Error error `json:"-"`
-
-	Alloc         *GaugeMetricSubrequest   `json:"Alloc"`
-	BuckHashSys   *GaugeMetricSubrequest   `json:"BuckHashSys"`
-	Frees         *GaugeMetricSubrequest   `json:"Frees"`
-	GCCPUFraction *GaugeMetricSubrequest   `json:"GCCPUFraction"`
-	GCSys         *GaugeMetricSubrequest   `json:"GCSys"`
-	HeapAlloc     *GaugeMetricSubrequest   `json:"HeapAlloc"`
-	HeapIdle      *GaugeMetricSubrequest   `json:"HeapIdle"`
-	HeapInuse     *GaugeMetricSubrequest   `json:"HeapInuse"`
-	HeapObjects   *GaugeMetricSubrequest   `json:"HeapObjects"`
-	HeapReleased  *GaugeMetricSubrequest   `json:"HeapReleased"`
-	HeapSys       *GaugeMetricSubrequest   `json:"HeapSys"`
-	LastGC        *GaugeMetricSubrequest   `json:"LastGC"`
-	Lookups       *GaugeMetricSubrequest   `json:"Lookups"`
-	MCacheInuse   *GaugeMetricSubrequest   `json:"MCacheInuse"`
-	MCacheSys     *GaugeMetricSubrequest   `json:"MCacheSys"`
-	MSpanInuse    *GaugeMetricSubrequest   `json:"MSpanInuse"`
-	MSpanSys      *GaugeMetricSubrequest   `json:"MSpanSys"`
-	Mallocs       *GaugeMetricSubrequest   `json:"Mallocs"`
-	NextGC        *GaugeMetricSubrequest   `json:"NextGC"`
-	NumForcedGC   *GaugeMetricSubrequest   `json:"NumForcedGC"`
-	NumGC         *GaugeMetricSubrequest   `json:"NumGC"`
-	OtherSys      *GaugeMetricSubrequest   `json:"OtherSys"`
-	PauseTotalNs  *GaugeMetricSubrequest   `json:"PauseTotalNs"`
-	StackInuse    *GaugeMetricSubrequest   `json:"StackInuse"`
-	StackSys      *GaugeMetricSubrequest   `json:"StackSys"`
-	Sys           *GaugeMetricSubrequest   `json:"Sys"`
-	TotalAlloc    *GaugeMetricSubrequest   `json:"TotalAlloc"`
-	PollCount     *CounterMetricSubrequest `json:"PollCount"`
-	RandomValue   *GaugeMetricSubrequest   `json:"RandomValue"`
-}
-
-type SaveMetricListRequest []SaveMetricRequest
+type SaveMetricListRequest []*SaveMetricRequest
