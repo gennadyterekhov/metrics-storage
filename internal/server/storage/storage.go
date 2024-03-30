@@ -1,6 +1,9 @@
 package storage
 
-import "github.com/gennadyterekhov/metrics-storage/internal/server/config"
+import (
+	"context"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
+)
 
 type StorageInterface interface {
 	Clear()
@@ -22,6 +25,7 @@ type StorageInterface interface {
 
 	IsDB() bool
 	GetDB() *DBStorage
+	SetContext(ctx context.Context)
 
 	CloseDB() error
 }

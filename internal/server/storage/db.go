@@ -12,7 +12,8 @@ import (
 )
 
 type DBStorage struct {
-	DBConnection *sql.DB
+	DBConnection       *sql.DB
+	HTTPRequestContext context.Context
 }
 
 func CreateDBStorage() *DBStorage {
@@ -49,6 +50,18 @@ func CreateDBStorage() *DBStorage {
 	}
 }
 
+func (strg *DBStorage) SetContext(ctx context.Context) {
+	strg.HTTPRequestContext = ctx
+}
+
+func (strg *DBStorage) getContext() context.Context {
+	if strg.HTTPRequestContext == nil {
+		logger.ZapSugarLogger.Debugln("DB does not have context")
+		return context.Background()
+	}
+	return strg.HTTPRequestContext
+}
+
 func (strg *DBStorage) Clear() {
 	_, err := strg.DBConnection.Exec("delete from metrics")
 	if err != nil {
@@ -64,7 +77,7 @@ func (strg *DBStorage) AddCounter(key string, value int64) {
 			DO UPDATE SET
 			  delta = metrics.delta + $3;`
 
-	_, err := strg.DBConnection.ExecContext(context.Background(), query, key, types.Counter, value)
+	_, err := strg.DBConnection.ExecContext(strg.getContext(), query, key, types.Counter, value)
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("could not add counter", err.Error())
 	}
@@ -78,7 +91,7 @@ func (strg *DBStorage) SetGauge(key string, value float64) {
 			DO UPDATE SET
 			  value = $3;`
 
-	_, err := strg.DBConnection.ExecContext(context.Background(), query, key, types.Gauge, value)
+	_, err := strg.DBConnection.ExecContext(strg.getContext(), query, key, types.Gauge, value)
 	if err != nil {
 		logger.ZapSugarLogger.Errorln(err.Error())
 	}
@@ -88,7 +101,7 @@ func (strg *DBStorage) GetGauge(name string) (float64, error) {
 
 	query := `select value from metrics where name = $1 and type = $2`
 
-	row := strg.DBConnection.QueryRowContext(context.Background(), query, name, types.Gauge)
+	row := strg.DBConnection.QueryRowContext(strg.getContext(), query, name, types.Gauge)
 	if row.Err() != nil {
 		return 0, fmt.Errorf(exceptions.UnknownMetricName + " " + row.Err().Error())
 
@@ -109,7 +122,7 @@ func (strg *DBStorage) GetGauge(name string) (float64, error) {
 func (strg *DBStorage) GetCounter(name string) (int64, error) {
 	query := `select delta from metrics where name = $1 and type = $2`
 
-	row := strg.DBConnection.QueryRowContext(context.Background(), query, name, types.Counter)
+	row := strg.DBConnection.QueryRowContext(strg.getContext(), query, name, types.Counter)
 	if row.Err() != nil {
 		return 0, fmt.Errorf(exceptions.UnknownMetricName + " " + row.Err().Error())
 	}
@@ -129,7 +142,7 @@ func (strg *DBStorage) GetCounter(name string) (int64, error) {
 func (strg *DBStorage) GetGaugeOrZero(name string) float64 {
 	query := `select value from metrics where name = $1 and type = $2`
 
-	row := strg.DBConnection.QueryRowContext(context.Background(), query, name, types.Gauge)
+	row := strg.DBConnection.QueryRowContext(strg.getContext(), query, name, types.Gauge)
 	if row.Err() != nil {
 		return 0
 
@@ -147,7 +160,7 @@ func (strg *DBStorage) GetGaugeOrZero(name string) float64 {
 func (strg *DBStorage) GetCounterOrZero(name string) int64 {
 	query := `select delta from metrics where name = $1 and type = $2`
 
-	row := strg.DBConnection.QueryRowContext(context.Background(), query, name, types.Counter)
+	row := strg.DBConnection.QueryRowContext(strg.getContext(), query, name, types.Counter)
 	if row.Err() != nil {
 		return 0
 	}
@@ -165,7 +178,7 @@ func (strg *DBStorage) GetAllGauges() map[string]float64 {
 	query := `select name, value from metrics where type = $2`
 	var gauges = make(map[string]float64, 0)
 
-	rows, err := strg.DBConnection.QueryContext(context.Background(), query, types.Gauge)
+	rows, err := strg.DBConnection.QueryContext(strg.getContext(), query, types.Gauge)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return gauges
@@ -194,7 +207,7 @@ func (strg *DBStorage) GetAllCounters() map[string]int64 {
 	query := `select name, delta from metrics where type = $2`
 	var counters = make(map[string]int64, 0)
 
-	rows, err := strg.DBConnection.QueryContext(context.Background(), query, types.Counter)
+	rows, err := strg.DBConnection.QueryContext(strg.getContext(), query, types.Counter)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return counters
