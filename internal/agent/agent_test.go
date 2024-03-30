@@ -64,14 +64,14 @@ func TestAgent(t *testing.T) {
 	}
 }
 
-func TestBatch(t *testing.T) {
+func TestList(t *testing.T) {
 	storage.MetricsRepository.Clear()
 
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 100*time.Millisecond)
 
 	defer cancelContextFn()
 
-	t.Run("batch", func(t *testing.T) {
+	t.Run("list", func(t *testing.T) {
 		go runAgentRoutine(ctx, &AgentConfig{
 			Addr:           testhelper.TestServer.URL,
 			ReportInterval: 1,
