@@ -35,6 +35,7 @@ func TestAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+
 			go runAgentRoutine(ctx, &AgentConfig{
 				Addr:           testhelper.TestServer.URL,
 				ReportInterval: 1,
@@ -46,13 +47,16 @@ func TestAgent(t *testing.T) {
 			contextEndCondition := ctx.Err()
 
 			if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
+				totalCounters := len(storage.MetricsRepository.GetAllCounters(context.Background()))
+				totalGauges := len(storage.MetricsRepository.GetAllGauges(context.Background()))
+
 				assert.Equal(t,
 					1,
-					len(storage.MetricsRepository.GetAllCounters(context.Background())),
+					totalCounters,
 				)
 				assert.Equal(t,
 					27+1,
-					len(storage.MetricsRepository.GetAllGauges(context.Background())),
+					totalGauges,
 				)
 
 				return
@@ -72,6 +76,7 @@ func TestList(t *testing.T) {
 	defer cancelContextFn()
 
 	t.Run("list", func(t *testing.T) {
+
 		go runAgentRoutine(ctx, &AgentConfig{
 			Addr:           testhelper.TestServer.URL,
 			ReportInterval: 1,
@@ -209,5 +214,5 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 }
 
 func runAgentRoutine(ctx context.Context, config *AgentConfig) {
-	RunAgent(config)
+	RunAgent(ctx, config)
 }

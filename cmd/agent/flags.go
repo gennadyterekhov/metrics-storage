@@ -29,13 +29,19 @@ func getConfig() *agent.AgentConfig {
 		2,
 		"[poll interval] interval of polling metrics from runtime package, in seconds",
 	)
+	payloadSignatureKeyFlag := flag.String(
+		"k",
+		"",
+		"[key] used to sign requests' bodies so that the server can check authenticity",
+	)
 	flag.Parse()
 
 	flags := agent.AgentConfig{
-		Addr:           *addressFlag,
-		IsGzip:         *gzipFlag,
-		ReportInterval: *reportIntervalFlag,
-		PollInterval:   *pollIntervalFlag,
+		Addr:                *addressFlag,
+		IsGzip:              *gzipFlag,
+		ReportInterval:      *reportIntervalFlag,
+		PollInterval:        *pollIntervalFlag,
+		PayloadSignatureKey: *payloadSignatureKeyFlag,
 	}
 
 	overwriteWithEnv(&flags)
@@ -48,6 +54,8 @@ func overwriteWithEnv(flags *agent.AgentConfig) {
 	flags.IsGzip = isGzip(flags.IsGzip)
 	flags.ReportInterval = getReportInterval(flags.ReportInterval)
 	flags.PollInterval = getPollInterval(flags.PollInterval)
+	flags.PayloadSignatureKey = getKey(flags.PayloadSignatureKey)
+
 }
 
 func getAddress(current string) string {
@@ -92,6 +100,15 @@ func getPollInterval(current int) int {
 			log.Fatalln("incorrect format of env var POLL_INTERVAL")
 		}
 		return interval
+	}
+
+	return current
+}
+
+func getKey(current string) string {
+	raw, ok := os.LookupEnv("KEY")
+	if ok {
+		return raw
 	}
 
 	return current

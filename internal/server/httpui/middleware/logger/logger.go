@@ -1,8 +1,10 @@
 package logger
 
 import (
+	"bytes"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"io"
 	"net/http"
 	"time"
 )
@@ -30,7 +32,7 @@ func (lrw *LoggingResponseWriter) Write(b []byte) (int, error) {
 }
 
 func (lrw *LoggingResponseWriter) WriteHeader(statusCode int) {
-	logger.ZapSugarLogger.Debugln("writing header from log middleware")
+	logger.ZapSugarLogger.Debugln("writing header from log middleware, status:", statusCode)
 	lrw.ResponseWriter.WriteHeader(statusCode)
 	lrw.LogContext.status = statusCode
 }
@@ -61,10 +63,13 @@ func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 			next.ServeHTTP(res, req)
 			return
 		}
-		reqBody := make([]byte, 0)
-		_, _ = req.Body.Read(reqBody)
-		// don't close because it will be used in compressor middleware
-		//defer req.Body.Close()
+		var reqBody []byte
+		reqBody, err := io.ReadAll(req.Body)
+		if err != nil {
+			logger.ZapSugarLogger.Errorln("could not read body", err.Error())
+		}
+		req.Body = io.NopCloser(bytes.NewBuffer(reqBody))
+
 		logger.ZapSugarLogger.Debugln(
 			"got request",
 			req.Method,

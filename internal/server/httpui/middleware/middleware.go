@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/compressor"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/hashchecker"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/logger"
 	"net/http"
 )
@@ -19,6 +20,7 @@ func getCommonMiddlewares() []Middleware {
 		logger.RequestAndResponseLoggerMiddleware,
 		compressor.GzipCompressor,
 		ContentType,
+		hashchecker.CheckHash,
 	}
 }
 
