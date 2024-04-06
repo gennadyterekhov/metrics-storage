@@ -58,7 +58,6 @@ git fetch template && git checkout template/main .github
 
 При мёрже ветки с инкрементом в основную ветку `main` будут запускаться все автотесты.
 
-Подробнее про локальный и автоматический запуск читайте в [README автотестов](https://github.com/Yandex-Practicum/go-autotests).
 
 ## test locally
 cd internal
@@ -124,4 +123,26 @@ TEMP_FILE=tmp
             -source-path=. \
             -file-storage-path=tmp \
             -database-dsn=t
-### 8
+### iter8
+          SERVER_PORT=8080
+          ADDRESS="localhost:8080"
+          TEMP_FILE=storage-for-ci-tests.json
+          ./metricstest -test.v -test.run=^TestIteration8$ \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -server-port=8080 \
+            -source-path=. \
+            -file-storage-path=storage-for-ci-tests.json \
+            -database-dsn=null
+### iter9
+          SERVER_PORT=8080
+          ADDRESS="localhost:8080"
+          TEMP_FILE=storage-for-ci-tests.json
+          ./metricstest -test.v -test.run=^TestIteration9$ \
+            -agent-binary-path=cmd/agent/agent \
+            -binary-path=cmd/server/server \
+            -file-storage-path=storage-for-ci-tests.json \
+            -server-port=8080 \
+            -source-path=. \
+            -database-dsn=null \
+            -key=a

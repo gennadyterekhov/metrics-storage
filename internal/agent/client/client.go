@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"github.com/Rican7/retry"
+	"github.com/Rican7/retry/backoff"
+	"github.com/Rican7/retry/strategy"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
@@ -14,6 +17,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 )
 
 var client *resty.Client
@@ -187,12 +191,12 @@ func sendBody(url string, body []byte) (err error) {
 		SetBody(body).
 		SetHeader(constants.HeaderContentType, constants.ApplicationJSON)
 
-	response, err := request.Post(url)
+	err = sendRequestWithRetries(request, url)
+
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when sending metric", err.Error())
 		return err
 	}
-	logger.ZapSugarLogger.Infoln("sending metric response", response)
 
 	return err
 }
@@ -202,8 +206,7 @@ func sendBodyGzipCompressed(url string, body []byte) (err error) {
 	if err != nil {
 		return err
 	}
-	response, err := request.Post(url)
-	logger.ZapSugarLogger.Infoln("server response", response)
+	err = sendRequestWithRetries(request, url)
 
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when sending compressed metric", err.Error())
@@ -225,6 +228,32 @@ func prepareRequest(body []byte) (*resty.Request, error) {
 		SetBody(compressedBody)
 
 	return request, nil
+}
+
+func sendRequestWithRetries(request *resty.Request, url string) (err error) {
+
+	err = retry.Retry(
+		func(numberOfAttempt uint) error {
+			_, err := request.Post(url)
+			if err != nil {
+				logger.ZapSugarLogger.Errorf(
+					"error when sending request. attempt: %v error: %v",
+					numberOfAttempt,
+					err.Error(),
+				)
+				return err
+			}
+			return nil
+		},
+		strategy.Limit(3),
+		strategy.Backoff(backoff.Incremental(0*time.Second, 3*time.Second)),
+	)
+
+	if err != nil {
+		logger.ZapSugarLogger.Errorln("error when sending request with 3 retries", err.Error())
+		return err
+	}
+	return nil
 }
 
 func getCompressedBody(body []byte) (*bytes.Buffer, error) {

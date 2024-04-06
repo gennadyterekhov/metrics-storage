@@ -35,6 +35,15 @@ func registerRoutes(router chi.Router) {
 	)
 
 	router.Post(
+		"/updates",
+		SaveMetricListHandler().ServeHTTP,
+	)
+	router.Post(
+		"/updates/",
+		SaveMetricListHandler().ServeHTTP,
+	)
+
+	router.Post(
 		"/update/{metricType}/{metricName}/{metricValue}",
 		SaveMetricHandler().ServeHTTP,
 	)
@@ -45,9 +54,5 @@ func registerRoutes(router chi.Router) {
 	router.Post(
 		"/update",
 		SaveMetricHandler().ServeHTTP,
-	)
-	router.Post(
-		"/updates/",
-		SaveMetricListHandler().ServeHTTP,
 	)
 }

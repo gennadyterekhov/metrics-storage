@@ -59,21 +59,6 @@ func SaveToDisk() {
 	}
 }
 
-func LoadFromDisk() {
-	err := retry.Retry(
-		func(attempt uint) error {
-			return storage.MetricsRepository.LoadFromDisk(config.Conf.FileStorage)
-		},
-		strategy.Limit(4),
-		strategy.Backoff(backoff.Incremental(-1*time.Second, 2*time.Second)),
-	)
-
-	if err != nil {
-		logger.ZapSugarLogger.Debugln("could not load metrics from disk, loaded empty repository")
-		logger.ZapSugarLogger.Errorln("error when loading metrics from disk", err.Error())
-	}
-}
-
 func SaveMetricListToMemory(filledDto *requests.SaveMetricListRequest) {
 	logger.ZapSugarLogger.Debugln("saving metric list")
 	for i := 0; i < len(*filledDto); i += 1 {
