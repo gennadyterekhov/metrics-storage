@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
@@ -100,16 +101,16 @@ func TestSaveMetricJSON(t *testing.T) {
 			assert.Equal(t, tt.want.code, response.StatusCode)
 
 			if tt.want.typ == types.Counter {
-				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(tt.want.metricName))
+				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(context.Background(), tt.want.metricName))
 			}
 			if tt.want.typ == types.Gauge {
-				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(tt.want.metricName)))
+				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(context.Background(), tt.want.metricName)))
 			}
 		})
 	}
 
 	// check counter is added to itself
-	storage.MetricsRepository.AddCounter("cnt", 1)
+	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
 	response, _ := testhelper.SendAlreadyJSONedBody(
 		t,
 		testhelper.TestServer,
@@ -119,10 +120,10 @@ func TestSaveMetricJSON(t *testing.T) {
 	)
 	response.Body.Close()
 
-	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero("cnt"))
+	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero(context.Background(), "cnt"))
 
 	// check gauge is substituted
-	storage.MetricsRepository.SetGauge("gaugeName", 1)
+	storage.MetricsRepository.SetGauge(context.Background(), "gaugeName", 1)
 	response, _ = testhelper.SendAlreadyJSONedBody(
 		t,
 		testhelper.TestServer,
@@ -132,13 +133,13 @@ func TestSaveMetricJSON(t *testing.T) {
 	)
 	response.Body.Close()
 
-	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero("gaugeName"))
+	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }
 
 func TestSaveMetricJSONReturnsUpdatedValuesInBody(t *testing.T) {
 	rawJSON := `{"id":"cnt", "type":"counter", "delta":10}`
 	storage.MetricsRepository.Clear()
-	storage.MetricsRepository.AddCounter("cnt", 1)
+	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
 
 	response, responseBody := testhelper.SendAlreadyJSONedBody(
 		t,
@@ -240,16 +241,16 @@ func TestSaveMetric(t *testing.T) {
 			assert.Equal(t, tt.want.code, response.StatusCode)
 
 			if tt.want.typ == types.Counter {
-				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(tt.want.metricName))
+				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(context.Background(), tt.want.metricName))
 			}
 			if tt.want.typ == types.Gauge {
-				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(tt.want.metricName)))
+				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(context.Background(), tt.want.metricName)))
 			}
 		})
 	}
 
 	// check counter is added to itself
-	storage.MetricsRepository.AddCounter("cnt", 1)
+	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
 	response, _ := testhelper.SendRequest(
 		t,
 		testhelper.TestServer,
@@ -258,10 +259,10 @@ func TestSaveMetric(t *testing.T) {
 	)
 	response.Body.Close()
 
-	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero("cnt"))
+	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero(context.Background(), "cnt"))
 
 	// check gauge is substituted
-	storage.MetricsRepository.SetGauge("gaugeName", 1)
+	storage.MetricsRepository.SetGauge(context.Background(), "gaugeName", 1)
 	response, _ = testhelper.SendRequest(
 		t,
 		testhelper.TestServer,
@@ -270,7 +271,7 @@ func TestSaveMetric(t *testing.T) {
 	)
 	response.Body.Close()
 
-	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero("gaugeName"))
+	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }
 
 func TestGzipCompression(t *testing.T) {
@@ -295,7 +296,7 @@ func TestGzipCompression(t *testing.T) {
 	t.Run("client can send gzipped request and server can respond with gzipped body", func(t *testing.T) {
 		storage.MetricsRepository.Clear()
 
-		storage.MetricsRepository.AddCounter("cnt", 1)
+		storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
 
 		response, responseBody := testhelper.SendGzipRequest(
 			t,
@@ -358,16 +359,16 @@ func TestCanSaveMetricToDB(t *testing.T) {
 			assert.Equal(t, tt.want.code, response.StatusCode)
 
 			if tt.want.typ == types.Counter {
-				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(tt.want.metricName))
+				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(context.Background(), tt.want.metricName))
 			}
 			if tt.want.typ == types.Gauge {
-				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(tt.want.metricName)))
+				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(context.Background(), tt.want.metricName)))
 			}
 		})
 	}
 
 	// check counter is added to itself
-	storage.MetricsRepository.AddCounter("cnt", 1)
+	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
 	response, _ := testhelper.SendRequest(
 		t,
 		testhelper.TestServer,
@@ -376,10 +377,10 @@ func TestCanSaveMetricToDB(t *testing.T) {
 	)
 	response.Body.Close()
 
-	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero("cnt"))
+	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero(context.Background(), "cnt"))
 
 	// check gauge is substituted
-	storage.MetricsRepository.SetGauge("gaugeName", 1)
+	storage.MetricsRepository.SetGauge(context.Background(), "gaugeName", 1)
 	response, _ = testhelper.SendRequest(
 		t,
 		testhelper.TestServer,
@@ -388,7 +389,7 @@ func TestCanSaveMetricToDB(t *testing.T) {
 	)
 	response.Body.Close()
 
-	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero("gaugeName"))
+	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero(context.Background(), "gaugeName"))
 	config.Conf.DBDsn = ""
 	storage.MetricsRepository.CloseDB()
 	storage.MetricsRepository = storage.CreateRAMStorage()
@@ -413,7 +414,7 @@ func TestSaveMetricList(t *testing.T) {
 
 		assert.Equal(t, http.StatusOK, response.StatusCode)
 
-		assert.Equal(t, 2, len(storage.MetricsRepository.GetAllGauges()))
-		assert.Equal(t, 1, len(storage.MetricsRepository.GetAllCounters()))
+		assert.Equal(t, 2, len(storage.MetricsRepository.GetAllGauges(context.Background())))
+		assert.Equal(t, 1, len(storage.MetricsRepository.GetAllCounters(context.Background())))
 	})
 }

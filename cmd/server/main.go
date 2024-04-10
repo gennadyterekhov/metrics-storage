@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
@@ -18,7 +19,7 @@ func main() {
 
 	if config.Conf.FileStorage != "" {
 		if config.Conf.Restore {
-			err = storage.MetricsRepository.LoadFromDisk(config.Conf.FileStorage)
+			err = storage.MetricsRepository.LoadFromDisk(context.Background(), config.Conf.FileStorage)
 			if err != nil {
 				logger.ZapSugarLogger.Debugln("could not load metrics from disk, loaded empty repository")
 				logger.ZapSugarLogger.Errorln("error when loading metrics from disk", err.Error())
@@ -47,6 +48,6 @@ func onStop() {
 	<-sigchan
 	logger.ZapSugarLogger.Infoln("shutting down gracefully")
 
-	app.SaveToDisk()
+	app.SaveToDisk(context.Background())
 	os.Exit(0)
 }

@@ -8,24 +8,21 @@ import (
 type StorageInterface interface {
 	Clear()
 
-	AddCounter(key string, value int64)
-	SetGauge(key string, value float64)
+	AddCounter(ctx context.Context, key string, value int64)
+	SetGauge(ctx context.Context, key string, value float64)
 
-	GetGauge(name string) (float64, error)
-	GetCounter(name string) (int64, error)
-	GetGaugeOrZero(name string) float64
-	GetCounterOrZero(name string) int64
-	GetAllGauges() map[string]float64
-	GetAllCounters() map[string]int64
+	GetGauge(ctx context.Context, name string) (float64, error)
+	GetCounter(ctx context.Context, name string) (int64, error)
+	GetGaugeOrZero(ctx context.Context, name string) float64
+	GetCounterOrZero(ctx context.Context, name string) int64
+	GetAllGauges(ctx context.Context) map[string]float64
+	GetAllCounters(ctx context.Context) map[string]int64
 
-	IsEqual(anotherStorage StorageInterface) (eq bool)
+	SaveToDisk(ctx context.Context, filename string) (err error)
+	LoadFromDisk(ctx context.Context, filename string) (err error)
 
-	SaveToDisk(filename string) (err error)
-	LoadFromDisk(filename string) (err error)
-
-	IsDB() bool
 	GetDB() *DBStorage
-	SetContext(ctx context.Context)
+	GetMemStorage() *MemStorage
 
 	CloseDB() error
 }

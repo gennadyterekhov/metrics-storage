@@ -23,7 +23,7 @@ func SaveMetricList(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	app.SaveMetricListToMemory(requestDto)
+	app.SaveMetricListToMemory(req.Context(), requestDto)
 	res.WriteHeader(http.StatusOK)
 }
 

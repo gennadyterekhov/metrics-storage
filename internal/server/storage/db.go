@@ -8,7 +8,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"reflect"
 )
 
 type DBStorage struct {
@@ -50,18 +49,6 @@ func CreateDBStorage() *DBStorage {
 	}
 }
 
-func (strg *DBStorage) SetContext(ctx context.Context) {
-	strg.HTTPRequestContext = ctx
-}
-
-func (strg *DBStorage) getContext() context.Context {
-	if strg.HTTPRequestContext == nil {
-		logger.ZapSugarLogger.Debugln("DB does not have context")
-		return context.Background()
-	}
-	return strg.HTTPRequestContext
-}
-
 func (strg *DBStorage) Clear() {
 	_, err := strg.DBConnection.Exec("delete from metrics")
 	if err != nil {
@@ -69,7 +56,7 @@ func (strg *DBStorage) Clear() {
 	}
 }
 
-func (strg *DBStorage) AddCounter(key string, value int64) {
+func (strg *DBStorage) AddCounter(ctx context.Context, key string, value int64) {
 	query := `
 			INSERT INTO metrics ( name, type, delta)
 			VALUES ($1, $2, $3)
@@ -77,13 +64,13 @@ func (strg *DBStorage) AddCounter(key string, value int64) {
 			DO UPDATE SET
 			  delta = metrics.delta + $3;`
 
-	_, err := strg.DBConnection.ExecContext(strg.getContext(), query, key, types.Counter, value)
+	_, err := strg.DBConnection.ExecContext(ctx, query, key, types.Counter, value)
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("could not add counter", err.Error())
 	}
 }
 
-func (strg *DBStorage) SetGauge(key string, value float64) {
+func (strg *DBStorage) SetGauge(ctx context.Context, key string, value float64) {
 	query := `
 			INSERT INTO metrics ( name, type, value)
 			VALUES ($1, $2, $3)
@@ -91,17 +78,17 @@ func (strg *DBStorage) SetGauge(key string, value float64) {
 			DO UPDATE SET
 			  value = $3;`
 
-	_, err := strg.DBConnection.ExecContext(strg.getContext(), query, key, types.Gauge, value)
+	_, err := strg.DBConnection.ExecContext(ctx, query, key, types.Gauge, value)
 	if err != nil {
 		logger.ZapSugarLogger.Errorln(err.Error())
 	}
 }
 
-func (strg *DBStorage) GetGauge(name string) (float64, error) {
+func (strg *DBStorage) GetGauge(ctx context.Context, name string) (float64, error) {
 
 	query := `select value from metrics where name = $1 and type = $2`
 
-	row := strg.DBConnection.QueryRowContext(strg.getContext(), query, name, types.Gauge)
+	row := strg.DBConnection.QueryRowContext(ctx, query, name, types.Gauge)
 	if row.Err() != nil {
 		return 0, fmt.Errorf(exceptions.UnknownMetricName + " " + row.Err().Error())
 
@@ -119,10 +106,10 @@ func (strg *DBStorage) GetGauge(name string) (float64, error) {
 	return gauge, nil
 }
 
-func (strg *DBStorage) GetCounter(name string) (int64, error) {
+func (strg *DBStorage) GetCounter(ctx context.Context, name string) (int64, error) {
 	query := `select delta from metrics where name = $1 and type = $2`
 
-	row := strg.DBConnection.QueryRowContext(strg.getContext(), query, name, types.Counter)
+	row := strg.DBConnection.QueryRowContext(ctx, query, name, types.Counter)
 	if row.Err() != nil {
 		return 0, fmt.Errorf(exceptions.UnknownMetricName + " " + row.Err().Error())
 	}
@@ -139,10 +126,10 @@ func (strg *DBStorage) GetCounter(name string) (int64, error) {
 	return counter, nil
 }
 
-func (strg *DBStorage) GetGaugeOrZero(name string) float64 {
+func (strg *DBStorage) GetGaugeOrZero(ctx context.Context, name string) float64 {
 	query := `select value from metrics where name = $1 and type = $2`
 
-	row := strg.DBConnection.QueryRowContext(strg.getContext(), query, name, types.Gauge)
+	row := strg.DBConnection.QueryRowContext(ctx, query, name, types.Gauge)
 	if row.Err() != nil {
 		return 0
 
@@ -157,10 +144,10 @@ func (strg *DBStorage) GetGaugeOrZero(name string) float64 {
 	return gauge
 }
 
-func (strg *DBStorage) GetCounterOrZero(name string) int64 {
+func (strg *DBStorage) GetCounterOrZero(ctx context.Context, name string) int64 {
 	query := `select delta from metrics where name = $1 and type = $2`
 
-	row := strg.DBConnection.QueryRowContext(strg.getContext(), query, name, types.Counter)
+	row := strg.DBConnection.QueryRowContext(ctx, query, name, types.Counter)
 	if row.Err() != nil {
 		return 0
 	}
@@ -174,11 +161,11 @@ func (strg *DBStorage) GetCounterOrZero(name string) int64 {
 	return counter
 }
 
-func (strg *DBStorage) GetAllGauges() map[string]float64 {
+func (strg *DBStorage) GetAllGauges(ctx context.Context) map[string]float64 {
 	query := `select name, value from metrics where type = $2`
 	var gauges = make(map[string]float64, 0)
 
-	rows, err := strg.DBConnection.QueryContext(strg.getContext(), query, types.Gauge)
+	rows, err := strg.DBConnection.QueryContext(ctx, query, types.Gauge)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return gauges
@@ -203,11 +190,11 @@ func (strg *DBStorage) GetAllGauges() map[string]float64 {
 	return gauges
 }
 
-func (strg *DBStorage) GetAllCounters() map[string]int64 {
+func (strg *DBStorage) GetAllCounters(ctx context.Context) map[string]int64 {
 	query := `select name, delta from metrics where type = $2`
 	var counters = make(map[string]int64, 0)
 
-	rows, err := strg.DBConnection.QueryContext(strg.getContext(), query, types.Counter)
+	rows, err := strg.DBConnection.QueryContext(ctx, query, types.Counter)
 	if err != nil {
 		if err.Error() == "sql: no rows in result set" {
 			return counters
@@ -232,13 +219,6 @@ func (strg *DBStorage) GetAllCounters() map[string]int64 {
 	return counters
 }
 
-func (strg *DBStorage) IsEqual(anotherStorage StorageInterface) (eq bool) {
-	gauges, counters := strg.GetAllGauges(), strg.GetAllCounters()
-	gauges2, counters2 := anotherStorage.GetAllGauges(), anotherStorage.GetAllCounters()
-
-	return reflect.DeepEqual(gauges, gauges2) && reflect.DeepEqual(counters, counters2)
-}
-
 func (strg *DBStorage) CloseDB() error {
 	err := strg.DBConnection.Close()
 	if err != nil {
@@ -247,10 +227,10 @@ func (strg *DBStorage) CloseDB() error {
 	return err
 }
 
-func (strg *DBStorage) IsDB() bool {
-	return true
-}
-
 func (strg *DBStorage) GetDB() *DBStorage {
 	return strg
+}
+
+func (strg *DBStorage) GetMemStorage() *MemStorage {
+	return nil
 }

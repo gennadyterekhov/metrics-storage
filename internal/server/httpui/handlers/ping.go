@@ -16,10 +16,6 @@ func Ping(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "storage is not initialized", http.StatusInternalServerError)
 	}
 
-	if !storage.MetricsRepository.IsDB() {
-		http.Error(res, "storage is not of db type", http.StatusInternalServerError)
-	}
-
 	dbStorage := storage.MetricsRepository.GetDB()
 
 	if dbStorage != nil {
@@ -34,6 +30,6 @@ func Ping(res http.ResponseWriter, req *http.Request) {
 			logger.ZapSugarLogger.Errorln("error when writing ping response", err.Error())
 		}
 	} else {
-		http.Error(res, "DBStorage is nil", http.StatusInternalServerError)
+		http.Error(res, "DBStorage is nil: probably storage is not of db type", http.StatusInternalServerError)
 	}
 }

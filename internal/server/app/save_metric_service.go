@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
@@ -13,7 +14,7 @@ import (
 	"time"
 )
 
-func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *responses.GetMetricResponse) {
+func SaveMetricToMemory(ctx context.Context, filledDto *requests.SaveMetricRequest) (responseDto *responses.GetMetricResponse) {
 	responseDto = &responses.GetMetricResponse{
 		MetricType:   filledDto.MetricType,
 		MetricName:   filledDto.MetricName,
@@ -25,30 +26,30 @@ func SaveMetricToMemory(filledDto *requests.SaveMetricRequest) (responseDto *res
 	logger.ZapSugarLogger.Debugln("saving metric",
 		filledDto.MetricName, filledDto.MetricType, filledDto.CounterValue, filledDto.GaugeValue)
 	if filledDto.MetricType == types.Counter && filledDto.CounterValue != nil {
-		storage.MetricsRepository.AddCounter(filledDto.MetricName, *filledDto.CounterValue)
-		updatedCounter := storage.MetricsRepository.GetCounterOrZero(filledDto.MetricName)
+		storage.MetricsRepository.AddCounter(ctx, filledDto.MetricName, *filledDto.CounterValue)
+		updatedCounter := storage.MetricsRepository.GetCounterOrZero(ctx, filledDto.MetricName)
 		responseDto.CounterValue = &updatedCounter
 	}
 	if filledDto.MetricType == types.Gauge && filledDto.GaugeValue != nil {
-		storage.MetricsRepository.SetGauge(filledDto.MetricName, *filledDto.GaugeValue)
+		storage.MetricsRepository.SetGauge(ctx, filledDto.MetricName, *filledDto.GaugeValue)
 		responseDto.GaugeValue = filledDto.GaugeValue
 	}
 
-	saveToDiskSynchronously()
+	saveToDiskSynchronously(ctx)
 
 	return responseDto
 }
 
-func saveToDiskSynchronously() {
+func saveToDiskSynchronously(ctx context.Context) {
 	if config.Conf.StoreInterval == 0 && config.Conf.FileStorage != "" {
-		SaveToDisk()
+		SaveToDisk(ctx)
 	}
 }
 
-func SaveToDisk() {
+func SaveToDisk(ctx context.Context) {
 	err := retry.Retry(
 		func(attempt uint) error {
-			return storage.MetricsRepository.SaveToDisk(config.Conf.FileStorage)
+			return storage.MetricsRepository.SaveToDisk(ctx, config.Conf.FileStorage)
 		},
 		strategy.Limit(4),
 		strategy.Backoff(backoff.Incremental(-1*time.Second, 2*time.Second)),
@@ -59,9 +60,9 @@ func SaveToDisk() {
 	}
 }
 
-func SaveMetricListToMemory(filledDto *requests.SaveMetricListRequest) {
+func SaveMetricListToMemory(ctx context.Context, filledDto *requests.SaveMetricListRequest) {
 	logger.ZapSugarLogger.Debugln("saving metric list")
 	for i := 0; i < len(*filledDto); i += 1 {
-		SaveMetricToMemory((*filledDto)[i])
+		SaveMetricToMemory(ctx, (*filledDto)[i])
 	}
 }
