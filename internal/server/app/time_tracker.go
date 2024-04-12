@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
@@ -24,5 +25,5 @@ func routine(ticker *time.Ticker) {
 
 func onInterval() {
 	logger.ZapSugarLogger.Infoln("STORE_INTERVAL passed, saving metrics to disk")
-	storage.MetricsRepository.SaveToDisk(config.Conf.FileStorage)
+	storage.MetricsRepository.SaveToDisk(context.Background(), config.Conf.FileStorage)
 }

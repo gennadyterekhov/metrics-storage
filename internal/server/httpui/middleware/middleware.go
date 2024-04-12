@@ -16,7 +16,6 @@ func CommonConveyor(h http.Handler, middlewares ...Middleware) http.Handler {
 
 func getCommonMiddlewares() []Middleware {
 	return []Middleware{
-		HTTPRequestContextSetter,
 		logger.RequestAndResponseLoggerMiddleware,
 		compressor.GzipCompressor,
 		ContentType,

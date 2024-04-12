@@ -37,7 +37,7 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	responseDto := app.SaveMetricToMemory(requestDto)
+	responseDto := app.SaveMetricToMemory(req.Context(), requestDto)
 	if responseDto.Error != nil {
 		logger.ZapSugarLogger.Debugln(
 			"found error during response DTO build process in usecase",

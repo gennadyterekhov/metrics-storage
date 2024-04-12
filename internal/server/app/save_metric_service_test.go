@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
@@ -36,13 +37,13 @@ func TestSaveMetricToMemory(t *testing.T) {
 				CounterValue: &tt.args.counterValue,
 				GaugeValue:   &tt.args.gaugeValue,
 			}
-			SaveMetricToMemory(filledDto)
+			SaveMetricToMemory(context.Background(), filledDto)
 
 			if tt.args.metricType == types.Counter {
-				assert.Equal(t, tt.args.counterValue, storage.MetricsRepository.GetCounterOrZero(tt.args.name))
+				assert.Equal(t, tt.args.counterValue, storage.MetricsRepository.GetCounterOrZero(context.Background(), tt.args.name))
 			}
 			if tt.args.metricType == types.Gauge {
-				assert.Equal(t, tt.args.gaugeValue, storage.MetricsRepository.GetGaugeOrZero(tt.args.name))
+				assert.Equal(t, tt.args.gaugeValue, storage.MetricsRepository.GetGaugeOrZero(context.Background(), tt.args.name))
 			}
 		})
 	}
@@ -52,14 +53,14 @@ func TestSaveMetricToMemory(t *testing.T) {
 	zeroInt := int64(0)
 	zeroFloat := float64(0.0)
 	two := float64(2.5)
-	SaveMetricToMemory(&requests.SaveMetricRequest{
+	SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
 		MetricType: types.Counter, MetricName: "cnt", CounterValue: &ten, GaugeValue: &zeroFloat,
 	})
-	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero("cnt"))
+	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero(context.Background(), "cnt"))
 
 	// check gauge is substituted, (not 2.5+1.6)
-	SaveMetricToMemory(&requests.SaveMetricRequest{
+	SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
 		MetricType: types.Gauge, MetricName: "gaugeName", CounterValue: &zeroInt, GaugeValue: &two,
 	})
-	assert.Equal(t, 2.5, storage.MetricsRepository.GetGaugeOrZero("gaugeName"))
+	assert.Equal(t, 2.5, storage.MetricsRepository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }

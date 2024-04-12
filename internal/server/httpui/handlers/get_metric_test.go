@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
@@ -22,7 +23,7 @@ type args struct {
 }
 
 func TestGetMetricJSON(t *testing.T) {
-	storage.MetricsRepository.AddCounter("cnt", 1)
+	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
 
 	type want struct {
 		code        int
@@ -88,7 +89,7 @@ func getBodyFromArgs(arguments args) *bytes.Buffer {
 
 func TestGetMetric(t *testing.T) {
 	storage.MetricsRepository.Clear()
-	storage.MetricsRepository.AddCounter("cnt", 1)
+	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
 
 	type want struct {
 		code        int
@@ -187,7 +188,7 @@ func TestCanGetMetricFromDB(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			storage.MetricsRepository.Clear()
 			if tt.want.code == http.StatusOK {
-				storage.MetricsRepository.AddCounter("cnt", 1)
+				storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
 			}
 
 			url := "/value/" + tt.args.typ + "/" + tt.args.name

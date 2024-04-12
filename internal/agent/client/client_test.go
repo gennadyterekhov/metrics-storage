@@ -1,6 +1,7 @@
 package client
 
 import (
+	"context"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
@@ -57,16 +58,16 @@ func TestCanSendCounterValue(t *testing.T) {
 
 			assert.Equal(t,
 				1,
-				len(storage.MetricsRepository.GetAllCounters()),
+				len(storage.MetricsRepository.GetAllCounters(context.Background())),
 			)
 			assert.Equal(t,
 				0,
-				len(storage.MetricsRepository.GetAllGauges()),
+				len(storage.MetricsRepository.GetAllGauges(context.Background())),
 			)
 
 			assert.Equal(t,
 				tt.want.counterValue,
-				storage.MetricsRepository.GetCounterOrZero("nm"),
+				storage.MetricsRepository.GetCounterOrZero(context.Background(), "nm"),
 			)
 		})
 	}
@@ -108,16 +109,16 @@ func TestCanSendGaugeValue(t *testing.T) {
 
 			assert.Equal(t,
 				0,
-				len(storage.MetricsRepository.GetAllCounters()),
+				len(storage.MetricsRepository.GetAllCounters(context.Background())),
 			)
 			assert.Equal(t,
 				1,
-				len(storage.MetricsRepository.GetAllGauges()),
+				len(storage.MetricsRepository.GetAllGauges(context.Background())),
 			)
 
 			assert.Equal(t,
 				tt.want.gaugeValue,
-				storage.MetricsRepository.GetGaugeOrZero("nm"),
+				storage.MetricsRepository.GetGaugeOrZero(context.Background(), "nm"),
 			)
 		})
 	}

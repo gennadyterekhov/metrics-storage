@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
@@ -9,7 +10,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 )
 
-func GetMetric(requestDto *requests.GetMetricRequest) (responseDto *responses.GetMetricResponse) {
+func GetMetric(ctx context.Context, requestDto *requests.GetMetricRequest) (responseDto *responses.GetMetricResponse) {
 	logger.ZapSugarLogger.Debugln("GetMetricAsString name, metricType", requestDto.MetricName, requestDto.MetricType)
 	responseDto = &responses.GetMetricResponse{
 		MetricType:   requestDto.MetricType,
@@ -20,17 +21,17 @@ func GetMetric(requestDto *requests.GetMetricRequest) (responseDto *responses.Ge
 		Error:        nil,
 	}
 	if requestDto.MetricType == types.Counter {
-		tmp, err := storage.MetricsRepository.GetCounter(requestDto.MetricName)
+		tmp, err := storage.MetricsRepository.GetCounter(ctx, requestDto.MetricName)
 		responseDto.CounterValue, responseDto.Error = &tmp, err
 	}
 	if requestDto.MetricType == types.Gauge {
-		tmp, err := storage.MetricsRepository.GetGauge(requestDto.MetricName)
+		tmp, err := storage.MetricsRepository.GetGauge(ctx, requestDto.MetricName)
 		responseDto.GaugeValue, responseDto.Error = &tmp, err
 	}
 	return responseDto
 }
 
-func GetMetricsListAsHTML() string {
+func GetMetricsListAsHTML(ctx context.Context) string {
 	templateText := `
 <!DOCTYPE html>
 <html>
@@ -47,8 +48,8 @@ func GetMetricsListAsHTML() string {
   </body>
 </html>
 `
-	gaugeList := getGaugeList()
-	counterList := getCounterList()
+	gaugeList := getGaugeList(ctx)
+	counterList := getCounterList(ctx)
 	return fmt.Sprintf(
 		templateText,
 		types.Gauge,
@@ -58,18 +59,18 @@ func GetMetricsListAsHTML() string {
 	)
 }
 
-func getGaugeList() string {
+func getGaugeList(ctx context.Context) string {
 	list := ""
-	for name, val := range storage.MetricsRepository.GetAllGauges() {
+	for name, val := range storage.MetricsRepository.GetAllGauges(ctx) {
 		list += fmt.Sprintf("<li>%v : %v</li>", name, val)
 	}
 
 	return list
 }
 
-func getCounterList() string {
+func getCounterList(ctx context.Context) string {
 	list := ""
-	for name, val := range storage.MetricsRepository.GetAllCounters() {
+	for name, val := range storage.MetricsRepository.GetAllCounters(ctx) {
 		list += fmt.Sprintf("<li>%v : %v</li>", name, val)
 	}
 	return list

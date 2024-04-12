@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
@@ -15,7 +16,7 @@ type SavedOnDisc struct {
 	Gauges   map[string]float64 `json:"gauges"`
 }
 
-func (strg *MemStorage) SaveToDisk(filename string) (err error) {
+func (strg *MemStorage) SaveToDisk(ctx context.Context, filename string) (err error) {
 	logger.ZapSugarLogger.Infoln("saving metrics to disk")
 
 	data, err := json.MarshalIndent(strg, "", "   ")
@@ -32,7 +33,7 @@ func (strg *MemStorage) SaveToDisk(filename string) (err error) {
 	return nil
 }
 
-func (strg *MemStorage) LoadFromDisk(filename string) (err error) {
+func (strg *MemStorage) LoadFromDisk(ctx context.Context, filename string) (err error) {
 	logger.ZapSugarLogger.Infoln("loading metrics from disk")
 
 	err = strg.loadFromDiskWithRetry(filename)
@@ -71,12 +72,12 @@ func (strg *MemStorage) loadFromDiskWithRetry(filename string) error {
 	)
 }
 
-func (strg *DBStorage) SaveToDisk(filename string) (err error) {
+func (strg *DBStorage) SaveToDisk(ctx context.Context, filename string) (err error) {
 	logger.ZapSugarLogger.Infoln("saving metrics to disk")
 
 	savedOnDisc := &SavedOnDisc{}
-	savedOnDisc.Gauges = strg.GetAllGauges()
-	savedOnDisc.Counters = strg.GetAllCounters()
+	savedOnDisc.Gauges = strg.GetAllGauges(ctx)
+	savedOnDisc.Counters = strg.GetAllCounters(ctx)
 
 	data, err := json.MarshalIndent(savedOnDisc, "", "   ")
 	if err != nil {
@@ -92,7 +93,7 @@ func (strg *DBStorage) SaveToDisk(filename string) (err error) {
 	return nil
 }
 
-func (strg *DBStorage) LoadFromDisk(filename string) (err error) {
+func (strg *DBStorage) LoadFromDisk(ctx context.Context, filename string) (err error) {
 	logger.ZapSugarLogger.Infoln("will not load from disk to db, database is already persistent storage")
 
 	return nil
