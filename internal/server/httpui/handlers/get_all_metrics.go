@@ -10,7 +10,7 @@ import (
 
 func GetAllMetrics(res http.ResponseWriter, req *http.Request) {
 
-	htmlPage := app.GetMetricsListAsHTML()
+	htmlPage := app.GetMetricsListAsHTML(req.Context())
 
 	res.Header().Set(constants.HeaderContentType, constants.TextHTML)
 	_, err := io.WriteString(res, htmlPage)

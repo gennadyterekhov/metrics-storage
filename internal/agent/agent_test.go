@@ -48,11 +48,11 @@ func TestAgent(t *testing.T) {
 			if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
 				assert.Equal(t,
 					1,
-					len(storage.MetricsRepository.GetAllCounters()),
+					len(storage.MetricsRepository.GetAllCounters(context.Background())),
 				)
 				assert.Equal(t,
 					27+1,
-					len(storage.MetricsRepository.GetAllGauges()),
+					len(storage.MetricsRepository.GetAllGauges(context.Background())),
 				)
 
 				return
@@ -64,14 +64,14 @@ func TestAgent(t *testing.T) {
 	}
 }
 
-func TestBatch(t *testing.T) {
+func TestList(t *testing.T) {
 	storage.MetricsRepository.Clear()
 
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 100*time.Millisecond)
 
 	defer cancelContextFn()
 
-	t.Run("batch", func(t *testing.T) {
+	t.Run("list", func(t *testing.T) {
 		go runAgentRoutine(ctx, &AgentConfig{
 			Addr:           testhelper.TestServer.URL,
 			ReportInterval: 1,
@@ -86,11 +86,11 @@ func TestBatch(t *testing.T) {
 		if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
 			assert.Equal(t,
 				1,
-				len(storage.MetricsRepository.GetAllCounters()),
+				len(storage.MetricsRepository.GetAllCounters(context.Background())),
 			)
 			assert.Equal(t,
 				27+1,
-				len(storage.MetricsRepository.GetAllGauges()),
+				len(storage.MetricsRepository.GetAllGauges(context.Background())),
 			)
 
 			return
@@ -130,13 +130,13 @@ func TestGzip(t *testing.T) {
 			if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
 				assert.Equal(t,
 					1,
-					len(storage.MetricsRepository.GetAllCounters()),
+					len(storage.MetricsRepository.GetAllCounters(context.Background())),
 				)
 				assert.Equal(t,
 					27+1,
-					len(storage.MetricsRepository.GetAllGauges()),
+					len(storage.MetricsRepository.GetAllGauges(context.Background())),
 				)
-				savedValue := storage.MetricsRepository.GetCounterOrZero("PollCount")
+				savedValue := storage.MetricsRepository.GetCounterOrZero(context.Background(), "PollCount")
 				assert.Equal(t, int64(1), savedValue)
 				return
 			}
@@ -174,11 +174,11 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 			if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
 				assert.Equal(t,
 					1,
-					len(storage.MetricsRepository.GetAllCounters()),
+					len(storage.MetricsRepository.GetAllCounters(context.Background())),
 				)
 				assert.Equal(t,
 					27+1,
-					len(storage.MetricsRepository.GetAllGauges()),
+					len(storage.MetricsRepository.GetAllGauges(context.Background())),
 				)
 
 				url := "/value/gauge/BuckHashSys"
@@ -190,7 +190,7 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 					url,
 				)
 				r.Body.Close()
-				savedValue := storage.MetricsRepository.GetGaugeOrZero("BuckHashSys")
+				savedValue := storage.MetricsRepository.GetGaugeOrZero(context.Background(), "BuckHashSys")
 
 				assert.Equal(
 					t,

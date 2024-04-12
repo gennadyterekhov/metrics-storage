@@ -13,6 +13,7 @@ type ServerConfig struct {
 	StoreInterval int
 	FileStorage   string
 	Restore       bool
+	DBDsn         string
 }
 
 var Conf *ServerConfig = getConfig()
@@ -34,13 +35,18 @@ func getConfig() *ServerConfig {
 	)
 	fileStorageFlag := flag.String(
 		"f",
-		"/tmp/metrics-2_db.json",
+		"/tmp/metrics-db.json",
 		"[file storage] absolute path to json 2_db. on omission, dont write to 2_db",
 	)
 	restoreFlag := flag.Bool(
 		"r",
 		true,
-		"[restore] on true, loads 2_db from file on start",
+		"[restore] on true, loads db from file on start",
+	)
+	DBDsnFlag := flag.String(
+		"d",
+		"",
+		"[db dsn] format: `host=%s user=%s password=%s dbname=%s sslmode=%s` if empty, ram is used",
 	)
 	flag.Parse()
 
@@ -49,6 +55,7 @@ func getConfig() *ServerConfig {
 		StoreInterval: *storeIntervalFlag,
 		FileStorage:   *fileStorageFlag,
 		Restore:       *restoreFlag,
+		DBDsn:         *DBDsnFlag,
 	}
 
 	overwriteWithEnv(&flags)
@@ -61,12 +68,22 @@ func overwriteWithEnv(flags *ServerConfig) {
 	flags.StoreInterval = getStoreInterval(flags.StoreInterval)
 	flags.FileStorage = getFileStorage(flags.FileStorage)
 	flags.Restore = getRestore(flags.Restore)
+	flags.DBDsn = getDBDsn(flags.DBDsn)
 }
 
 func getAddress(current string) string {
 	rawAddress, ok := os.LookupEnv("ADDRESS")
 	if ok {
 		return rawAddress
+	}
+
+	return current
+}
+
+func getDBDsn(current string) string {
+	raw, ok := os.LookupEnv("DATABASE_DSN")
+	if ok {
+		return raw
 	}
 
 	return current

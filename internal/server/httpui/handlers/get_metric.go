@@ -39,7 +39,7 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	responseDto := app.GetMetric(requestDto)
+	responseDto := app.GetMetric(req.Context(), requestDto)
 	if responseDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during response DTO build process in usecase", responseDto.Error)
 		writeErrorToOutput(&res, responseDto.Error)
