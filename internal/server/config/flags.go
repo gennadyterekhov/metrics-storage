@@ -9,11 +9,12 @@ import (
 )
 
 type ServerConfig struct {
-	Addr          string
-	StoreInterval int
-	FileStorage   string
-	Restore       bool
-	DBDsn         string
+	Addr                string
+	StoreInterval       int
+	FileStorage         string
+	Restore             bool
+	DBDsn               string
+	PayloadSignatureKey string
 }
 
 var Conf *ServerConfig = getConfig()
@@ -48,14 +49,20 @@ func getConfig() *ServerConfig {
 		"",
 		"[db dsn] format: `host=%s user=%s password=%s dbname=%s sslmode=%s` if empty, ram is used",
 	)
+	payloadSignatureKeyFlag := flag.String(
+		"k",
+		"",
+		"[key] used to check authenticity (bad request on failure) and to sign response hashes",
+	)
 	flag.Parse()
 
 	flags := ServerConfig{
-		Addr:          *addressFlag,
-		StoreInterval: *storeIntervalFlag,
-		FileStorage:   *fileStorageFlag,
-		Restore:       *restoreFlag,
-		DBDsn:         *DBDsnFlag,
+		Addr:                *addressFlag,
+		StoreInterval:       *storeIntervalFlag,
+		FileStorage:         *fileStorageFlag,
+		Restore:             *restoreFlag,
+		DBDsn:               *DBDsnFlag,
+		PayloadSignatureKey: *payloadSignatureKeyFlag,
 	}
 
 	overwriteWithEnv(&flags)
@@ -69,6 +76,8 @@ func overwriteWithEnv(flags *ServerConfig) {
 	flags.FileStorage = getFileStorage(flags.FileStorage)
 	flags.Restore = getRestore(flags.Restore)
 	flags.DBDsn = getDBDsn(flags.DBDsn)
+	flags.PayloadSignatureKey = getKey(flags.PayloadSignatureKey)
+
 }
 
 func getAddress(current string) string {
@@ -118,6 +127,15 @@ func getRestore(current bool) bool {
 	}
 	if ok {
 		return false
+	}
+
+	return current
+}
+
+func getKey(current string) string {
+	raw, ok := os.LookupEnv("KEY")
+	if ok {
+		return raw
 	}
 
 	return current

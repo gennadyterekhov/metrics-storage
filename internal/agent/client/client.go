@@ -1,21 +1,15 @@
 package client
 
 import (
-	"bytes"
-	"compress/gzip"
-	"encoding/json"
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/client/bodymaker"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/client/bodypreparer"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/go-resty/resty/v2"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -23,8 +17,9 @@ import (
 var client *resty.Client
 
 type MetricsStorageClient struct {
-	Address string
-	IsGzip  bool
+	Address             string
+	IsGzip              bool
+	PayloadSignatureKey string
 }
 
 func init() {
@@ -32,7 +27,7 @@ func init() {
 }
 
 func (msc *MetricsStorageClient) SendMetric(met metric.MetricURLFormatter) (err error) {
-	jsonBytes, err := getBody(met)
+	jsonBytes, err := bodymaker.GetBody(met)
 	if err != nil {
 		return err
 	}
@@ -42,11 +37,13 @@ func (msc *MetricsStorageClient) SendMetric(met metric.MetricURLFormatter) (err 
 		logger.ZapSugarLogger.Errorln("error when sending metric "+met.GetName()+" to server", err.Error())
 		return err
 	}
+	logger.ZapSugarLogger.Debugln("request seemingly sent without errors")
+
 	return nil
 }
 
 func (msc *MetricsStorageClient) SendAllMetricsInOneRequest(memStats *metric.MetricsSet) (err error) {
-	jsonBytes, err := getBodyForAllMetrics(memStats)
+	jsonBytes, err := bodymaker.GetBodyForAllMetrics(memStats)
 	if err != nil {
 		return err
 	}
@@ -56,100 +53,9 @@ func (msc *MetricsStorageClient) SendAllMetricsInOneRequest(memStats *metric.Met
 		logger.ZapSugarLogger.Errorln("error when sending metric batch to server", err.Error())
 		return err
 	}
+	logger.ZapSugarLogger.Debugln("request seemingly sent without errors")
+
 	return nil
-}
-
-func getBody(met metric.MetricURLFormatter) ([]byte, error) {
-	counterValue, gaugeValue, err := getMetricValues(met)
-	if err != nil {
-		return nil, err
-	}
-
-	metricToEncode := models.Metrics{
-		ID:    met.GetName(),
-		MType: met.GetType(),
-		Delta: &counterValue,
-		Value: &gaugeValue,
-	}
-	jsonBytes, err := json.Marshal(metricToEncode)
-	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when encoding metric", err.Error())
-
-		return nil, err
-	}
-	return jsonBytes, nil
-}
-
-func getBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
-
-	metricToEncode := requests.SaveMetricListRequest{
-		getSubrequest(&memStats.Alloc),
-		getSubrequest(&memStats.BuckHashSys),
-		getSubrequest(&memStats.Frees),
-		getSubrequest(&memStats.GCCPUFraction),
-		getSubrequest(&memStats.GCSys),
-		getSubrequest(&memStats.HeapAlloc),
-		getSubrequest(&memStats.HeapIdle),
-		getSubrequest(&memStats.HeapInuse),
-		getSubrequest(&memStats.HeapObjects),
-		getSubrequest(&memStats.HeapReleased),
-		getSubrequest(&memStats.HeapSys),
-		getSubrequest(&memStats.LastGC),
-		getSubrequest(&memStats.Lookups),
-		getSubrequest(&memStats.MCacheInuse),
-		getSubrequest(&memStats.MCacheSys),
-		getSubrequest(&memStats.MSpanInuse),
-		getSubrequest(&memStats.MSpanSys),
-		getSubrequest(&memStats.Mallocs),
-		getSubrequest(&memStats.NextGC),
-		getSubrequest(&memStats.NumForcedGC),
-		getSubrequest(&memStats.NumGC),
-		getSubrequest(&memStats.OtherSys),
-		getSubrequest(&memStats.PauseTotalNs),
-		getSubrequest(&memStats.StackInuse),
-		getSubrequest(&memStats.StackSys),
-		getSubrequest(&memStats.Sys),
-		getSubrequest(&memStats.TotalAlloc),
-		getSubrequest(&memStats.PollCount),
-		getSubrequest(&memStats.RandomValue),
-	}
-	jsonBytes, err := json.Marshal(metricToEncode)
-	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when encoding metric batch", err.Error())
-
-		return nil, err
-	}
-	return jsonBytes, nil
-}
-
-func getSubrequest(met metric.MetricURLFormatter) *requests.SaveMetricRequest {
-	counter, gauge, err := getMetricValues(met)
-	if err != nil {
-		return nil
-	}
-
-	return &requests.SaveMetricRequest{
-		MetricName:   met.GetName(),
-		MetricType:   met.GetType(),
-		CounterValue: &counter,
-		GaugeValue:   &gauge,
-	}
-}
-
-func getMetricValues(met metric.MetricURLFormatter) (counterValue int64, gaugeValue float64, err error) {
-	if met.GetType() == types.Counter {
-		counterValue, err = strconv.ParseInt(met.GetValueAsString(), 10, 64)
-		if err != nil {
-			return 0, 0, err
-		}
-	} else {
-		gaugeValue, err = strconv.ParseFloat(met.GetValueAsString(), 64)
-		if err != nil {
-			return 0, 0, err
-		}
-	}
-
-	return counterValue, gaugeValue, nil
 }
 
 func (msc *MetricsStorageClient) sendRequestToMetricsServer(body []byte, isBatch bool) (err error) {
@@ -158,11 +64,11 @@ func (msc *MetricsStorageClient) sendRequestToMetricsServer(body []byte, isBatch
 	if msc.IsGzip {
 		logger.ZapSugarLogger.Debugln("sending GZIP metric to server", http.MethodPost, fullURL, string(body))
 
-		err = sendBodyGzipCompressed(fullURL, body)
+		err = sendBodyGzipCompressed(fullURL, body, msc.PayloadSignatureKey)
 	} else {
 		logger.ZapSugarLogger.Debugln("sending metric to server", http.MethodPost, fullURL, string(body))
 
-		err = sendBody(fullURL, body)
+		err = sendBody(fullURL, body, msc.PayloadSignatureKey)
 	}
 	if err != nil {
 		return err
@@ -186,10 +92,12 @@ func getFullURL(domain string, isBatch bool) string {
 	return fullURL
 }
 
-func sendBody(url string, body []byte) (err error) {
-	request := client.R().
-		SetBody(body).
-		SetHeader(constants.HeaderContentType, constants.ApplicationJSON)
+func sendBody(url string, body []byte, key string) (err error) {
+	request, err := bodypreparer.PrepareRequest(client, body, false, key)
+	if err != nil {
+		logger.ZapSugarLogger.Errorln("error when preparing request", err.Error())
+		return err
+	}
 
 	err = sendRequestWithRetries(request, url)
 
@@ -201,8 +109,8 @@ func sendBody(url string, body []byte) (err error) {
 	return err
 }
 
-func sendBodyGzipCompressed(url string, body []byte) (err error) {
-	request, err := prepareRequest(body)
+func sendBodyGzipCompressed(url string, body []byte, key string) (err error) {
+	request, err := bodypreparer.PrepareRequest(client, body, true, key)
 	if err != nil {
 		return err
 	}
@@ -216,27 +124,13 @@ func sendBodyGzipCompressed(url string, body []byte) (err error) {
 	return err
 }
 
-func prepareRequest(body []byte) (*resty.Request, error) {
-	compressedBody, err := getCompressedBody(body)
-	if err != nil {
-		return nil, err
-	}
-	request := client.R().
-		SetHeader(constants.HeaderContentType, constants.ApplicationJSON).
-		SetHeader("Accept-Encoding", "gzip").
-		SetHeader("Content-Encoding", "gzip").
-		SetBody(compressedBody)
-
-	return request, nil
-}
-
 func sendRequestWithRetries(request *resty.Request, url string) (err error) {
 
 	err = retry.Retry(
 		func(numberOfAttempt uint) error {
 			_, err := request.Post(url)
 			if err != nil {
-				logger.ZapSugarLogger.Errorf(
+				logger.ZapSugarLogger.Debugf(
 					"error when sending request. attempt: %v error: %v",
 					numberOfAttempt,
 					err.Error(),
@@ -254,29 +148,4 @@ func sendRequestWithRetries(request *resty.Request, url string) (err error) {
 		return err
 	}
 	return nil
-}
-
-func getCompressedBody(body []byte) (*bytes.Buffer, error) {
-	logger.ZapSugarLogger.Debugln(" body before compression as sent by agent", string(body))
-
-	var bodyBuffer bytes.Buffer
-	compressedBodyWriter, err := gzip.NewWriterLevel(&bodyBuffer, gzip.BestSpeed)
-	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when opening gzip writer", err.Error())
-		return nil, err
-	}
-	defer compressedBodyWriter.Close()
-	_, err = compressedBodyWriter.Write(body)
-	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when writing gzip body", err.Error())
-		return nil, err
-	}
-	err = compressedBodyWriter.Flush()
-	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when flushing gzip body", err.Error())
-		return nil, err
-	}
-	logger.ZapSugarLogger.Debugln("compressed body as sent by agent", bodyBuffer.String())
-
-	return &bodyBuffer, nil
 }
