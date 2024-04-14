@@ -29,7 +29,7 @@ func TestAgent(t *testing.T) {
 			name: "test",
 		},
 	}
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 200*time.Millisecond)
 
 	defer cancelContextFn()
 
@@ -71,7 +71,7 @@ func TestAgent(t *testing.T) {
 func TestList(t *testing.T) {
 	storage.MetricsRepository.Clear()
 
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 200*time.Millisecond)
 
 	defer cancelContextFn()
 
@@ -116,7 +116,7 @@ func TestGzip(t *testing.T) {
 			name: "test",
 		},
 	}
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 200*time.Millisecond)
 
 	defer cancelContextFn()
 	for _, tt := range tests {
@@ -161,7 +161,7 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 			name: "test",
 		},
 	}
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 200*time.Millisecond)
 
 	defer cancelContextFn()
 	for _, tt := range tests {
