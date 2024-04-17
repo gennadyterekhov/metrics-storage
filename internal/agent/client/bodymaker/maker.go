@@ -63,7 +63,15 @@ func GetBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
 		getSubrequest(&memStats.TotalAlloc),
 		getSubrequest(&memStats.PollCount),
 		getSubrequest(&memStats.RandomValue),
+
+		getSubrequest(&memStats.TotalMemory),
+		getSubrequest(&memStats.FreeMemory),
 	}
+
+	for i := 0; i < len(memStats.CPUUtilization); i += 1 {
+		metricToEncode = append(metricToEncode, getSubrequest(&memStats.CPUUtilization[i]))
+	}
+
 	jsonBytes, err := json.Marshal(metricToEncode)
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when encoding metric batch", err.Error())

@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"log"
 	"os"
 	"strconv"
@@ -34,17 +35,29 @@ func getConfig() *agent.AgentConfig {
 		"",
 		"[key] used to sign requests' bodies so that the server can check authenticity",
 	)
+	simultaneousRequestsLimitFlag := flag.Int(
+		"l",
+		5,
+		"[limit] used to limit the number of simultaneous requests sent to server",
+	)
 	flag.Parse()
 
 	flags := agent.AgentConfig{
-		Addr:                *addressFlag,
-		IsGzip:              *gzipFlag,
-		ReportInterval:      *reportIntervalFlag,
-		PollInterval:        *pollIntervalFlag,
-		PayloadSignatureKey: *payloadSignatureKeyFlag,
+		Addr:                      *addressFlag,
+		IsGzip:                    *gzipFlag,
+		ReportInterval:            *reportIntervalFlag,
+		PollInterval:              *pollIntervalFlag,
+		PayloadSignatureKey:       *payloadSignatureKeyFlag,
+		SimultaneousRequestsLimit: *simultaneousRequestsLimitFlag,
+		IsBatch:                   true,
 	}
 
 	overwriteWithEnv(&flags)
+
+	if flags.SimultaneousRequestsLimit < 1 {
+		logger.ZapSugarLogger.Infoln("limit flag < 1, setting to 1")
+		flags.SimultaneousRequestsLimit = 1
+	}
 
 	return &flags
 }
@@ -55,7 +68,21 @@ func overwriteWithEnv(flags *agent.AgentConfig) {
 	flags.ReportInterval = getReportInterval(flags.ReportInterval)
 	flags.PollInterval = getPollInterval(flags.PollInterval)
 	flags.PayloadSignatureKey = getKey(flags.PayloadSignatureKey)
+	flags.SimultaneousRequestsLimit = getSimultaneousRequestsLimit(flags.SimultaneousRequestsLimit)
 
+}
+
+func getSimultaneousRequestsLimit(current int) int {
+	raw, ok := os.LookupEnv("RATE_LIMIT")
+	if ok {
+		val, err := strconv.Atoi(raw)
+		if err != nil {
+			log.Fatalln("incorrect format of env var RATE_LIMIT")
+		}
+		return val
+	}
+
+	return current
 }
 
 func getAddress(current string) string {
