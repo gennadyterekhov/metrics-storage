@@ -1,62 +1,88 @@
 package sender
 
 import (
+	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 )
 
 type MetricsSender struct {
-	Address   string
-	IsGzip    bool
-	Interval  int
-	IsRunning bool
-	IsBatch   bool
+	Address         string
+	IsGzip          bool
+	Interval        int
+	IsRunning       bool
+	IsBatch         bool
+	NumberOfWorkers int
 }
 
 func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet, metricsStorageClient *client.MetricsStorageClient) {
 	msnd.IsRunning = true
 
 	if msnd.IsBatch {
-		sendAllMetricsInOneRequest(metricsStorageClient, memStatsPtr)
+		msnd.sendAllMetricsInOneRequest(metricsStorageClient, memStatsPtr)
 	} else {
-		sendAllMetrics(metricsStorageClient, memStatsPtr)
+		msnd.sendAllMetrics(metricsStorageClient, memStatsPtr)
 	}
 
 	msnd.IsRunning = false
 }
 
-func sendAllMetrics(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
-	metricsStorageClient.SendMetric(&memStats.Alloc)
-	metricsStorageClient.SendMetric(&memStats.BuckHashSys)
-	metricsStorageClient.SendMetric(&memStats.Frees)
-	metricsStorageClient.SendMetric(&memStats.GCCPUFraction)
-	metricsStorageClient.SendMetric(&memStats.GCSys)
-	metricsStorageClient.SendMetric(&memStats.HeapAlloc)
-	metricsStorageClient.SendMetric(&memStats.HeapIdle)
-	metricsStorageClient.SendMetric(&memStats.HeapInuse)
-	metricsStorageClient.SendMetric(&memStats.HeapObjects)
-	metricsStorageClient.SendMetric(&memStats.HeapReleased)
-	metricsStorageClient.SendMetric(&memStats.HeapSys)
-	metricsStorageClient.SendMetric(&memStats.LastGC)
-	metricsStorageClient.SendMetric(&memStats.Lookups)
-	metricsStorageClient.SendMetric(&memStats.MCacheInuse)
-	metricsStorageClient.SendMetric(&memStats.MCacheSys)
-	metricsStorageClient.SendMetric(&memStats.MSpanInuse)
-	metricsStorageClient.SendMetric(&memStats.MSpanSys)
-	metricsStorageClient.SendMetric(&memStats.Mallocs)
-	metricsStorageClient.SendMetric(&memStats.NextGC)
-	metricsStorageClient.SendMetric(&memStats.NumForcedGC)
-	metricsStorageClient.SendMetric(&memStats.NumGC)
-	metricsStorageClient.SendMetric(&memStats.OtherSys)
-	metricsStorageClient.SendMetric(&memStats.PauseTotalNs)
-	metricsStorageClient.SendMetric(&memStats.StackInuse)
-	metricsStorageClient.SendMetric(&memStats.StackSys)
-	metricsStorageClient.SendMetric(&memStats.Sys)
-	metricsStorageClient.SendMetric(&memStats.TotalAlloc)
-	metricsStorageClient.SendMetric(&memStats.PollCount)
-	metricsStorageClient.SendMetric(&memStats.RandomValue)
+func (msnd *MetricsSender) sendAllMetrics(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
+	jobs := make(chan metric.MetricURLFormatter)
+
+	for w := 1; w <= msnd.NumberOfWorkers; w++ {
+		go worker(w, jobs, metricsStorageClient)
+	}
+	setJobs(jobs, memStats)
+	close(jobs)
 }
 
-func sendAllMetricsInOneRequest(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
+func setJobs(jobs chan metric.MetricURLFormatter, memStats *metric.MetricsSet) {
+	jobs <- &memStats.Alloc
+	jobs <- &memStats.BuckHashSys
+	jobs <- &memStats.Frees
+	jobs <- &memStats.GCCPUFraction
+	jobs <- &memStats.GCSys
+	jobs <- &memStats.HeapAlloc
+	jobs <- &memStats.HeapIdle
+	jobs <- &memStats.HeapInuse
+	jobs <- &memStats.HeapObjects
+	jobs <- &memStats.HeapReleased
+	jobs <- &memStats.HeapSys
+	jobs <- &memStats.LastGC
+	jobs <- &memStats.Lookups
+	jobs <- &memStats.MCacheInuse
+	jobs <- &memStats.MCacheSys
+	jobs <- &memStats.MSpanInuse
+	jobs <- &memStats.MSpanSys
+	jobs <- &memStats.Mallocs
+	jobs <- &memStats.NextGC
+	jobs <- &memStats.NumForcedGC
+	jobs <- &memStats.NumGC
+	jobs <- &memStats.OtherSys
+	jobs <- &memStats.PauseTotalNs
+	jobs <- &memStats.StackInuse
+	jobs <- &memStats.StackSys
+	jobs <- &memStats.Sys
+	jobs <- &memStats.TotalAlloc
+	jobs <- &memStats.PollCount
+	jobs <- &memStats.RandomValue
+
+	jobs <- &memStats.TotalMemory
+	jobs <- &memStats.FreeMemory
+	for i := 0; i < len(memStats.CPUUtilization); i += 1 {
+		jobs <- &memStats.CPUUtilization[i]
+	}
+}
+
+func (msnd *MetricsSender) sendAllMetricsInOneRequest(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
 	metricsStorageClient.SendAllMetricsInOneRequest(memStats)
+}
+
+func worker(workerIndex int, jobs <-chan metric.MetricURLFormatter, metricsStorageClient *client.MetricsStorageClient) {
+	for j := range jobs {
+		fmt.Println("worker", workerIndex, "started  job", j.GetName())
+		metricsStorageClient.SendMetric(j)
+		fmt.Println("worker", workerIndex, "finished job", j.GetName())
+	}
 }

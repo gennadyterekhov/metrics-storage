@@ -1,8 +1,13 @@
 package poller
 
 import (
+	"fmt"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
+
 	"math/rand"
 	"runtime"
 )
@@ -15,6 +20,8 @@ type PollMaker struct {
 
 func (pmk *PollMaker) Poll() *metric.MetricsSet {
 	pmk.IsRunning = true
+
+	go pmk.saveAdditionalMetrics()
 
 	runtimeStats := &runtime.MemStats{}
 	runtime.ReadMemStats(runtimeStats)
@@ -59,6 +66,7 @@ func (pmk *PollMaker) saveRuntimeStatsToMetricSet(runtimeStats *runtime.MemStats
 	pmk.MetricsSet.PollCount.Value += 1
 	pmk.MetricsSet.RandomValue.Value = rand.Float64()
 }
+
 func (pmk *PollMaker) setNames() {
 	pmk.MetricsSet.Alloc.Name = "Alloc"
 	pmk.MetricsSet.BuckHashSys.Name = "BuckHashSys"
@@ -90,6 +98,7 @@ func (pmk *PollMaker) setNames() {
 	pmk.MetricsSet.PollCount.Name = "PollCount"
 	pmk.MetricsSet.RandomValue.Name = "RandomValue"
 }
+
 func (pmk *PollMaker) setTypes() {
 	pmk.MetricsSet.Alloc.Type = types.Gauge
 	pmk.MetricsSet.BuckHashSys.Type = types.Gauge
@@ -120,4 +129,41 @@ func (pmk *PollMaker) setTypes() {
 	pmk.MetricsSet.TotalAlloc.Type = types.Gauge
 	pmk.MetricsSet.PollCount.Type = types.Counter
 	pmk.MetricsSet.RandomValue.Type = types.Gauge
+}
+
+func (pmk *PollMaker) saveAdditionalMetrics() {
+	memoryStats, err := mem.VirtualMemory()
+	if err != nil {
+		logger.ZapSugarLogger.Debugln("error when getting psutil stats", err.Error())
+		return
+	}
+	pmk.saveTotalMemory(memoryStats)
+	pmk.saveFreeMemory(memoryStats)
+	pmk.saveCPUUtilization(memoryStats)
+}
+
+func (pmk *PollMaker) saveTotalMemory(memoryStats *mem.VirtualMemoryStat) {
+	pmk.MetricsSet.TotalMemory.Value = float64(memoryStats.Total)
+	pmk.MetricsSet.TotalMemory.Name = "TotalMemory"
+	pmk.MetricsSet.TotalMemory.Type = types.Gauge
+}
+
+func (pmk *PollMaker) saveFreeMemory(memoryStats *mem.VirtualMemoryStat) {
+	pmk.MetricsSet.FreeMemory.Value = float64(memoryStats.Free)
+	pmk.MetricsSet.FreeMemory.Name = "FreeMemory"
+	pmk.MetricsSet.FreeMemory.Type = types.Gauge
+}
+
+func (pmk *PollMaker) saveCPUUtilization(memoryStats *mem.VirtualMemoryStat) {
+	cpus, err := cpu.Percent(0, true)
+	pmk.MetricsSet.CPUUtilization = make([]metric.GaugeMetric, len(cpus))
+	if err != nil {
+		logger.ZapSugarLogger.Debugln("error when getting psutil/cpu stats", err.Error())
+		return
+	}
+	for i := 0; i < len(cpus); i += 1 {
+		pmk.MetricsSet.CPUUtilization[i].Value = float64(memoryStats.Used)
+		pmk.MetricsSet.CPUUtilization[i].Name = fmt.Sprintf("CPUutilization%v", i+1)
+		pmk.MetricsSet.CPUUtilization[i].Type = types.Gauge
+	}
 }
