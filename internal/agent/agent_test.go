@@ -36,7 +36,7 @@ func TestAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			go runAgentRoutine(ctx, &AgentConfig{
+			go runAgentRoutine(ctx, &Config{
 				Addr:                      testhelper.TestServer.URL,
 				ReportInterval:            1,
 				PollInterval:              1,
@@ -74,7 +74,7 @@ func TestList(t *testing.T) {
 	defer cancelContextFn()
 
 	t.Run("list", func(t *testing.T) {
-		go runAgentRoutine(ctx, &AgentConfig{
+		go runAgentRoutine(ctx, &Config{
 			Addr:                      testhelper.TestServer.URL,
 			ReportInterval:            1,
 			PollInterval:              1,
@@ -117,7 +117,7 @@ func TestGzip(t *testing.T) {
 	defer cancelContextFn()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			go runAgentRoutine(ctx, &AgentConfig{
+			go runAgentRoutine(ctx, &Config{
 				Addr:                      testhelper.TestServer.URL,
 				ReportInterval:            1,
 				PollInterval:              1,
@@ -163,7 +163,7 @@ func TestSameValueReturnedFromServer(t *testing.T) {
 	defer cancelContextFn()
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			go runAgentRoutine(ctx, &AgentConfig{
+			go runAgentRoutine(ctx, &Config{
 				Addr:                      testhelper.TestServer.URL,
 				ReportInterval:            1,
 				PollInterval:              1,
@@ -209,7 +209,7 @@ func TestReportIntervalMoreThanPollInterval(t *testing.T) {
 	defer cancelContextFn()
 
 	t.Run("ReportIntervalMoreThanPollInterval", func(t *testing.T) {
-		go runAgentRoutine(ctx, &AgentConfig{
+		go runAgentRoutine(ctx, &Config{
 			Addr:                      testhelper.TestServer.URL,
 			ReportInterval:            2,
 			PollInterval:              1,
@@ -242,7 +242,7 @@ func TestReportIntervalLessThanPollInterval(t *testing.T) {
 	defer cancelContextFn()
 
 	t.Run("ReportIntervalLessThanPollInterval", func(t *testing.T) {
-		go runAgentRoutine(ctx, &AgentConfig{
+		go runAgentRoutine(ctx, &Config{
 			Addr:                      testhelper.TestServer.URL,
 			ReportInterval:            1,
 			PollInterval:              2,
@@ -268,6 +268,6 @@ func TestReportIntervalLessThanPollInterval(t *testing.T) {
 	})
 }
 
-func runAgentRoutine(ctx context.Context, config *AgentConfig) {
+func runAgentRoutine(ctx context.Context, config *Config) {
 	RunAgent(ctx, config)
 }

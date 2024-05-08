@@ -11,7 +11,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 )
 
-type AgentConfig struct {
+type Config struct {
 	Addr                      string
 	IsGzip                    bool
 	ReportInterval            int
@@ -21,7 +21,7 @@ type AgentConfig struct {
 	SimultaneousRequestsLimit int
 }
 
-func RunAgent(ctx context.Context, config *AgentConfig) {
+func RunAgent(ctx context.Context, config *Config) {
 	metricsSet := &metric.MetricsSet{}
 
 	pollerInstance := poller.PollMaker{
@@ -62,7 +62,7 @@ func RunAgent(ctx context.Context, config *AgentConfig) {
 	go reportingRoutine(ctx, metricsChannel, &senderInstance, &metricsStorageClient, config)
 }
 
-func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, pollerInstance *poller.PollMaker, config *AgentConfig) {
+func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, pollerInstance *poller.PollMaker, config *Config) {
 	logger.ZapSugarLogger.Infoln("polling started")
 
 	for {
@@ -92,7 +92,7 @@ func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, 
 	}
 }
 
-func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, senderInstance *sender.MetricsSender, metricsStorageClient *client.MetricsStorageClient, config *AgentConfig) {
+func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, senderInstance *sender.MetricsSender, metricsStorageClient *client.MetricsStorageClient, config *Config) {
 	logger.ZapSugarLogger.Infoln("reporting started")
 
 	var metricsSet metric.MetricsSet
