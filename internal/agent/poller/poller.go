@@ -161,7 +161,7 @@ func (pmk *PollMaker) saveCPUUtilization(memoryStats *mem.VirtualMemoryStat) {
 		logger.ZapSugarLogger.Debugln("error when getting psutil/cpu stats", err.Error())
 		return
 	}
-	for i := 0; i < len(cpus); i += 1 {
+	for i := range cpus {
 		pmk.MetricsSet.CPUUtilization[i].Value = float64(memoryStats.Used)
 		pmk.MetricsSet.CPUUtilization[i].Name = fmt.Sprintf("CPUutilization%v", i+1)
 		pmk.MetricsSet.CPUUtilization[i].Type = types.Gauge
