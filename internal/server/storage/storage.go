@@ -6,7 +6,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 )
 
-type StorageInterface interface {
+type Interface interface {
 	Clear()
 
 	AddCounter(ctx context.Context, key string, value int64)
@@ -30,7 +30,7 @@ type StorageInterface interface {
 
 var MetricsRepository = CreateStorage()
 
-func CreateStorage() StorageInterface {
+func CreateStorage() Interface {
 	if config.Conf.DBDsn == "" {
 		return CreateRAMStorage()
 	}

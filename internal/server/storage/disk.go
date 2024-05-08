@@ -17,7 +17,7 @@ type SavedOnDisc struct {
 	Gauges   map[string]float64 `json:"gauges"`
 }
 
-func (strg *MemStorage) SaveToDisk(ctx context.Context, filename string) (err error) {
+func (strg *MemStorage) SaveToDisk(_ context.Context, filename string) (err error) {
 	logger.ZapSugarLogger.Infoln("saving metrics to disk")
 
 	data, err := json.MarshalIndent(strg, "", "   ")
@@ -34,7 +34,7 @@ func (strg *MemStorage) SaveToDisk(ctx context.Context, filename string) (err er
 	return nil
 }
 
-func (strg *MemStorage) LoadFromDisk(ctx context.Context, filename string) (err error) {
+func (strg *MemStorage) LoadFromDisk(_ context.Context, filename string) (err error) {
 	logger.ZapSugarLogger.Infoln("loading metrics from disk")
 
 	err = strg.loadFromDiskWithRetry(filename)
@@ -94,7 +94,7 @@ func (strg *DBStorage) SaveToDisk(ctx context.Context, filename string) (err err
 	return nil
 }
 
-func (strg *DBStorage) LoadFromDisk(ctx context.Context, filename string) (err error) {
+func (strg *DBStorage) LoadFromDisk(_ context.Context, _ string) (err error) {
 	logger.ZapSugarLogger.Infoln("will not load from disk to db, database is already persistent storage")
 
 	return nil

@@ -60,7 +60,7 @@ func TestLoadEmptyWhenError(t *testing.T) {
 	}
 }
 
-func (strg *DBStorage) IsEqual(anotherStorage StorageInterface) (eq bool) {
+func (strg *DBStorage) IsEqual(anotherStorage Interface) (eq bool) {
 	ctx := context.Background()
 
 	gauges, counters := strg.GetAllGauges(ctx), strg.GetAllCounters(ctx)
@@ -69,7 +69,7 @@ func (strg *DBStorage) IsEqual(anotherStorage StorageInterface) (eq bool) {
 	return reflect.DeepEqual(gauges, gauges2) && reflect.DeepEqual(counters, counters2)
 }
 
-func (strg *MemStorage) IsEqual(anotherStorage StorageInterface) (eq bool) {
+func (strg *MemStorage) IsEqual(anotherStorage Interface) (eq bool) {
 	ctx := context.Background()
 
 	gauges, counters := strg.GetAllGauges(ctx), strg.GetAllCounters(ctx)
