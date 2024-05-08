@@ -64,7 +64,7 @@ func RunAgent(ctx context.Context, config *AgentConfig) {
 func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, pollerInstance *poller.PollMaker, config *AgentConfig) {
 	logger.ZapSugarLogger.Infoln("polling started")
 
-	for i := 0; ; i += 1 {
+	for {
 		select {
 		case <-ctx.Done():
 			logger.ZapSugarLogger.Infoln("poll context finished")
@@ -96,7 +96,7 @@ func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet
 	logger.ZapSugarLogger.Infoln("reporting started")
 
 	var metricsSet metric.MetricsSet
-	for i := 0; ; i += 1 {
+	for {
 		select {
 		case <-ctx.Done():
 			logger.ZapSugarLogger.Infoln("report context finished")
