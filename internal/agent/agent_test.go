@@ -97,9 +97,8 @@ func TestList(t *testing.T) {
 			)
 
 			return
-		} else {
-			t.Error("context didnt finish")
 		}
+		t.Error("context didnt finish")
 	})
 }
 
