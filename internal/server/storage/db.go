@@ -12,8 +12,7 @@ import (
 )
 
 type DBStorage struct {
-	DBConnection       *sql.DB
-	HTTPRequestContext context.Context
+	DBConnection *sql.DB
 }
 
 func CreateDBStorage() *DBStorage {

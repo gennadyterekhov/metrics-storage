@@ -9,10 +9,9 @@ import (
 )
 
 type MemStorage struct {
-	Counters           map[string]int64   `json:"counters"`
-	Gauges             map[string]float64 `json:"gauges"`
-	HTTPRequestContext context.Context    `json:"-"`
-	mu                 sync.Mutex
+	Counters map[string]int64   `json:"counters"`
+	Gauges   map[string]float64 `json:"gauges"`
+	mu       sync.Mutex
 }
 
 func CreateRAMStorage() *MemStorage {
