@@ -1,9 +1,10 @@
 package hashchecker
 
 import (
+	"net/http"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/helper/hasher"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"net/http"
 )
 
 func CheckHash(next http.Handler) http.Handler {

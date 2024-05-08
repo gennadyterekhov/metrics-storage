@@ -2,10 +2,11 @@ package storage
 
 import (
 	"context"
-	"github.com/stretchr/testify/assert"
 	"os"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestSaveLoad(t *testing.T) {
@@ -35,7 +36,6 @@ func TestSaveLoad(t *testing.T) {
 
 	err = os.Remove(filename)
 	assert.NoError(t, err)
-
 }
 
 func TestLoadEmptyWhenError(t *testing.T) {
@@ -68,6 +68,7 @@ func (strg *DBStorage) IsEqual(anotherStorage StorageInterface) (eq bool) {
 
 	return reflect.DeepEqual(gauges, gauges2) && reflect.DeepEqual(counters, counters2)
 }
+
 func (strg *MemStorage) IsEqual(anotherStorage StorageInterface) (eq bool) {
 	ctx := context.Background()
 

@@ -77,7 +77,6 @@ func overwriteWithEnv(flags *ServerConfig) {
 	flags.Restore = getRestore(flags.Restore)
 	flags.DBDsn = getDBDsn(flags.DBDsn)
 	flags.PayloadSignatureKey = getKey(flags.PayloadSignatureKey)
-
 }
 
 func getAddress(current string) string {

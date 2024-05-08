@@ -2,10 +2,11 @@ package app
 
 import (
 	"context"
+	"time"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
-	"time"
 )
 
 func StartTrackingIntervals() {

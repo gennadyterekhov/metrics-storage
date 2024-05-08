@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 )

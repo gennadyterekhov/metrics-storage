@@ -2,11 +2,12 @@ package hashchecker
 
 import (
 	"bytes"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
+	"github.com/stretchr/testify/assert"
 )
 
 func Test400IfWrongHash(t *testing.T) {

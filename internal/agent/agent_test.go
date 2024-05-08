@@ -5,14 +5,15 @@ package agent
 
 import (
 	"context"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
-	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
+	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
@@ -35,7 +36,6 @@ func TestAgent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-
 			go runAgentRoutine(ctx, &AgentConfig{
 				Addr:                      testhelper.TestServer.URL,
 				ReportInterval:            1,
@@ -74,7 +74,6 @@ func TestList(t *testing.T) {
 	defer cancelContextFn()
 
 	t.Run("list", func(t *testing.T) {
-
 		go runAgentRoutine(ctx, &AgentConfig{
 			Addr:                      testhelper.TestServer.URL,
 			ReportInterval:            1,
@@ -102,7 +101,6 @@ func TestList(t *testing.T) {
 			t.Error("context didnt finish")
 		}
 	})
-
 }
 
 func TestGzip(t *testing.T) {
@@ -212,7 +210,6 @@ func TestReportIntervalMoreThanPollInterval(t *testing.T) {
 	defer cancelContextFn()
 
 	t.Run("ReportIntervalMoreThanPollInterval", func(t *testing.T) {
-
 		go runAgentRoutine(ctx, &AgentConfig{
 			Addr:                      testhelper.TestServer.URL,
 			ReportInterval:            2,
@@ -246,7 +243,6 @@ func TestReportIntervalLessThanPollInterval(t *testing.T) {
 	defer cancelContextFn()
 
 	t.Run("ReportIntervalLessThanPollInterval", func(t *testing.T) {
-
 		go runAgentRoutine(ctx, &AgentConfig{
 			Addr:                      testhelper.TestServer.URL,
 			ReportInterval:            1,
@@ -271,7 +267,6 @@ func TestReportIntervalLessThanPollInterval(t *testing.T) {
 			t.Error("context didnt finish")
 		}
 	})
-
 }
 
 func runAgentRoutine(ctx context.Context, config *AgentConfig) {

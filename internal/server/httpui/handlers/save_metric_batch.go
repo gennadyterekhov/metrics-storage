@@ -2,11 +2,12 @@ package handlers
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
-	"net/http"
 )
 
 func SaveMetricListHandler() http.Handler {

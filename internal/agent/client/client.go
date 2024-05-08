@@ -1,6 +1,10 @@
 package client
 
 import (
+	"net/http"
+	"strings"
+	"time"
+
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
@@ -9,9 +13,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/go-resty/resty/v2"
-	"net/http"
-	"strings"
-	"time"
 )
 
 var client *resty.Client
@@ -48,7 +49,6 @@ func (msc *MetricsStorageClient) SendAllMetricsInOneRequest(memStats *metric.Met
 		return err
 	}
 	err = msc.sendRequestToMetricsServer(jsonBytes, true)
-
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when sending metric batch to server", err.Error())
 		return err
@@ -100,7 +100,6 @@ func sendBody(url string, body []byte, key string) (err error) {
 	}
 
 	err = sendRequestWithRetries(request, url)
-
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when sending metric", err.Error())
 		return err
@@ -115,7 +114,6 @@ func sendBodyGzipCompressed(url string, body []byte, key string) (err error) {
 		return err
 	}
 	err = sendRequestWithRetries(request, url)
-
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when sending compressed metric", err.Error())
 		return err
@@ -125,7 +123,6 @@ func sendBodyGzipCompressed(url string, body []byte, key string) (err error) {
 }
 
 func sendRequestWithRetries(request *resty.Request, url string) (err error) {
-
 	err = retry.Retry(
 		func(numberOfAttempt uint) error {
 			_, err := request.Post(url)
@@ -142,7 +139,6 @@ func sendRequestWithRetries(request *resty.Request, url string) (err error) {
 		strategy.Limit(3),
 		strategy.Backoff(backoff.Incremental(0*time.Second, 3*time.Second)),
 	)
-
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when sending request with 3 retries", err.Error())
 		return err

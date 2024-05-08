@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"io"
+	"net/http"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	_ "github.com/jackc/pgx/v5/stdlib"
-
-	"io"
-	"net/http"
 )
 
 func Ping(res http.ResponseWriter, req *http.Request) {

@@ -2,12 +2,13 @@ package bodymaker
 
 import (
 	"encoding/json"
+	"strconv"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
-	"strconv"
 )
 
 func GetBody(met metric.MetricURLFormatter) ([]byte, error) {
@@ -32,7 +33,6 @@ func GetBody(met metric.MetricURLFormatter) ([]byte, error) {
 }
 
 func GetBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
-
 	metricToEncode := requests.SaveMetricListRequest{
 		getSubrequest(&memStats.Alloc),
 		getSubrequest(&memStats.BuckHashSys),

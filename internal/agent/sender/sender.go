@@ -2,6 +2,7 @@ package sender
 
 import (
 	"fmt"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 )

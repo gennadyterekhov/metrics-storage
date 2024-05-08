@@ -2,14 +2,14 @@ package poller
 
 import (
 	"fmt"
+	"math/rand"
+	"runtime"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
-
-	"math/rand"
-	"runtime"
 )
 
 type PollMaker struct {

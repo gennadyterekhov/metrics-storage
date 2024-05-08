@@ -1,10 +1,11 @@
 package middleware
 
 import (
+	"net/http"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/compressor"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/hashchecker"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/logger"
-	"net/http"
 )
 
 type Middleware func(http.Handler) http.Handler

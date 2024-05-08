@@ -3,8 +3,9 @@ package storage
 import (
 	"context"
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"sync"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 )
 
 type MemStorage struct {

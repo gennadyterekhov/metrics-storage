@@ -2,14 +2,15 @@ package client
 
 import (
 	"context"
+	"net/http/httptest"
+	"testing"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"net/http/httptest"
-	"testing"
 )
 
 func TestCanSendCounterValue(t *testing.T) {
