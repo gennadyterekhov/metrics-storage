@@ -5,6 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
+	"strconv"
+	"testing"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
@@ -12,9 +16,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"strconv"
-	"testing"
 )
 
 type args struct {
@@ -75,7 +76,6 @@ func TestGetMetricJSON(t *testing.T) {
 				assert.NoError(t, err)
 				assert.Equal(t, tt.want.metricValue, *receivedData.Delta)
 			}
-
 		})
 	}
 }
@@ -84,7 +84,6 @@ func getBodyFromArgs(arguments args) *bytes.Buffer {
 	rawJSON := fmt.Sprintf(`{"id":"%s", "type":"%s"}`, arguments.name, arguments.typ)
 
 	return bytes.NewBuffer([]byte(rawJSON))
-
 }
 
 func TestGetMetric(t *testing.T) {

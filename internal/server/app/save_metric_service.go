@@ -2,6 +2,8 @@ package app
 
 import (
 	"context"
+	"time"
+
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
@@ -11,7 +13,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
-	"time"
 )
 
 func SaveMetricToMemory(ctx context.Context, filledDto *requests.SaveMetricRequest) (responseDto *responses.GetMetricResponse) {
@@ -54,7 +55,6 @@ func SaveToDisk(ctx context.Context) {
 		strategy.Limit(4),
 		strategy.Backoff(backoff.Incremental(-1*time.Second, 2*time.Second)),
 	)
-
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when saving metric to file synchronously")
 	}

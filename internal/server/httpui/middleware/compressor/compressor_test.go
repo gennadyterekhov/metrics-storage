@@ -1,11 +1,12 @@
 package compressor
 
 import (
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type args struct {
@@ -33,27 +34,35 @@ func TestIsGzipAvailableForThisRequest(t *testing.T) {
 		},
 		{
 			name: " html/text gzip",
-			args: args{accepts: []string{"asdf", "html/text", "asdf"},
-				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+			args: args{
+				accepts:         []string{"asdf", "html/text", "asdf"},
+				acceptEncodings: []string{"asdf", "gzip", "asdf"},
+			},
 			ok: true,
 		},
 		{
 			name: " text/html gzip",
-			args: args{accepts: []string{"asdf", "text/html", "asdf"},
-				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+			args: args{
+				accepts:         []string{"asdf", "text/html", "asdf"},
+				acceptEncodings: []string{"asdf", "gzip", "asdf"},
+			},
 			ok: true,
 		},
 		{
 			name: " json gzip",
-			args: args{accepts: []string{"asdf", "application/json", "asdf"},
-				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+			args: args{
+				accepts:         []string{"asdf", "application/json", "asdf"},
+				acceptEncodings: []string{"asdf", "gzip", "asdf"},
+			},
 			ok: true,
 		},
 		{
 			name: "json gzip gzip",
-			args: args{accepts: []string{"asdf", "application/json", "asdf"},
+			args: args{
+				accepts:          []string{"asdf", "application/json", "asdf"},
 				acceptEncodings:  []string{"asdf", "gzip", "asdf"},
-				contentEncodings: []string{"asdf", "gzip", "asdf"}},
+				contentEncodings: []string{"asdf", "gzip", "asdf"},
+			},
 			ok: true,
 		},
 		{
@@ -65,24 +74,27 @@ func TestIsGzipAvailableForThisRequest(t *testing.T) {
 			name: " application/json accept gzip",
 			args: args{
 				accepts: []string{"asdf", "application/json", "asdf"},
-				//contenttype:     "application/json",// not required
-				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+				// contenttype:     "application/json",// not required
+				acceptEncodings: []string{"asdf", "gzip", "asdf"},
+			},
 			ok: true,
 		},
 		{
 			name: " text/html accept gzip",
 			args: args{
 				accepts: []string{"asdf", "text/html", "asdf"},
-				//contenttype:     "text/html", // not required
-				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+				// contenttype:     "text/html", // not required
+				acceptEncodings: []string{"asdf", "gzip", "asdf"},
+			},
 			ok: true,
 		},
 		{
 			name: " html/text accept gzip",
 			args: args{
 				accepts: []string{"asdf", "html/text", "asdf"},
-				//contenttype:     "html/text",// not required
-				acceptEncodings: []string{"asdf", "gzip", "asdf"}},
+				// contenttype:     "html/text",// not required
+				acceptEncodings: []string{"asdf", "gzip", "asdf"},
+			},
 			ok: true,
 		},
 	}
@@ -94,7 +106,6 @@ func TestIsGzipAvailableForThisRequest(t *testing.T) {
 
 			ok := isGzipAvailableForThisRequest(request)
 			assert.Equal(t, tt.ok, ok)
-
 		})
 	}
 }

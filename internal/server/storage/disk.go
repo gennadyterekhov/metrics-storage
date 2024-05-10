@@ -3,12 +3,13 @@ package storage
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"time"
+
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"os"
-	"time"
 )
 
 type SavedOnDisc struct {
@@ -16,7 +17,7 @@ type SavedOnDisc struct {
 	Gauges   map[string]float64 `json:"gauges"`
 }
 
-func (strg *MemStorage) SaveToDisk(ctx context.Context, filename string) (err error) {
+func (strg *MemStorage) SaveToDisk(_ context.Context, filename string) (err error) {
 	logger.ZapSugarLogger.Infoln("saving metrics to disk")
 
 	data, err := json.MarshalIndent(strg, "", "   ")
@@ -25,7 +26,7 @@ func (strg *MemStorage) SaveToDisk(ctx context.Context, filename string) (err er
 		return err
 	}
 
-	err = os.WriteFile(filename, data, 0666)
+	err = os.WriteFile(filename, data, 0o666)
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when writing metrics file to disk")
 		return err
@@ -33,7 +34,7 @@ func (strg *MemStorage) SaveToDisk(ctx context.Context, filename string) (err er
 	return nil
 }
 
-func (strg *MemStorage) LoadFromDisk(ctx context.Context, filename string) (err error) {
+func (strg *MemStorage) LoadFromDisk(_ context.Context, filename string) (err error) {
 	logger.ZapSugarLogger.Infoln("loading metrics from disk")
 
 	err = strg.loadFromDiskWithRetry(filename)
@@ -85,7 +86,7 @@ func (strg *DBStorage) SaveToDisk(ctx context.Context, filename string) (err err
 		return err
 	}
 
-	err = os.WriteFile(filename, data, 0666)
+	err = os.WriteFile(filename, data, 0o666)
 	if err != nil {
 		logger.ZapSugarLogger.Warnln("error when writing metrics file to disk")
 		return err
@@ -93,7 +94,7 @@ func (strg *DBStorage) SaveToDisk(ctx context.Context, filename string) (err err
 	return nil
 }
 
-func (strg *DBStorage) LoadFromDisk(ctx context.Context, filename string) (err error) {
+func (strg *DBStorage) LoadFromDisk(_ context.Context, _ string) (err error) {
 	logger.ZapSugarLogger.Infoln("will not load from disk to db, database is already persistent storage")
 
 	return nil

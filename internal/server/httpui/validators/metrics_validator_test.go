@@ -2,12 +2,13 @@ package validators
 
 import (
 	"errors"
+	"testing"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func Test_validateMetricName(t *testing.T) {

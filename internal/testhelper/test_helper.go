@@ -3,17 +3,18 @@ package testhelper
 import (
 	"bytes"
 	"compress/gzip"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/helper/iohelpler"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
-	"github.com/go-chi/chi/v5"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"strings"
 	"testing"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/helper/iohelpler"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
+	"github.com/go-chi/chi/v5"
+	"github.com/stretchr/testify/require"
 )
 
 var TestServer *httptest.Server
@@ -76,7 +77,6 @@ func SendAlreadyJSONedBody(
 	path string,
 	requestBody *bytes.Buffer,
 ) (*http.Response, []byte) {
-	//buf := bytes.NewBuffer(requestBody.Bytes())
 	req, err := http.NewRequest(method, ts.URL+path, requestBody)
 	require.NoError(t, err)
 	req.Header.Set(constants.HeaderContentType, constants.ApplicationJSON)
@@ -97,7 +97,6 @@ func SendGzipRequest(
 	path string,
 	requestBody string,
 ) (*http.Response, []byte) {
-
 	var buf bytes.Buffer
 
 	gzipBodyWriter := gzip.NewWriter(&buf)
@@ -133,7 +132,6 @@ func SendGzipNoBodyRequest(
 	method,
 	path string,
 ) (*http.Response, []byte) {
-
 	request := httptest.NewRequest(method, ts.URL+path, nil)
 
 	request.RequestURI = ""
@@ -156,6 +154,5 @@ func SendGzipNoBodyRequest(
 }
 
 func IsTest() (test bool) {
-
 	return strings.HasSuffix(os.Args[0], ".test")
 }

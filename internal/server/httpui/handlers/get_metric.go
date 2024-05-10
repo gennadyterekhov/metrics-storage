@@ -3,6 +3,10 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"io"
+	"net/http"
+	"strconv"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
@@ -13,9 +17,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 func GetMetricHandler() http.Handler {
@@ -74,7 +75,6 @@ func getDtoForService(req *http.Request) *requests.GetMetricRequest {
 }
 
 func writeDtoToOutput(res *http.ResponseWriter, responseDto *responses.GetMetricResponse) {
-
 	if responseDto.IsJSON {
 		(*res).Header().Set(constants.HeaderContentType, constants.ApplicationJSON)
 	}
@@ -90,13 +90,11 @@ func writeDtoToOutput(res *http.ResponseWriter, responseDto *responses.GetMetric
 		return
 	}
 	logger.ZapSugarLogger.Infoln("successfully written response body")
-
 }
 
 func serializeDto(responseDto *responses.GetMetricResponse) []byte {
 	if responseDto.IsJSON {
 		responseBytes, err := json.Marshal(responseDto)
-
 		if err != nil {
 			logger.ZapSugarLogger.Errorln("error when encoding json response body", err.Error())
 
@@ -134,7 +132,6 @@ func writeErrorToOutput(res *http.ResponseWriter, err error) {
 	logger.ZapSugarLogger.Debugln("selected http error code ", code)
 
 	http.Error(*res, err.Error(), code)
-
 }
 
 func validateRequest(requestDto *requests.GetMetricRequest) *requests.GetMetricRequest {

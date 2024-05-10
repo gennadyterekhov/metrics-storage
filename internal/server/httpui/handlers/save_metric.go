@@ -3,6 +3,8 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
@@ -13,7 +15,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
-	"net/http"
 )
 
 func SaveMetricHandler() http.Handler {

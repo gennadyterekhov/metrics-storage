@@ -3,6 +3,9 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"net/http"
+	"testing"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/logger"
@@ -11,8 +14,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"net/http"
-	"testing"
 )
 
 func TestSaveMetricHttpMethodJSON(t *testing.T) {

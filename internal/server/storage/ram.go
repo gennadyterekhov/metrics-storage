@@ -3,13 +3,15 @@ package storage
 import (
 	"context"
 	"fmt"
+	"sync"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
 )
 
 type MemStorage struct {
-	Counters           map[string]int64   `json:"counters"`
-	Gauges             map[string]float64 `json:"gauges"`
-	HTTPRequestContext context.Context    `json:"-"`
+	Counters map[string]int64   `json:"counters"`
+	Gauges   map[string]float64 `json:"gauges"`
+	mu       sync.Mutex
 }
 
 func CreateRAMStorage() *MemStorage {
@@ -20,25 +22,35 @@ func CreateRAMStorage() *MemStorage {
 }
 
 func (strg *MemStorage) Clear() {
+	strg.mu.Lock()
+	defer strg.mu.Unlock()
 	strg.Counters = make(map[string]int64, 0)
 	strg.Gauges = make(map[string]float64, 0)
 }
 
 func (strg *MemStorage) hasGauge(name string) bool {
+	strg.mu.Lock()
+	defer strg.mu.Unlock()
 	_, ok := strg.Gauges[name]
 	return ok
 }
 
 func (strg *MemStorage) hasCounter(name string) bool {
+	strg.mu.Lock()
+	defer strg.mu.Unlock()
 	_, ok := strg.Counters[name]
 	return ok
 }
 
-func (strg *MemStorage) AddCounter(ctx context.Context, key string, value int64) {
+func (strg *MemStorage) AddCounter(_ context.Context, key string, value int64) {
+	strg.mu.Lock()
+	defer strg.mu.Unlock()
 	strg.Counters[key] += value
 }
 
-func (strg *MemStorage) SetGauge(ctx context.Context, key string, value float64) {
+func (strg *MemStorage) SetGauge(_ context.Context, key string, value float64) {
+	strg.mu.Lock()
+	defer strg.mu.Unlock()
 	strg.Gauges[key] = value
 }
 
@@ -56,7 +68,9 @@ func (strg *MemStorage) GetCounter(ctx context.Context, name string) (int64, err
 	return strg.GetCounterOrZero(ctx, name), nil
 }
 
-func (strg *MemStorage) GetGaugeOrZero(ctx context.Context, name string) float64 {
+func (strg *MemStorage) GetGaugeOrZero(_ context.Context, name string) float64 {
+	strg.mu.Lock()
+	defer strg.mu.Unlock()
 	val, ok := strg.Gauges[name]
 	if !ok {
 		return 0
@@ -64,7 +78,9 @@ func (strg *MemStorage) GetGaugeOrZero(ctx context.Context, name string) float64
 	return val
 }
 
-func (strg *MemStorage) GetCounterOrZero(ctx context.Context, name string) int64 {
+func (strg *MemStorage) GetCounterOrZero(_ context.Context, name string) int64 {
+	strg.mu.Lock()
+	defer strg.mu.Unlock()
 	val, ok := strg.Counters[name]
 	if !ok {
 		return 0
@@ -72,11 +88,16 @@ func (strg *MemStorage) GetCounterOrZero(ctx context.Context, name string) int64
 	return val
 }
 
-func (strg *MemStorage) GetAllGauges(ctx context.Context) map[string]float64 {
+func (strg *MemStorage) GetAllGauges(_ context.Context) map[string]float64 {
+	strg.mu.Lock()
+	defer strg.mu.Unlock()
+
 	return strg.Gauges
 }
 
-func (strg *MemStorage) GetAllCounters(ctx context.Context) map[string]int64 {
+func (strg *MemStorage) GetAllCounters(_ context.Context) map[string]int64 {
+	strg.mu.Lock()
+	defer strg.mu.Unlock()
 	return strg.Counters
 }
 

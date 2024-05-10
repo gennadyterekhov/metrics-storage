@@ -1,15 +1,15 @@
 package handlers
 
 import (
+	"io"
+	"net/http"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
-	"io"
-	"net/http"
 )
 
 func GetAllMetrics(res http.ResponseWriter, req *http.Request) {
-
 	htmlPage := app.GetMetricsListAsHTML(req.Context())
 
 	res.Header().Set(constants.HeaderContentType, constants.TextHTML)

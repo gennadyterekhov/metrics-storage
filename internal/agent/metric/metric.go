@@ -50,6 +50,10 @@ type MetricsSet struct {
 	TotalAlloc    GaugeMetric
 	PollCount     CounterMetric
 	RandomValue   GaugeMetric
+	// so called additional metrics, introduced in 15 increment
+	TotalMemory    GaugeMetric
+	FreeMemory     GaugeMetric
+	CPUUtilization []GaugeMetric
 }
 
 func (mtr *CounterMetric) GetName() string {
