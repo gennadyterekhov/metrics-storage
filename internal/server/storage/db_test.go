@@ -54,7 +54,7 @@ func TestCanMakeQuery(t *testing.T) {
 	defer dbConnection.Close()
 	defer tx.Rollback()
 
-	_, err := tx.Exec("insert into metrics values ('cnt', 'counter', null, 1)")
+	_, err := tx.Exec("INSERT INTO metrics values ('cnt', 'counter', null, 1)")
 	assert.NoError(t, err)
 
 	rawSQLString := "select count(*) from metrics;"
