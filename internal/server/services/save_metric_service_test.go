@@ -1,12 +1,13 @@
-package app
+package services
 
 import (
 	"context"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
+	"testing"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestSaveMetricToMemory(t *testing.T) {

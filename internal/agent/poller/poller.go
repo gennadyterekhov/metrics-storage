@@ -2,14 +2,14 @@ package poller
 
 import (
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/shirou/gopsutil/v3/cpu"
-	"github.com/shirou/gopsutil/v3/mem"
-
 	"math/rand"
 	"runtime"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 type PollMaker struct {

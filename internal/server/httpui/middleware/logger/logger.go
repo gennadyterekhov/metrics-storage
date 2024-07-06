@@ -2,11 +2,12 @@ package logger
 
 import (
 	"bytes"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"io"
 	"net/http"
 	"time"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 type (
@@ -46,6 +47,7 @@ func (lrw *LoggingResponseWriter) log() {
 		"size", lrw.LogContext.size,
 	)
 }
+
 func (lrw *LoggingResponseWriter) updateContext(req *http.Request) {
 	if req != nil {
 		lrw.LogContext.uri = req.RequestURI

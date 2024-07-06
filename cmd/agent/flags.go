@@ -2,11 +2,12 @@ package main
 
 import (
 	"flag"
-	"github.com/gennadyterekhov/metrics-storage/internal/agent"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"log"
 	"os"
 	"strconv"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/agent"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 func getConfig() *agent.AgentConfig {
@@ -69,7 +70,6 @@ func overwriteWithEnv(flags *agent.AgentConfig) {
 	flags.PollInterval = getPollInterval(flags.PollInterval)
 	flags.PayloadSignatureKey = getKey(flags.PayloadSignatureKey)
 	flags.SimultaneousRequestsLimit = getSimultaneousRequestsLimit(flags.SimultaneousRequestsLimit)
-
 }
 
 func getSimultaneousRequestsLimit(current int) int {

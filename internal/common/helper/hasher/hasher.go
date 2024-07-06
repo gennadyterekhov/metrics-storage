@@ -5,9 +5,10 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"io"
 	"net/http"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 func HashBytes(target []byte, key string) []byte {

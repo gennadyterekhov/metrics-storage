@@ -3,12 +3,13 @@ package storage
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"time"
+
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"os"
-	"time"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 type SavedOnDisc struct {
@@ -25,7 +26,7 @@ func (strg *MemStorage) SaveToDisk(ctx context.Context, filename string) (err er
 		return err
 	}
 
-	err = os.WriteFile(filename, data, 0666)
+	err = os.WriteFile(filename, data, 0o666)
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when writing metrics file to disk")
 		return err
@@ -85,7 +86,7 @@ func (strg *DBStorage) SaveToDisk(ctx context.Context, filename string) (err err
 		return err
 	}
 
-	err = os.WriteFile(filename, data, 0666)
+	err = os.WriteFile(filename, data, 0o666)
 	if err != nil {
 		logger.ZapSugarLogger.Warnln("error when writing metrics file to disk")
 		return err

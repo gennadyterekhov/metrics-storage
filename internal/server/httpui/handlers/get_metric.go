@@ -3,19 +3,21 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
+	"io"
+	"net/http"
+	"strconv"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
-	"io"
-	"net/http"
-	"strconv"
 )
 
 func GetMetricHandler() http.Handler {
@@ -39,7 +41,7 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	responseDto := app.GetMetric(req.Context(), requestDto)
+	responseDto := services.GetMetric(req.Context(), requestDto)
 	if responseDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during response DTO build process in usecase", responseDto.Error)
 		writeErrorToOutput(&res, responseDto.Error)
@@ -74,7 +76,6 @@ func getDtoForService(req *http.Request) *requests.GetMetricRequest {
 }
 
 func writeDtoToOutput(res *http.ResponseWriter, responseDto *responses.GetMetricResponse) {
-
 	if responseDto.IsJSON {
 		(*res).Header().Set(constants.HeaderContentType, constants.ApplicationJSON)
 	}
@@ -90,13 +91,11 @@ func writeDtoToOutput(res *http.ResponseWriter, responseDto *responses.GetMetric
 		return
 	}
 	logger.ZapSugarLogger.Infoln("successfully written response body")
-
 }
 
 func serializeDto(responseDto *responses.GetMetricResponse) []byte {
 	if responseDto.IsJSON {
 		responseBytes, err := json.Marshal(responseDto)
-
 		if err != nil {
 			logger.ZapSugarLogger.Errorln("error when encoding json response body", err.Error())
 
@@ -134,7 +133,6 @@ func writeErrorToOutput(res *http.ResponseWriter, err error) {
 	logger.ZapSugarLogger.Debugln("selected http error code ", code)
 
 	http.Error(*res, err.Error(), code)
-
 }
 
 func validateRequest(requestDto *requests.GetMetricRequest) *requests.GetMetricRequest {

@@ -3,16 +3,17 @@ package handlers
 import (
 	"bytes"
 	"context"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
-	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"net/http"
 	"testing"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestSaveMetricHttpMethodJSON(t *testing.T) {
