@@ -11,13 +11,13 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 )
 
-func SaveMetricListHandler() http.Handler {
+func SaveMetricListHandler(cont SaveController) http.Handler {
 	return middleware.CommonConveyor(
-		http.HandlerFunc(SaveMetricList),
+		http.HandlerFunc(cont.SaveMetricList),
 	)
 }
 
-func SaveMetricList(res http.ResponseWriter, req *http.Request) {
+func (cont SaveController) SaveMetricList(res http.ResponseWriter, req *http.Request) {
 	requestDto, err := getSaveListDtoForService(req)
 	if err != nil {
 		logger.ZapSugarLogger.Debugln("found error during request DTO build process", err.Error())

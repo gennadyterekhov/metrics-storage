@@ -4,27 +4,43 @@ import (
 	"context"
 	"time"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/server/repositories"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 )
 
-func StartTrackingIntervals() {
-	ticker := time.NewTicker(time.Duration(config.Conf.StoreInterval) * time.Second)
-	go routine(ticker)
+type TimeTracker struct {
+	Repository repositories.RepositoryInterface
+	Config     *config.ServerConfig
 }
 
-func routine(ticker *time.Ticker) {
-	if config.Conf.StoreInterval == 0 {
+func NewTimeTracker(repo repositories.RepositoryInterface, conf *config.ServerConfig) TimeTracker {
+	return TimeTracker{
+		Repository: repo,
+		Config:     conf,
+	}
+}
+
+func (tt TimeTracker) StartTrackingIntervals() {
+	ticker := time.NewTicker(time.Duration(tt.Config.StoreInterval) * time.Second)
+	go tt.routine(ticker)
+}
+
+func (tt TimeTracker) routine(ticker *time.Ticker) {
+	if tt.Config.StoreInterval == 0 {
 		return
 	}
 	for {
 		<-ticker.C
-		onInterval()
+		tt.onInterval()
 	}
 }
 
-func onInterval() {
+func (tt TimeTracker) onInterval() {
 	logger.ZapSugarLogger.Infoln("STORE_INTERVAL passed, saving metrics to disk")
-	storage.MetricsRepository.SaveToDisk(context.Background(), config.Conf.FileStorage)
+	err := tt.Repository.SaveToDisk(context.Background(), tt.Config.FileStorage)
+	if err != nil {
+		logger.ZapSugarLogger.Errorln("error when saving to disk on interval")
+	}
 }

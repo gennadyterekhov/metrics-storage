@@ -7,8 +7,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/services"
-
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
@@ -20,28 +18,28 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func GetMetricHandler() http.Handler {
+func GetMetricHandler(cont GetController) http.Handler {
 	return middleware.CommonConveyor(
-		http.HandlerFunc(GetMetric),
+		http.HandlerFunc(cont.GetMetric),
 	)
 }
 
-func GetMetric(res http.ResponseWriter, req *http.Request) {
-	requestDto := getDtoForService(req)
+func (cont GetController) GetMetric(res http.ResponseWriter, req *http.Request) {
+	requestDto := cont.getDtoForService(req)
 	if requestDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during request DTO build process", requestDto.Error)
 		writeErrorToOutput(&res, requestDto.Error)
 		return
 	}
 
-	validatedRequestDto := validateRequest(requestDto)
+	validatedRequestDto := cont.validateRequest(requestDto)
 	if validatedRequestDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during request validation", validatedRequestDto.Error)
 		writeErrorToOutput(&res, validatedRequestDto.Error)
 		return
 	}
 
-	responseDto := services.GetMetric(req.Context(), requestDto)
+	responseDto := cont.Service.GetMetric(req.Context(), requestDto)
 	if responseDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during response DTO build process in usecase", responseDto.Error)
 		writeErrorToOutput(&res, responseDto.Error)
@@ -51,7 +49,7 @@ func GetMetric(res http.ResponseWriter, req *http.Request) {
 	writeDtoToOutput(&res, responseDto)
 }
 
-func getDtoForService(req *http.Request) *requests.GetMetricRequest {
+func (cont GetController) getDtoForService(req *http.Request) *requests.GetMetricRequest {
 	dto := &requests.GetMetricRequest{
 		IsJSON: false,
 	}
@@ -135,7 +133,7 @@ func writeErrorToOutput(res *http.ResponseWriter, err error) {
 	http.Error(*res, err.Error(), code)
 }
 
-func validateRequest(requestDto *requests.GetMetricRequest) *requests.GetMetricRequest {
+func (cont GetController) validateRequest(requestDto *requests.GetMetricRequest) *requests.GetMetricRequest {
 	validatedRequestDto := requestDto
 	if requestDto.MetricType != types.Counter && requestDto.MetricType != types.Gauge {
 		validatedRequestDto.Error = fmt.Errorf(exceptions.InvalidMetricTypeChoice)

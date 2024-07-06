@@ -10,8 +10,18 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 )
 
-func GetAllMetrics(res http.ResponseWriter, req *http.Request) {
-	htmlPage := services.GetMetricsListAsHTML(req.Context())
+type GetController struct {
+	Service services.GetMetricService
+}
+
+func NewGetController(serv services.GetMetricService) GetController {
+	return GetController{
+		Service: serv,
+	}
+}
+
+func (cont GetController) GetAllMetrics(res http.ResponseWriter, req *http.Request) {
+	htmlPage := cont.Service.GetMetricsListAsHTML(req.Context())
 
 	res.Header().Set(constants.HeaderContentType, constants.TextHTML)
 	_, err := io.WriteString(res, htmlPage)
@@ -21,8 +31,8 @@ func GetAllMetrics(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func GetAllMetricsHandler() http.Handler {
+func GetAllMetricsHandler(cont GetController) http.Handler {
 	return middleware.CommonConveyor(
-		http.HandlerFunc(GetAllMetrics),
+		http.HandlerFunc(cont.GetAllMetrics),
 	)
 }
