@@ -2,11 +2,13 @@ package handlers
 
 import (
 	"encoding/json"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
+	"net/http"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
-	"net/http"
 )
 
 func SaveMetricListHandler() http.Handler {
@@ -23,7 +25,7 @@ func SaveMetricList(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	app.SaveMetricListToMemory(req.Context(), requestDto)
+	services.SaveMetricListToMemory(req.Context(), requestDto)
 	res.WriteHeader(http.StatusOK)
 }
 

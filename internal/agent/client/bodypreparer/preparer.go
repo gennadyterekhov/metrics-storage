@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/hex"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/helper/hasher"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/hasher"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/go-resty/resty/v2"
 )
 

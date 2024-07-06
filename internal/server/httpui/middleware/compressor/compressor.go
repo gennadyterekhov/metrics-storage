@@ -3,10 +3,11 @@ package compressor
 import (
 	"bytes"
 	"compress/gzip"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"io"
 	"net/http"
 	"strings"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 type gzipWriter struct {
@@ -20,7 +21,6 @@ func (w gzipWriter) Write(b []byte) (int, error) {
 
 func GzipCompressor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-
 		if isRequestCompressed(request) {
 			request = decompressRequest(request)
 		}

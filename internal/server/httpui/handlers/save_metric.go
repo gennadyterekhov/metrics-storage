@@ -3,17 +3,19 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
+	"net/http"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/go-chi/chi/v5"
-	"net/http"
 )
 
 func SaveMetricHandler() http.Handler {
@@ -37,7 +39,7 @@ func SaveMetric(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	responseDto := app.SaveMetricToMemory(req.Context(), requestDto)
+	responseDto := services.SaveMetricToMemory(req.Context(), requestDto)
 	if responseDto.Error != nil {
 		logger.ZapSugarLogger.Debugln(
 			"found error during response DTO build process in usecase",

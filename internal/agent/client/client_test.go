@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/assert"

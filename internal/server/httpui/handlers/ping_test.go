@@ -2,12 +2,13 @@ package handlers
 
 import (
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
-	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPing(t *testing.T) {
@@ -54,7 +55,6 @@ func TestPing(t *testing.T) {
 			)
 			response.Body.Close()
 			assert.Equal(t, tt.want.code, response.StatusCode)
-
 		})
 	}
 }

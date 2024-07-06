@@ -2,12 +2,13 @@ package agent
 
 import (
 	"context"
+	"time"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/poller"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/sender"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"time"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 type AgentConfig struct {
@@ -71,7 +72,6 @@ func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, 
 			return
 		default:
 			if !pollerInstance.IsRunning {
-
 				if len(metricsChannel) == 0 {
 					// if empty, just store in channel
 					metricsChannel <- *pollerInstance.Poll()
@@ -104,7 +104,6 @@ func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet
 		default:
 
 			if !senderInstance.IsRunning {
-
 				if len(metricsChannel) == 0 {
 					// nothing to report yet, need to wait for poller
 					continue

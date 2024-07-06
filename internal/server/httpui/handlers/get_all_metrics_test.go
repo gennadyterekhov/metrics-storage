@@ -1,10 +1,11 @@
 package handlers
 
 import (
-	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGetAllMetrics(t *testing.T) {
@@ -54,7 +55,6 @@ func TestGetAllMetrics(t *testing.T) {
 				expected,
 				string(responseBody),
 			)
-
 		})
 	}
 }
@@ -111,7 +111,6 @@ func TestGetAllMetricsGzip(t *testing.T) {
 				expected,
 				string(responseBody),
 			)
-
 		})
 	}
 }

@@ -3,10 +3,11 @@ package storage
 import (
 	"context"
 	"database/sql"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
+	"testing"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func initDB() (*sql.DB, *sql.Tx) {
@@ -32,7 +33,6 @@ func TestDbExists(t *testing.T) {
 
 	err := dbConnection.Ping()
 	assert.NoError(t, err)
-
 }
 
 func TestDbTableExists(t *testing.T) {

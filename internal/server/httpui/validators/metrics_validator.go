@@ -3,11 +3,12 @@ package validators
 import (
 	"errors"
 	"fmt"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"strconv"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 )
 
 func GetDataToSave(metricType string, metricName string, metricValue string) *requests.SaveMetricRequest {

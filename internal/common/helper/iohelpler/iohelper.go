@@ -2,8 +2,9 @@ package iohelpler
 
 import (
 	"compress/gzip"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
 	"io"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 func ReadFromReaderOrDie(reader io.Reader) []byte {

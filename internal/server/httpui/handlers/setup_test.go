@@ -1,11 +1,11 @@
 package handlers
 
 import (
-	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
 	"testing"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
 )
 
 func TestMain(m *testing.M) {
 	testhelper.BootstrapWithDefaultServer(m, GetRouter())
-
 }
