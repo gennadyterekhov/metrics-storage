@@ -4,14 +4,25 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/server/repositories"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 )
 
-func GetMetric(ctx context.Context, requestDto *requests.GetMetricRequest) (responseDto *responses.GetMetricResponse) {
+type GetMetricService struct {
+	Repository repositories.RepositoryInterface
+}
+
+func NewGetMetricService(repo repositories.RepositoryInterface) GetMetricService {
+	return GetMetricService{
+		Repository: repo,
+	}
+}
+
+func (srv GetMetricService) GetMetric(ctx context.Context, requestDto *requests.GetMetricRequest) (responseDto *responses.GetMetricResponse) {
 	logger.ZapSugarLogger.Debugln("GetMetricAsString name, metricType", requestDto.MetricName, requestDto.MetricType)
 	responseDto = &responses.GetMetricResponse{
 		MetricType:   requestDto.MetricType,
@@ -22,17 +33,17 @@ func GetMetric(ctx context.Context, requestDto *requests.GetMetricRequest) (resp
 		Error:        nil,
 	}
 	if requestDto.MetricType == types.Counter {
-		tmp, err := storage.MetricsRepository.GetCounter(ctx, requestDto.MetricName)
+		tmp, err := srv.Repository.GetCounter(ctx, requestDto.MetricName)
 		responseDto.CounterValue, responseDto.Error = &tmp, err
 	}
 	if requestDto.MetricType == types.Gauge {
-		tmp, err := storage.MetricsRepository.GetGauge(ctx, requestDto.MetricName)
+		tmp, err := srv.Repository.GetGauge(ctx, requestDto.MetricName)
 		responseDto.GaugeValue, responseDto.Error = &tmp, err
 	}
 	return responseDto
 }
 
-func GetMetricsListAsHTML(ctx context.Context) string {
+func (srv GetMetricService) GetMetricsListAsHTML(ctx context.Context) string {
 	templateText := `
 <!DOCTYPE html>
 <html>
@@ -49,8 +60,8 @@ func GetMetricsListAsHTML(ctx context.Context) string {
   </body>
 </html>
 `
-	gaugeList := getGaugeList(ctx)
-	counterList := getCounterList(ctx)
+	gaugeList := srv.getGaugeList(ctx)
+	counterList := srv.getCounterList(ctx)
 	return fmt.Sprintf(
 		templateText,
 		types.Gauge,
@@ -60,18 +71,18 @@ func GetMetricsListAsHTML(ctx context.Context) string {
 	)
 }
 
-func getGaugeList(ctx context.Context) string {
+func (srv GetMetricService) getGaugeList(ctx context.Context) string {
 	list := ""
-	for name, val := range storage.MetricsRepository.GetAllGauges(ctx) {
+	for name, val := range srv.Repository.GetAllGauges(ctx) {
 		list += fmt.Sprintf("<li>%v : %v</li>", name, val)
 	}
 
 	return list
 }
 
-func getCounterList(ctx context.Context) string {
+func (srv GetMetricService) getCounterList(ctx context.Context) string {
 	list := ""
-	for name, val := range storage.MetricsRepository.GetAllCounters(ctx) {
+	for name, val := range srv.Repository.GetAllCounters(ctx) {
 		list += fmt.Sprintf("<li>%v : %v</li>", name, val)
 	}
 	return list

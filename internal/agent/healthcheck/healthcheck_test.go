@@ -5,13 +5,14 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/router"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestCanSendHeadRequest(t *testing.T) {
-	ts := httptest.NewServer(handlers.GetRouter())
+	ts := httptest.NewServer(router.GetRouter())
 	defer ts.Close()
 
 	type want struct {

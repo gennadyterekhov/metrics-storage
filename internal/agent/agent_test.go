@@ -10,14 +10,15 @@ import (
 	"testing"
 	"time"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/router"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMain(m *testing.M) {
-	testhelper.BootstrapWithDefaultServer(m, handlers.GetRouter())
+	testhelper.BootstrapWithDefaultServer(m, router.GetRouter())
 }
 
 func TestAgent(t *testing.T) {
