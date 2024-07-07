@@ -51,8 +51,8 @@ func CreateDBStorage() *DBStorage {
 	}
 }
 
-func NewDBStorage(conf *config.ServerConfig) *DBStorage {
-	conn, err := sql.Open("pgx", conf.DBDsn)
+func NewDBStorage(dsn string) *DBStorage {
+	conn, err := sql.Open("pgx", dsn)
 	if err != nil {
 		logger.ZapSugarLogger.Panicln("could not connect to db using dsn: " + config.Conf.DBDsn)
 	}

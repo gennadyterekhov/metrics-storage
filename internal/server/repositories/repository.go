@@ -71,3 +71,23 @@ func (r Repository) SetGauge(ctx context.Context, name string, value float64) {
 func (r Repository) AddCounter(ctx context.Context, name string, value int64) {
 	r.stor.AddCounter(ctx, name, value)
 }
+
+func (r Repository) Clear() {
+	r.stor.Clear()
+}
+
+func (r Repository) GetCounterOrZero(ctx context.Context, name string) int64 {
+	v, err := r.stor.GetCounter(ctx, name)
+	if err != nil {
+		return 0
+	}
+	return v
+}
+
+func (r Repository) GetGaugeOrZero(ctx context.Context, name string) float64 {
+	v, err := r.stor.GetGauge(ctx, name)
+	if err != nil {
+		return 0
+	}
+	return v
+}

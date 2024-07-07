@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/services"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
@@ -49,7 +49,7 @@ func (cont SaveController) SaveMetric(res http.ResponseWriter, req *http.Request
 		return
 	}
 
-	responseDto := services.SaveMetricToMemory(req.Context(), requestDto)
+	responseDto := cont.Service.SaveMetricToMemory(req.Context(), requestDto)
 	if responseDto.Error != nil {
 		logger.ZapSugarLogger.Debugln(
 			"found error during response DTO build process in usecase",

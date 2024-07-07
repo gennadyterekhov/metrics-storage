@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers/handlers"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -22,20 +22,12 @@ func New(conts *handlers.Controllers) Router {
 	return instance
 }
 
-// deprecated
-func GetRouter() chi.Router {
-	router := chi.NewRouter()
-	// registerRoutes(router)
-
-	return router
-}
-
 func (rtr Router) registerRoutes() {
 	rtr.ChiRouter.Head("/", handlers.HeadHandler)
 
 	rtr.ChiRouter.Get(
 		"/ping",
-		handlers.Ping,
+		handlers.PingHandler(rtr.Controllers.PingController).ServeHTTP,
 	)
 
 	rtr.ChiRouter.Get("/", handlers.GetAllMetricsHandler(rtr.Controllers.GetController).ServeHTTP)

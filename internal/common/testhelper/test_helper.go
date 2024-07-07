@@ -7,18 +7,18 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/iohelpler"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 )
 
+// deprecated
 var TestServer *httptest.Server
 
+// deprecated
 func Bootstrap(m *testing.M) {
 	setUp(nil)
 	code := m.Run()
@@ -26,6 +26,7 @@ func Bootstrap(m *testing.M) {
 	os.Exit(code)
 }
 
+// deprecated
 func bootstrapWithServer(m *testing.M, server *httptest.Server) {
 	setUp(server)
 	code := m.Run()
@@ -33,6 +34,7 @@ func bootstrapWithServer(m *testing.M, server *httptest.Server) {
 	os.Exit(code)
 }
 
+// deprecated
 func BootstrapWithDefaultServer(m *testing.M, routerInterface chi.Router) {
 	server := httptest.NewServer(
 		routerInterface,
@@ -41,18 +43,12 @@ func BootstrapWithDefaultServer(m *testing.M, routerInterface chi.Router) {
 }
 
 func setUp(server *httptest.Server) {
-	storage.MetricsRepository.Clear()
-	if server != nil {
-		TestServer = server
-	}
 }
 
 func tearDown() {
-	if TestServer != nil {
-		TestServer.Close()
-	}
 }
 
+// deprecated
 func SendRequest(
 	t *testing.T,
 	ts *httptest.Server,
@@ -70,6 +66,7 @@ func SendRequest(
 	return response, string(respBody)
 }
 
+// deprecated
 func SendAlreadyJSONedBody(
 	t *testing.T,
 	ts *httptest.Server,
@@ -91,6 +88,7 @@ func SendAlreadyJSONedBody(
 	return response, respBody
 }
 
+// deprecated
 func SendGzipRequest(
 	t *testing.T,
 	ts *httptest.Server,
@@ -127,6 +125,7 @@ func SendGzipRequest(
 	return response, respBody
 }
 
+// deprecated
 func SendGzipNoBodyRequest(
 	t *testing.T,
 	ts *httptest.Server,
@@ -152,8 +151,4 @@ func SendGzipNoBodyRequest(
 	response.Body.Close()
 
 	return response, respBody
-}
-
-func IsTest() (test bool) {
-	return strings.HasSuffix(os.Args[0], ".test")
 }

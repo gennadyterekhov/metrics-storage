@@ -10,264 +10,221 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/router"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMain(m *testing.M) {
-	testhelper.BootstrapWithDefaultServer(m, router.GetRouter())
+type agentTestSuite struct {
+	tests.BaseSuiteWithServer
 }
 
-func TestAgent(t *testing.T) {
-	storage.MetricsRepository.Clear()
+func (suite *agentTestSuite) SetupSuite() {
+	tests.InitBaseSuiteWithServer(suite)
+}
 
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "test",
-		},
-	}
+func TestAgentSuite(t *testing.T) {
+	suite.Run(t, new(agentTestSuite))
+}
+
+func (st *agentTestSuite) TestAgent() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
 
 	defer cancelContextFn()
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			go runAgentRoutine(ctx, &AgentConfig{
-				Addr:                      testhelper.TestServer.URL,
-				ReportInterval:            1,
-				PollInterval:              1,
-				SimultaneousRequestsLimit: 5,
-			})
-
-			<-ctx.Done()
-
-			contextEndCondition := ctx.Err()
-
-			if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-				totalCounters := len(storage.MetricsRepository.GetAllCounters(context.Background()))
-				totalGauges := len(storage.MetricsRepository.GetAllGauges(context.Background()))
-
-				assert.Equal(t,
-					1,
-					totalCounters,
-				)
-				assert.LessOrEqual(t,
-					27+1,
-					totalGauges,
-				)
-			} else {
-				t.Error("context didnt finish")
-			}
-		})
-	}
-}
-
-func TestList(t *testing.T) {
-	storage.MetricsRepository.Clear()
-
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
-
-	defer cancelContextFn()
-
-	t.Run("list", func(t *testing.T) {
-		go runAgentRoutine(ctx, &AgentConfig{
-			Addr:                      testhelper.TestServer.URL,
-			ReportInterval:            1,
-			PollInterval:              1,
-			IsBatch:                   true,
-			SimultaneousRequestsLimit: 5,
-		})
-
-		<-ctx.Done()
-
-		contextEndCondition := ctx.Err()
-
-		if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-			assert.Equal(t,
-				1,
-				len(storage.MetricsRepository.GetAllCounters(context.Background())),
-			)
-			assert.LessOrEqual(t,
-				27+1,
-				len(storage.MetricsRepository.GetAllGauges(context.Background())),
-			)
-
-			return
-		} else {
-			t.Error("context didnt finish")
-		}
+	go runAgentRoutine(ctx, &AgentConfig{
+		Addr:                      st.TestHTTPServer.Server.URL, //
+		ReportInterval:            1,
+		PollInterval:              1,
+		SimultaneousRequestsLimit: 5,
 	})
+
+	<-ctx.Done()
+
+	contextEndCondition := ctx.Err()
+
+	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
+		totalCounters := len(st.Repository.GetAllCounters(context.Background()))
+		totalGauges := len(st.Repository.GetAllGauges(context.Background()))
+
+		assert.Equal(st.T(),
+			1,
+			totalCounters,
+		)
+		assert.LessOrEqual(st.T(),
+			27+1,
+			totalGauges,
+		)
+	} else {
+		st.T().Error("context didnt finish")
+	}
 }
 
-func TestGzip(t *testing.T) {
-	storage.MetricsRepository.Clear()
-
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "test",
-		},
-	}
+func (st *agentTestSuite) TestList() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
 
 	defer cancelContextFn()
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			go runAgentRoutine(ctx, &AgentConfig{
-				Addr:                      testhelper.TestServer.URL,
-				ReportInterval:            1,
-				PollInterval:              1,
-				IsGzip:                    true,
-				SimultaneousRequestsLimit: 5,
-			})
 
-			<-ctx.Done()
+	go runAgentRoutine(ctx, &AgentConfig{
+		Addr:                      st.TestHTTPServer.Server.URL,
+		ReportInterval:            1,
+		PollInterval:              1,
+		IsBatch:                   true,
+		SimultaneousRequestsLimit: 5,
+	})
 
-			contextEndCondition := ctx.Err()
+	<-ctx.Done()
 
-			if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-				assert.Equal(t,
-					1,
-					len(storage.MetricsRepository.GetAllCounters(context.Background())),
-				)
-				assert.LessOrEqual(t,
-					27+1,
-					len(storage.MetricsRepository.GetAllGauges(context.Background())),
-				)
-				savedValue := storage.MetricsRepository.GetCounterOrZero(context.Background(), "PollCount")
-				assert.Equal(t, int64(1), savedValue)
-				return
-			}
+	contextEndCondition := ctx.Err()
 
-			t.Error("context didnt finish")
-		})
+	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
+		assert.Equal(st.T(),
+			1,
+			len(st.Repository.GetAllCounters(context.Background())),
+		)
+		assert.LessOrEqual(st.T(),
+			27+1,
+			len(st.Repository.GetAllGauges(context.Background())),
+		)
+
+		return
+	} else {
+		st.T().Error("context didnt finish")
 	}
 }
 
-func TestSameValueReturnedFromServer(t *testing.T) {
-	storage.MetricsRepository.Clear()
-
-	tests := []struct {
-		name string
-	}{
-		{
-			name: "test",
-		},
-	}
+func (st *agentTestSuite) TestGzip() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
 
 	defer cancelContextFn()
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			go runAgentRoutine(ctx, &AgentConfig{
-				Addr:                      testhelper.TestServer.URL,
-				ReportInterval:            1,
-				PollInterval:              1,
-				IsBatch:                   true,
-				SimultaneousRequestsLimit: 5,
-			})
+	go runAgentRoutine(ctx, &AgentConfig{
+		Addr:                      st.TestHTTPServer.Server.URL,
+		ReportInterval:            1,
+		PollInterval:              1,
+		IsGzip:                    true,
+		SimultaneousRequestsLimit: 5,
+	})
 
-			<-ctx.Done()
-			contextEndCondition := ctx.Err()
+	<-ctx.Done()
 
-			if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-				assert.Equal(t,
-					1,
-					len(storage.MetricsRepository.GetAllCounters(context.Background())),
-				)
-				assert.LessOrEqual(t,
-					27+1,
-					len(storage.MetricsRepository.GetAllGauges(context.Background())),
-				)
+	contextEndCondition := ctx.Err()
 
-				url := "/value/gauge/BuckHashSys"
+	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
+		assert.Equal(st.T(),
+			1,
+			len(st.Repository.GetAllCounters(context.Background())),
+		)
+		assert.LessOrEqual(st.T(),
+			27+1,
+			len(st.Repository.GetAllGauges(context.Background())),
+		)
+		savedValue := st.Repository.GetCounterOrZero(context.Background(), "PollCount")
+		assert.Equal(st.T(), int64(1), savedValue)
+		return
+	}
 
-				r, responseBody := testhelper.SendRequest(t, testhelper.TestServer, http.MethodGet, url)
-				r.Body.Close()
-				savedValue := storage.MetricsRepository.GetGaugeOrZero(context.Background(), "BuckHashSys")
+	st.T().Error("context didnt finish")
+}
 
-				assert.Equal(
-					t,
-					strconv.FormatFloat(savedValue, 'g', -1, 64),
-					string(responseBody),
-				)
-			} else {
-				t.Error("context didnt finish")
-			}
-		})
+func (st *agentTestSuite) TestSameValueReturnedFromServer() {
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
+
+	defer cancelContextFn()
+	go runAgentRoutine(ctx, &AgentConfig{
+		Addr:                      st.TestHTTPServer.Server.URL,
+		ReportInterval:            1,
+		PollInterval:              1,
+		IsBatch:                   true,
+		SimultaneousRequestsLimit: 5,
+	})
+
+	<-ctx.Done()
+	contextEndCondition := ctx.Err()
+
+	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
+		assert.Equal(st.T(),
+			1,
+			len(st.Repository.GetAllCounters(context.Background())),
+		)
+		assert.LessOrEqual(st.T(),
+			27+1,
+			len(st.Repository.GetAllGauges(context.Background())),
+		)
+
+		url := "/value/gauge/BuckHashSys"
+
+		r, responseBody := testhelper.SendRequest(st.T(), st.TestHTTPServer.Server, http.MethodGet, url)
+		r.Body.Close()
+		savedValue := st.Repository.GetGaugeOrZero(context.Background(), "BuckHashSys")
+
+		assert.Equal(
+			st.T(),
+			strconv.FormatFloat(savedValue, 'g', -1, 64),
+			string(responseBody),
+		)
+	} else {
+		st.T().Error("context didnt finish")
 	}
 }
 
-func TestReportIntervalMoreThanPollInterval(t *testing.T) {
-	storage.MetricsRepository.Clear()
-
+func (st *agentTestSuite) TestReportIntervalMoreThanPollInterval() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 	defer cancelContextFn()
 
-	t.Run("ReportIntervalMoreThanPollInterval", func(t *testing.T) {
-		go runAgentRoutine(ctx, &AgentConfig{
-			Addr:                      testhelper.TestServer.URL,
-			ReportInterval:            2,
-			PollInterval:              1,
-			IsBatch:                   true,
-			SimultaneousRequestsLimit: 5,
-		})
-
-		<-ctx.Done()
-		contextEndCondition := ctx.Err()
-
-		if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-			assert.Equal(t,
-				1,
-				len(storage.MetricsRepository.GetAllCounters(context.Background())),
-			)
-			assert.LessOrEqual(t,
-				27+1,
-				len(storage.MetricsRepository.GetAllGauges(context.Background())),
-			)
-		} else {
-			t.Error("context didnt finish")
-		}
+	go runAgentRoutine(ctx, &AgentConfig{
+		Addr:                      st.TestHTTPServer.Server.URL,
+		ReportInterval:            2,
+		PollInterval:              1,
+		IsBatch:                   true,
+		SimultaneousRequestsLimit: 5,
 	})
+
+	<-ctx.Done()
+	contextEndCondition := ctx.Err()
+
+	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
+		assert.Equal(st.T(),
+			1,
+			len(st.Repository.GetAllCounters(context.Background())),
+		)
+		assert.LessOrEqual(st.T(),
+			27+1,
+			len(st.Repository.GetAllGauges(context.Background())),
+		)
+	} else {
+		st.T().Error("context didnt finish")
+	}
 }
 
-func TestReportIntervalLessThanPollInterval(t *testing.T) {
-	storage.MetricsRepository.Clear()
-
+func (st *agentTestSuite) TestReportIntervalLessThanPollInterval() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 	defer cancelContextFn()
 
-	t.Run("ReportIntervalLessThanPollInterval", func(t *testing.T) {
-		go runAgentRoutine(ctx, &AgentConfig{
-			Addr:                      testhelper.TestServer.URL,
-			ReportInterval:            1,
-			PollInterval:              2,
-			IsBatch:                   true,
-			SimultaneousRequestsLimit: 5,
-		})
-
-		<-ctx.Done()
-		contextEndCondition := ctx.Err()
-
-		if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-			assert.Equal(t,
-				1,
-				len(storage.MetricsRepository.GetAllCounters(context.Background())),
-			)
-			assert.LessOrEqual(t,
-				27+1,
-				len(storage.MetricsRepository.GetAllGauges(context.Background())),
-			)
-		} else {
-			t.Error("context didnt finish")
-		}
+	go runAgentRoutine(ctx, &AgentConfig{
+		Addr:                      st.TestHTTPServer.Server.URL,
+		ReportInterval:            1,
+		PollInterval:              2,
+		IsBatch:                   true,
+		SimultaneousRequestsLimit: 5,
 	})
+
+	<-ctx.Done()
+	contextEndCondition := ctx.Err()
+
+	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
+		assert.Equal(st.T(),
+			1,
+			len(st.Repository.GetAllCounters(context.Background())),
+		)
+		assert.LessOrEqual(st.T(),
+			27+1,
+			len(st.Repository.GetAllGauges(context.Background())),
+		)
+	} else {
+		st.T().Error("context didnt finish")
+	}
 }
 
 func runAgentRoutine(ctx context.Context, config *AgentConfig) {

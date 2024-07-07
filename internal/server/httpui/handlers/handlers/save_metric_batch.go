@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/services"
-
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
@@ -25,7 +23,7 @@ func (cont SaveController) SaveMetricList(res http.ResponseWriter, req *http.Req
 		return
 	}
 
-	services.SaveMetricListToMemory(req.Context(), requestDto)
+	cont.Service.SaveMetricListToMemory(req.Context(), requestDto)
 	res.WriteHeader(http.StatusOK)
 }
 

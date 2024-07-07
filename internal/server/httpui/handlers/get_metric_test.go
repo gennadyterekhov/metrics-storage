@@ -9,12 +9,12 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/domain/models"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -23,8 +23,20 @@ type args struct {
 	name string
 }
 
-func TestGetMetricJSON(t *testing.T) {
-	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
+type getMetricTestSuite struct {
+	tests.BaseSuiteWithServer
+}
+
+func (suite *getMetricTestSuite) SetupSuite() {
+	tests.InitBaseSuiteWithServer(suite)
+}
+
+func TestGetMetricHandler(t *testing.T) {
+	suite.Run(t, new(getMetricTestSuite))
+}
+
+func (st *getMetricTestSuite) TestGetMetricJSON() {
+	st.Repository.AddCounter(context.Background(), "cnt", 1)
 
 	type want struct {
 		code        int
@@ -58,11 +70,11 @@ func TestGetMetricJSON(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		st.T().Run(tt.name, func(t *testing.T) {
 			body := getBodyFromArgs(tt.args)
 			response, responseBody := testhelper.SendAlreadyJSONedBody(
 				t,
-				testhelper.TestServer,
+				st.TestHTTPServer.Server,
 				http.MethodPost,
 				"/value",
 				body,
@@ -86,9 +98,8 @@ func getBodyFromArgs(arguments args) *bytes.Buffer {
 	return bytes.NewBuffer([]byte(rawJSON))
 }
 
-func TestGetMetric(t *testing.T) {
-	storage.MetricsRepository.Clear()
-	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
+func (st *getMetricTestSuite) TestGetMetric() {
+	st.Repository.AddCounter(context.Background(), "cnt", 1)
 
 	type want struct {
 		code        int
@@ -125,12 +136,12 @@ func TestGetMetric(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		st.T().Run(tt.name, func(t *testing.T) {
 			url := "/value/" + tt.args.typ + "/" + tt.args.name
 
 			response, responseBody := testhelper.SendRequest(
 				t,
-				testhelper.TestServer,
+				st.TestHTTPServer.Server,
 				http.MethodGet,
 				url,
 			)
@@ -143,12 +154,8 @@ func TestGetMetric(t *testing.T) {
 	}
 }
 
-func TestCanGetMetricFromDB(t *testing.T) {
-	t.Skip("only manual use because depends on host")
-
-	config.Conf.DBDsn = constants.TestDBDsn
-	storage.MetricsRepository = storage.CreateDBStorage()
-
+func (st *getMetricTestSuite) TestCanGetMetricFromDB() {
+	st.T().Skip("only manual use because depends on host")
 	type want struct {
 		code        int
 		metricValue int64
@@ -184,17 +191,16 @@ func TestCanGetMetricFromDB(t *testing.T) {
 		},
 	}
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			storage.MetricsRepository.Clear()
+		st.T().Run(tt.name, func(t *testing.T) {
 			if tt.want.code == http.StatusOK {
-				storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
+				st.Repository.AddCounter(context.Background(), "cnt", 1)
 			}
 
 			url := "/value/" + tt.args.typ + "/" + tt.args.name
 
 			response, responseBody := testhelper.SendRequest(
 				t,
-				testhelper.TestServer,
+				st.TestHTTPServer.Server,
 				http.MethodGet,
 				url,
 			)
@@ -205,7 +211,4 @@ func TestCanGetMetricFromDB(t *testing.T) {
 			assert.Equal(t, tt.want.metricValue, metricFromResponseAsInt)
 		})
 	}
-	config.Conf.DBDsn = ""
-	storage.MetricsRepository.CloseDB()
-	storage.MetricsRepository = storage.CreateRAMStorage()
 }
