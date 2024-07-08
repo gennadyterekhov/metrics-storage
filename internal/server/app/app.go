@@ -7,13 +7,15 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers/handlers"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/router"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/repositories"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/services"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 )
 
@@ -28,9 +30,9 @@ type App struct {
 
 func New() App {
 	conf := config.New()
-	DBOrRam := storage.New(&conf)
+	DBOrRam := storage.New(conf.DBDsn)
 	repo := repositories.New(DBOrRam)
-	servicesPack := services.NewServices(&repo, &conf)
+	servicesPack := services.New(&repo, &conf)
 	controllers := handlers.NewControllers(&servicesPack)
 	rtr := router.New(&controllers)
 
@@ -61,7 +63,12 @@ func (a App) StartServer() error {
 		a.Services.TimeTracker.StartTrackingIntervals()
 	}
 
-	defer a.DBOrRam.CloseDB()
+	defer func(DBOrRam storage.StorageInterface) {
+		err := DBOrRam.CloseDB()
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+	}(a.DBOrRam)
 
 	go a.onStop()
 	fmt.Printf("Server started on %v\n", a.Config.Addr)

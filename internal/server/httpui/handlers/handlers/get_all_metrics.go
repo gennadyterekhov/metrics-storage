@@ -1,10 +1,9 @@
 package handlers
 
 import (
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 	"io"
 	"net/http"
-
-	"github.com/gennadyterekhov/metrics-storage/internal/server/services"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"

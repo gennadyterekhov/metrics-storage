@@ -9,12 +9,14 @@ type Services struct {
 	GetMetricService  GetMetricService
 	SaveMetricService SaveMetricService
 	TimeTracker       TimeTracker
+	PingService       PingService
 }
 
-func NewServices(repo repositories.RepositoryInterface, conf *config.ServerConfig) Services {
+func New(repo repositories.RepositoryInterface, conf *config.ServerConfig) Services {
 	return Services{
 		GetMetricService:  NewGetMetricService(repo),
 		SaveMetricService: NewSaveMetricService(repo, conf),
 		TimeTracker:       NewTimeTracker(repo, conf),
+		PingService:       NewPingService(repo),
 	}
 }

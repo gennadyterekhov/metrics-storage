@@ -2,31 +2,39 @@ package client
 
 import (
 	"context"
-	"net/http/httptest"
 	"testing"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
+	"github.com/stretchr/testify/suite"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/router"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestCanSendCounterValue(t *testing.T) {
-	testServer := httptest.NewServer(
-		router.GetRouter(),
-	)
+type clientTestSuite struct {
+	tests.BaseSuiteWithServer
+}
 
+func (suite *clientTestSuite) SetupSuite() {
+	tests.InitBaseSuiteWithServer(suite)
+}
+
+func TestAgentSuite(t *testing.T) {
+	suite.Run(t, new(clientTestSuite))
+}
+
+func (st *clientTestSuite) TestCanSendCounterValue() {
 	metricsStorageClient := MetricsStorageClient{
-		Address: testServer.URL,
+		Address: st.TestHTTPServer.Server.URL,
 		IsGzip:  false,
 	}
 
 	type want struct {
 		counterValue int64
 	}
-	tests := []struct {
+	cases := []struct {
 		name   string
 		isGzip bool
 		want   want
@@ -43,9 +51,9 @@ func TestCanSendCounterValue(t *testing.T) {
 		},
 	}
 	var err error
-	for _, tt := range tests {
-		storage.MetricsRepository.Clear()
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tt := range cases {
+		st.T().Run(tt.name, func(t *testing.T) {
+			st.Repository.Clear()
 			if tt.isGzip {
 				metricsStorageClient.IsGzip = true
 			}
@@ -59,35 +67,30 @@ func TestCanSendCounterValue(t *testing.T) {
 
 			assert.Equal(t,
 				1,
-				len(storage.MetricsRepository.GetAllCounters(context.Background())),
+				len(st.Repository.GetAllCounters(context.Background())),
 			)
 			assert.Equal(t,
 				0,
-				len(storage.MetricsRepository.GetAllGauges(context.Background())),
+				len(st.Repository.GetAllGauges(context.Background())),
 			)
 
 			assert.Equal(t,
 				tt.want.counterValue,
-				storage.MetricsRepository.GetCounterOrZero(context.Background(), "nm"),
+				st.Repository.GetCounterOrZero(context.Background(), "nm"),
 			)
 		})
 	}
 }
 
-func TestCanSendGaugeValue(t *testing.T) {
-	storage.MetricsRepository.Clear()
-	testServer := httptest.NewServer(
-		router.GetRouter(),
-	)
-
+func (st *clientTestSuite) TestCanSendGaugeValue() {
 	metricsStorageClient := MetricsStorageClient{
-		Address: testServer.URL,
+		Address: st.TestHTTPServer.Server.URL,
 		IsGzip:  false,
 	}
 	type want struct {
 		gaugeValue float64
 	}
-	tests := []struct {
+	cases := []struct {
 		name string
 		want want
 	}{
@@ -97,8 +100,8 @@ func TestCanSendGaugeValue(t *testing.T) {
 		},
 	}
 	var err error
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tt := range cases {
+		st.T().Run(tt.name, func(t *testing.T) {
 			metrics := metric.GaugeMetric{
 				Name:  "nm",
 				Type:  types.Gauge,
@@ -110,16 +113,16 @@ func TestCanSendGaugeValue(t *testing.T) {
 
 			assert.Equal(t,
 				0,
-				len(storage.MetricsRepository.GetAllCounters(context.Background())),
+				len(st.Repository.GetAllCounters(context.Background())),
 			)
 			assert.Equal(t,
 				1,
-				len(storage.MetricsRepository.GetAllGauges(context.Background())),
+				len(st.Repository.GetAllGauges(context.Background())),
 			)
 
 			assert.Equal(t,
 				tt.want.gaugeValue,
-				storage.MetricsRepository.GetGaugeOrZero(context.Background(), "nm"),
+				st.Repository.GetGaugeOrZero(context.Background(), "nm"),
 			)
 		})
 	}

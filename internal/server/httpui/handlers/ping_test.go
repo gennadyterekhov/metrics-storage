@@ -5,14 +5,28 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPing(t *testing.T) {
-	t.Skip("only manual use because depends on host")
+type pingTestSuite struct {
+	tests.BaseSuiteWithServer
+}
+
+func (suite *pingTestSuite) SetupSuite() {
+	tests.InitBaseSuiteWithServer(suite)
+}
+
+func TestPingHandler(t *testing.T) {
+	suite.Run(t, new(pingTestSuite))
+}
+
+func (st *pingTestSuite) TestPing() {
+	st.T().Skip("only manual use because depends on host")
 	type want struct {
 		code int
 	}
@@ -39,17 +53,16 @@ func TestPing(t *testing.T) {
 	var err error
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		st.T().Run(tt.name, func(t *testing.T) {
 			DBDsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
 				`localhost`, tt.args.username, `metrics_pass`, `metrics_db_test`)
 
 			config.Conf.DBDsn = DBDsn
-			storage.MetricsRepository = storage.CreateDBStorage()
 			assert.NoError(t, err)
 
 			response, _ := testhelper.SendRequest(
 				t,
-				testhelper.TestServer,
+				st.TestHTTPServer.Server,
 				http.MethodGet,
 				"/ping",
 			)

@@ -39,9 +39,9 @@ func CreateStorage() StorageInterface {
 	return CreateDBStorage()
 }
 
-func New(conf *config.ServerConfig) StorageInterface {
-	if conf.DBDsn == "" {
+func New(dsn string) StorageInterface {
+	if dsn == "" {
 		return NewRAMStorage()
 	}
-	return NewDBStorage(conf)
+	return NewDBStorage(dsn)
 }
