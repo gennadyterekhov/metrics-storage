@@ -15,14 +15,6 @@ type MemStorage struct {
 	mu                 sync.Mutex
 }
 
-// deprecated
-func CreateRAMStorage() *MemStorage {
-	return &MemStorage{
-		Counters: make(map[string]int64, 0),
-		Gauges:   make(map[string]float64, 0),
-	}
-}
-
 func NewRAMStorage() *MemStorage {
 	return &MemStorage{
 		Counters: make(map[string]int64, 0),

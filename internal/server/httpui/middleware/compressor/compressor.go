@@ -30,8 +30,18 @@ func GzipCompressor(next http.Handler) http.Handler {
 			if compressionWriter == nil {
 				return
 			}
-			defer compressionWriter.Flush()
-			defer compressionWriter.Close()
+			defer func(compressionWriter *gzip.Writer) {
+				err := compressionWriter.Flush()
+				if err != nil {
+					logger.ZapSugarLogger.Errorln("error when flushing compressionWriter", err.Error())
+				}
+			}(compressionWriter)
+			defer func(compressionWriter *gzip.Writer) {
+				err := compressionWriter.Close()
+				if err != nil {
+					logger.ZapSugarLogger.Errorln("error when closing compressionWriter", err.Error())
+				}
+			}(compressionWriter)
 
 			response.Header().Set("Content-Encoding", "gzip")
 

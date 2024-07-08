@@ -1,21 +1,24 @@
 package handlers
 
 import (
-	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 	"io"
 	"net/http"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 )
 
 type GetController struct {
-	Service services.GetMetricService
+	Service       services.GetMetricService
+	MiddlewareSet *middleware.Set
 }
 
-func NewGetController(serv services.GetMetricService) GetController {
+func NewGetController(serv services.GetMetricService, middlewareSet *middleware.Set) GetController {
 	return GetController{
-		Service: serv,
+		Service:       serv,
+		MiddlewareSet: middlewareSet,
 	}
 }
 
@@ -31,7 +34,7 @@ func (cont GetController) GetAllMetrics(res http.ResponseWriter, req *http.Reque
 }
 
 func GetAllMetricsHandler(cont GetController) http.Handler {
-	return middleware.CommonConveyor(
+	return cont.MiddlewareSet.CommonConveyor(
 		http.HandlerFunc(cont.GetAllMetrics),
 	)
 }

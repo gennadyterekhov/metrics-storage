@@ -19,17 +19,19 @@ import (
 )
 
 type SaveController struct {
-	Service services.SaveMetricService
+	Service       services.SaveMetricService
+	MiddlewareSet *middleware.Set
 }
 
-func NewSaveController(serv services.SaveMetricService) SaveController {
+func NewSaveController(serv services.SaveMetricService, middlewareSet *middleware.Set) SaveController {
 	return SaveController{
-		Service: serv,
+		Service:       serv,
+		MiddlewareSet: middlewareSet,
 	}
 }
 
 func SaveMetricHandler(cont SaveController) http.Handler {
-	return middleware.CommonConveyor(
+	return cont.MiddlewareSet.CommonConveyor(
 		http.HandlerFunc(cont.SaveMetric),
 	)
 }

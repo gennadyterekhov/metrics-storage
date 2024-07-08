@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers/handlers"
@@ -15,7 +17,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/router"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/repositories"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/suite"
 )
 
@@ -55,12 +56,12 @@ func InitBaseSuite[T BaseSuiteInterface](realSuite T) {
 	realSuite.SetRepository(&repo)
 }
 
-func (s *BaseSuite) SetRepository(repo *repositories.Repository) {
-	s.Repository = repo
+func (suite *BaseSuite) SetRepository(repo *repositories.Repository) {
+	suite.Repository = repo
 }
 
-func (s *BaseSuite) GetRepository() *repositories.Repository {
-	return s.Repository
+func (suite *BaseSuite) GetRepository() *repositories.Repository {
+	return suite.Repository
 }
 
 type HasServer interface {
@@ -84,17 +85,10 @@ func InitBaseSuiteWithServer[T BaseSuiteWithServerInterface](srv T) {
 	repo := repositories.New(storage.New(""))
 	srv.SetRepository(&repo)
 	servs := services.New(repo, &serverConfig)
-	controllersStruct := handlers.NewControllers(&servs)
+	middlewareSet := middleware.New(&serverConfig)
+	controllersStruct := handlers.NewControllers(&servs, middlewareSet)
 	srv.SetServer(httptest.NewServer(
 		router.New(&controllersStruct).ChiRouter,
-	))
-}
-
-func InitBaseSuiteWithServerUsingCustomRouter[T BaseSuiteWithServerInterface](srv T, rtr *chi.Mux) {
-	repo := repositories.New(storage.New(""))
-	srv.SetRepository(&repo)
-	srv.SetServer(httptest.NewServer(
-		rtr,
 	))
 }
 
@@ -112,14 +106,6 @@ func (s *BaseSuiteWithServer) SetServer(srv *httptest.Server) {
 
 func (s *BaseSuiteWithServer) GetServer() *httptest.Server {
 	return s.TestHTTPServer.Server
-}
-
-func NewTestHTTPServer(routerInterface chi.Router) *TestHTTPServer {
-	return &TestHTTPServer{
-		Server: httptest.NewServer(
-			routerInterface,
-		),
-	}
 }
 
 func (ts *TestHTTPServer) SendGet(

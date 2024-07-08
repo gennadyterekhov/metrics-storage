@@ -42,7 +42,6 @@ func (strg *MemStorage) LoadFromDisk(ctx context.Context, filename string) (err 
 		logger.ZapSugarLogger.Errorln("error when reading metrics file", err.Error())
 		logger.ZapSugarLogger.Infoln("loading empty metrics")
 		strg.Clear()
-		MetricsRepository = CreateStorage()
 
 		return err
 	}
