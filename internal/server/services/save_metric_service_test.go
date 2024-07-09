@@ -2,7 +2,13 @@ package services
 
 import (
 	"context"
+	"fmt"
+	"math/rand"
 	"testing"
+	"time"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/repositories"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 
@@ -26,6 +32,27 @@ func (suite *saveMetricTestSuite) SetupSuite() {
 	tests.InitBaseSuite(suite)
 	suite.Config = config.New()
 	suite.Service = services.NewSaveMetricService(suite.Repository, &suite.Config)
+}
+
+func BenchmarkSaveMetricService(b *testing.B) {
+	conf := config.New()
+	repo := repositories.New(storage.New(""))
+	srv := services.NewSaveMetricService(repo, &conf)
+	rand.Seed(time.Now().UnixNano())
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		rndVal1 := rand.Int63()
+		rndVal2 := rand.Float64()
+		srv.SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
+			MetricType: types.Counter, MetricName: fmt.Sprintf("c%d", i), CounterValue: &rndVal1, GaugeValue: nil,
+		})
+
+		srv.SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
+			MetricType: types.Gauge, MetricName: fmt.Sprintf("g%d", i), CounterValue: nil, GaugeValue: &rndVal2,
+		})
+	}
 }
 
 func TestSaveMetricService(t *testing.T) {
@@ -73,17 +100,15 @@ func (suite *saveMetricTestSuite) TestSaveMetricToMemory() {
 
 	// check counter is added to itself
 	ten := int64(10)
-	zeroInt := int64(0)
-	zeroFloat := float64(0.0)
 	two := float64(2.5)
 	suite.Service.SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
-		MetricType: types.Counter, MetricName: "cnt", CounterValue: &ten, GaugeValue: &zeroFloat,
+		MetricType: types.Counter, MetricName: "cnt", CounterValue: &ten, GaugeValue: nil,
 	})
 	assert.Equal(suite.T(), int64(10+1), suite.Repository.GetCounterOrZero(context.Background(), "cnt"))
 
 	// check gauge is substituted, (not 2.5+1.6)
 	suite.Service.SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
-		MetricType: types.Gauge, MetricName: "gaugeName", CounterValue: &zeroInt, GaugeValue: &two,
+		MetricType: types.Gauge, MetricName: "gaugeName", CounterValue: nil, GaugeValue: &two,
 	})
 	assert.Equal(suite.T(), 2.5, suite.Repository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }

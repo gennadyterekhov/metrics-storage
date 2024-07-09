@@ -44,11 +44,15 @@ type BaseSuite struct {
 }
 
 func (suite *BaseSuite) SetupTest() {
-	suite.Repository.Clear()
+	if suite.Repository != nil {
+		suite.Repository.Clear()
+	}
 }
 
 func (suite *BaseSuite) TearDownTest() {
-	suite.Repository.Clear()
+	if suite.Repository != nil {
+		suite.Repository.Clear()
+	}
 }
 
 func InitBaseSuite[T BaseSuiteInterface](realSuite T) {
