@@ -8,7 +8,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 )
 
 type DBStorage struct {
@@ -16,45 +15,11 @@ type DBStorage struct {
 	HTTPRequestContext context.Context
 }
 
-// deprecated
-func CreateDBStorage() *DBStorage {
-	conn, err := sql.Open("pgx", config.Conf.DBDsn)
-	if err != nil {
-		logger.ZapSugarLogger.Panicln("could not connect to db using dsn: " + config.Conf.DBDsn)
-	}
-
-	createType := `DO $$ BEGIN    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'metric_type') THEN
-	       CREATE TYPE metric_type AS
-	       ENUM(
-	    		'gauge', 'counter'
-	       );
-	   END IF; END$$`
-	_, err = conn.Exec(createType)
-	if err != nil {
-		panic(err)
-	}
-
-	createTable := `create table if not exists metrics
-	(
-	name varchar(255) primary key ,
-	type metric_type not null default 'gauge',
-	value double precision default null,
-	delta numeric default null
-	);`
-	_, err = conn.Exec(createTable)
-	if err != nil {
-		panic(err)
-	}
-
-	return &DBStorage{
-		DBConnection: conn,
-	}
-}
-
 func NewDBStorage(dsn string) *DBStorage {
 	conn, err := sql.Open("pgx", dsn)
 	if err != nil {
-		logger.ZapSugarLogger.Panicln("could not connect to db using dsn: " + config.Conf.DBDsn)
+		//
+		logger.ZapSugarLogger.Panicln("could not connect to db using dsn: " + dsn)
 	}
 
 	createType := `DO $$ BEGIN    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'metric_type') THEN

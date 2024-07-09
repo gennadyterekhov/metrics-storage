@@ -29,13 +29,13 @@ func TestAgentSuite(t *testing.T) {
 	suite.Run(t, new(agentTestSuite))
 }
 
-func (st *agentTestSuite) TestAgent() {
+func (suite *agentTestSuite) TestAgent() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
 
 	defer cancelContextFn()
 
 	go runAgentRoutine(ctx, &AgentConfig{
-		Addr:                      st.TestHTTPServer.Server.URL, //
+		Addr:                      suite.TestHTTPServer.Server.URL, //
 		ReportInterval:            1,
 		PollInterval:              1,
 		SimultaneousRequestsLimit: 5,
@@ -46,29 +46,29 @@ func (st *agentTestSuite) TestAgent() {
 	contextEndCondition := ctx.Err()
 
 	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-		totalCounters := len(st.Repository.GetAllCounters(context.Background()))
-		totalGauges := len(st.Repository.GetAllGauges(context.Background()))
+		totalCounters := len(suite.Repository.GetAllCounters(context.Background()))
+		totalGauges := len(suite.Repository.GetAllGauges(context.Background()))
 
-		assert.Equal(st.T(),
+		assert.Equal(suite.T(),
 			1,
 			totalCounters,
 		)
-		assert.LessOrEqual(st.T(),
+		assert.LessOrEqual(suite.T(),
 			27+1,
 			totalGauges,
 		)
 	} else {
-		st.T().Error("context didnt finish")
+		suite.T().Error("context didnt finish")
 	}
 }
 
-func (st *agentTestSuite) TestList() {
+func (suite *agentTestSuite) TestList() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
 
 	defer cancelContextFn()
 
 	go runAgentRoutine(ctx, &AgentConfig{
-		Addr:                      st.TestHTTPServer.Server.URL,
+		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
 		IsBatch:                   true,
@@ -80,27 +80,27 @@ func (st *agentTestSuite) TestList() {
 	contextEndCondition := ctx.Err()
 
 	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-		assert.Equal(st.T(),
+		assert.Equal(suite.T(),
 			1,
-			len(st.Repository.GetAllCounters(context.Background())),
+			len(suite.Repository.GetAllCounters(context.Background())),
 		)
-		assert.LessOrEqual(st.T(),
+		assert.LessOrEqual(suite.T(),
 			27+1,
-			len(st.Repository.GetAllGauges(context.Background())),
+			len(suite.Repository.GetAllGauges(context.Background())),
 		)
 
 		return
 	} else {
-		st.T().Error("context didnt finish")
+		suite.T().Error("context didnt finish")
 	}
 }
 
-func (st *agentTestSuite) TestGzip() {
+func (suite *agentTestSuite) TestGzip() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
 
 	defer cancelContextFn()
 	go runAgentRoutine(ctx, &AgentConfig{
-		Addr:                      st.TestHTTPServer.Server.URL,
+		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
 		IsGzip:                    true,
@@ -112,28 +112,28 @@ func (st *agentTestSuite) TestGzip() {
 	contextEndCondition := ctx.Err()
 
 	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-		assert.Equal(st.T(),
+		assert.Equal(suite.T(),
 			1,
-			len(st.Repository.GetAllCounters(context.Background())),
+			len(suite.Repository.GetAllCounters(context.Background())),
 		)
-		assert.LessOrEqual(st.T(),
+		assert.LessOrEqual(suite.T(),
 			27+1,
-			len(st.Repository.GetAllGauges(context.Background())),
+			len(suite.Repository.GetAllGauges(context.Background())),
 		)
-		savedValue := st.Repository.GetCounterOrZero(context.Background(), "PollCount")
-		assert.Equal(st.T(), int64(1), savedValue)
+		savedValue := suite.Repository.GetCounterOrZero(context.Background(), "PollCount")
+		assert.Equal(suite.T(), int64(1), savedValue)
 		return
 	}
 
-	st.T().Error("context didnt finish")
+	suite.T().Error("context didnt finish")
 }
 
-func (st *agentTestSuite) TestSameValueReturnedFromServer() {
+func (suite *agentTestSuite) TestSameValueReturnedFromServer() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
 
 	defer cancelContextFn()
 	go runAgentRoutine(ctx, &AgentConfig{
-		Addr:                      st.TestHTTPServer.Server.URL,
+		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
 		IsBatch:                   true,
@@ -144,37 +144,37 @@ func (st *agentTestSuite) TestSameValueReturnedFromServer() {
 	contextEndCondition := ctx.Err()
 
 	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-		assert.Equal(st.T(),
+		assert.Equal(suite.T(),
 			1,
-			len(st.Repository.GetAllCounters(context.Background())),
+			len(suite.Repository.GetAllCounters(context.Background())),
 		)
-		assert.LessOrEqual(st.T(),
+		assert.LessOrEqual(suite.T(),
 			27+1,
-			len(st.Repository.GetAllGauges(context.Background())),
+			len(suite.Repository.GetAllGauges(context.Background())),
 		)
 
 		url := "/value/gauge/BuckHashSys"
 
-		r, responseBody := testhelper.SendRequest(st.T(), st.TestHTTPServer.Server, http.MethodGet, url)
+		r, responseBody := testhelper.SendRequest(suite.T(), suite.TestHTTPServer.Server, http.MethodGet, url)
 		r.Body.Close()
-		savedValue := st.Repository.GetGaugeOrZero(context.Background(), "BuckHashSys")
+		savedValue := suite.Repository.GetGaugeOrZero(context.Background(), "BuckHashSys")
 
 		assert.Equal(
-			st.T(),
+			suite.T(),
 			strconv.FormatFloat(savedValue, 'g', -1, 64),
 			string(responseBody),
 		)
 	} else {
-		st.T().Error("context didnt finish")
+		suite.T().Error("context didnt finish")
 	}
 }
 
-func (st *agentTestSuite) TestReportIntervalMoreThanPollInterval() {
+func (suite *agentTestSuite) TestReportIntervalMoreThanPollInterval() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 	defer cancelContextFn()
 
 	go runAgentRoutine(ctx, &AgentConfig{
-		Addr:                      st.TestHTTPServer.Server.URL,
+		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            2,
 		PollInterval:              1,
 		IsBatch:                   true,
@@ -185,25 +185,25 @@ func (st *agentTestSuite) TestReportIntervalMoreThanPollInterval() {
 	contextEndCondition := ctx.Err()
 
 	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-		assert.Equal(st.T(),
+		assert.Equal(suite.T(),
 			1,
-			len(st.Repository.GetAllCounters(context.Background())),
+			len(suite.Repository.GetAllCounters(context.Background())),
 		)
-		assert.LessOrEqual(st.T(),
+		assert.LessOrEqual(suite.T(),
 			27+1,
-			len(st.Repository.GetAllGauges(context.Background())),
+			len(suite.Repository.GetAllGauges(context.Background())),
 		)
 	} else {
-		st.T().Error("context didnt finish")
+		suite.T().Error("context didnt finish")
 	}
 }
 
-func (st *agentTestSuite) TestReportIntervalLessThanPollInterval() {
+func (suite *agentTestSuite) TestReportIntervalLessThanPollInterval() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 	defer cancelContextFn()
 
 	go runAgentRoutine(ctx, &AgentConfig{
-		Addr:                      st.TestHTTPServer.Server.URL,
+		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              2,
 		IsBatch:                   true,
@@ -214,16 +214,16 @@ func (st *agentTestSuite) TestReportIntervalLessThanPollInterval() {
 	contextEndCondition := ctx.Err()
 
 	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
-		assert.Equal(st.T(),
+		assert.Equal(suite.T(),
 			1,
-			len(st.Repository.GetAllCounters(context.Background())),
+			len(suite.Repository.GetAllCounters(context.Background())),
 		)
-		assert.LessOrEqual(st.T(),
+		assert.LessOrEqual(suite.T(),
 			27+1,
-			len(st.Repository.GetAllGauges(context.Background())),
+			len(suite.Repository.GetAllGauges(context.Background())),
 		)
 	} else {
-		st.T().Error("context didnt finish")
+		suite.T().Error("context didnt finish")
 	}
 }
 

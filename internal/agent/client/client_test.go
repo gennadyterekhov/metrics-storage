@@ -25,9 +25,9 @@ func TestAgentSuite(t *testing.T) {
 	suite.Run(t, new(clientTestSuite))
 }
 
-func (st *clientTestSuite) TestCanSendCounterValue() {
+func (suite *clientTestSuite) TestCanSendCounterValue() {
 	metricsStorageClient := MetricsStorageClient{
-		Address: st.TestHTTPServer.Server.URL,
+		Address: suite.TestHTTPServer.Server.URL,
 		IsGzip:  false,
 	}
 
@@ -52,8 +52,8 @@ func (st *clientTestSuite) TestCanSendCounterValue() {
 	}
 	var err error
 	for _, tt := range cases {
-		st.T().Run(tt.name, func(t *testing.T) {
-			st.Repository.Clear()
+		suite.T().Run(tt.name, func(t *testing.T) {
+			suite.Repository.Clear()
 			if tt.isGzip {
 				metricsStorageClient.IsGzip = true
 			}
@@ -67,24 +67,24 @@ func (st *clientTestSuite) TestCanSendCounterValue() {
 
 			assert.Equal(t,
 				1,
-				len(st.Repository.GetAllCounters(context.Background())),
+				len(suite.Repository.GetAllCounters(context.Background())),
 			)
 			assert.Equal(t,
 				0,
-				len(st.Repository.GetAllGauges(context.Background())),
+				len(suite.Repository.GetAllGauges(context.Background())),
 			)
 
 			assert.Equal(t,
 				tt.want.counterValue,
-				st.Repository.GetCounterOrZero(context.Background(), "nm"),
+				suite.Repository.GetCounterOrZero(context.Background(), "nm"),
 			)
 		})
 	}
 }
 
-func (st *clientTestSuite) TestCanSendGaugeValue() {
+func (suite *clientTestSuite) TestCanSendGaugeValue() {
 	metricsStorageClient := MetricsStorageClient{
-		Address: st.TestHTTPServer.Server.URL,
+		Address: suite.TestHTTPServer.Server.URL,
 		IsGzip:  false,
 	}
 	type want struct {
@@ -101,7 +101,7 @@ func (st *clientTestSuite) TestCanSendGaugeValue() {
 	}
 	var err error
 	for _, tt := range cases {
-		st.T().Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			metrics := metric.GaugeMetric{
 				Name:  "nm",
 				Type:  types.Gauge,
@@ -113,16 +113,16 @@ func (st *clientTestSuite) TestCanSendGaugeValue() {
 
 			assert.Equal(t,
 				0,
-				len(st.Repository.GetAllCounters(context.Background())),
+				len(suite.Repository.GetAllCounters(context.Background())),
 			)
 			assert.Equal(t,
 				1,
-				len(st.Repository.GetAllGauges(context.Background())),
+				len(suite.Repository.GetAllGauges(context.Background())),
 			)
 
 			assert.Equal(t,
 				tt.want.gaugeValue,
-				st.Repository.GetGaugeOrZero(context.Background(), "nm"),
+				suite.Repository.GetGaugeOrZero(context.Background(), "nm"),
 			)
 		})
 	}

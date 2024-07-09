@@ -22,7 +22,7 @@ func TestHealthcheck(t *testing.T) {
 	suite.Run(t, new(healthcheckTestSuite))
 }
 
-func (st *healthcheckTestSuite) TestCanSendHeadRequest() {
+func (suite *healthcheckTestSuite) TestCanSendHeadRequest() {
 	type want struct {
 		code int
 	}
@@ -39,8 +39,8 @@ func (st *healthcheckTestSuite) TestCanSendHeadRequest() {
 	}
 
 	for _, tt := range cases {
-		st.T().Run(tt.name, func(t *testing.T) {
-			isOk := MakeHealthcheck(st.TestHTTPServer.Server.URL)
+		suite.T().Run(tt.name, func(t *testing.T) {
+			isOk := MakeHealthcheck(suite.TestHTTPServer.Server.URL)
 			assert.Equal(t, true, isOk)
 		})
 	}

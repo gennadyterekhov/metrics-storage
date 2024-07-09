@@ -2,8 +2,6 @@ package storage
 
 import (
 	"context"
-
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 )
 
 type StorageInterface interface {
@@ -26,17 +24,6 @@ type StorageInterface interface {
 	GetMemStorage() *MemStorage
 
 	CloseDB() error
-}
-
-// deprecated
-var MetricsRepository = CreateStorage()
-
-// deprecated
-func CreateStorage() StorageInterface {
-	if config.Conf.DBDsn == "" {
-		return CreateRAMStorage()
-	}
-	return CreateDBStorage()
 }
 
 func New(dsn string) StorageInterface {

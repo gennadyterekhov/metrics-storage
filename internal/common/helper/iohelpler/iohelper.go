@@ -32,20 +32,21 @@ func ReadFromGzipReaderOrDie(reader io.Reader) []byte {
 
 func ReadFromReadCloserOrDie(reader io.ReadCloser) []byte {
 	readBytes := ReadFromReaderOrDie(reader)
-	err := reader.Close()
-	if err != nil {
-		logger.ZapSugarLogger.Panicln("error when closing", err.Error())
-	}
+	CloseOrPanic(reader)
 
 	return readBytes
 }
 
 func ReadFromGzipReadCloserOrDie(reader io.ReadCloser) []byte {
 	readBytes := ReadFromGzipReaderOrDie(reader)
+	CloseOrPanic(reader)
+
+	return readBytes
+}
+
+func CloseOrPanic(reader io.ReadCloser) {
 	err := reader.Close()
 	if err != nil {
 		logger.ZapSugarLogger.Panicln("error when closing", err.Error())
 	}
-
-	return readBytes
 }

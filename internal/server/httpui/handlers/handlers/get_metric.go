@@ -11,7 +11,6 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
@@ -19,7 +18,7 @@ import (
 )
 
 func GetMetricHandler(cont GetController) http.Handler {
-	return middleware.CommonConveyor(
+	return cont.MiddlewareSet.CommonConveyor(
 		http.HandlerFunc(cont.GetMetric),
 	)
 }

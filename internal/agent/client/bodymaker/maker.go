@@ -6,10 +6,16 @@ import (
 
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/common/domain/models"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 )
+
+type MetricsRequest struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
 
 func GetBody(met metric.MetricURLFormatter) ([]byte, error) {
 	counterValue, gaugeValue, err := getMetricValues(met)
@@ -17,7 +23,7 @@ func GetBody(met metric.MetricURLFormatter) ([]byte, error) {
 		return nil, err
 	}
 
-	metricToEncode := models.Metrics{
+	metricToEncode := MetricsRequest{
 		ID:    met.GetName(),
 		MType: met.GetType(),
 		Delta: &counterValue,

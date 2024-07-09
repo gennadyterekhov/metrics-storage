@@ -24,7 +24,7 @@ func TestGetAll(t *testing.T) {
 	suite.Run(t, new(getAllTestSuite))
 }
 
-func (st *getAllTestSuite) TestGetAllMetrics() {
+func (suite *getAllTestSuite) TestGetAllMetrics() {
 	type args struct {
 		res http.ResponseWriter
 		req *http.Request
@@ -55,10 +55,10 @@ func (st *getAllTestSuite) TestGetAllMetrics() {
 </html>
 `
 	for _, tt := range cases {
-		st.T().Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			response, responseBody := testhelper.SendRequest(
 				t,
-				st.TestHTTPServer.Server,
+				suite.TestHTTPServer.Server,
 				http.MethodGet,
 				"/",
 			)
@@ -75,7 +75,7 @@ func (st *getAllTestSuite) TestGetAllMetrics() {
 	}
 }
 
-func (st *getAllTestSuite) TestGetAllMetricsGzip() {
+func (suite *getAllTestSuite) TestGetAllMetricsGzip() {
 	type args struct {
 		res http.ResponseWriter
 		req *http.Request
@@ -106,10 +106,10 @@ func (st *getAllTestSuite) TestGetAllMetricsGzip() {
 </html>
 `
 	for _, tt := range cases {
-		st.T().Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			response, responseBody := testhelper.SendGzipNoBodyRequest(
 				t,
-				st.TestHTTPServer.Server,
+				suite.TestHTTPServer.Server,
 				http.MethodGet,
 				"/",
 			)

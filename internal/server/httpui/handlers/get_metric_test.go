@@ -9,11 +9,12 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
 	"github.com/stretchr/testify/suite"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/common/domain/models"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,8 +28,8 @@ type getMetricTestSuite struct {
 	tests.BaseSuiteWithServer
 }
 
-func (suite *getMetricTestSuite) SetupSuite() {
-	tests.InitBaseSuiteWithServer(suite)
+func (st *getMetricTestSuite) SetupSuite() {
+	tests.InitBaseSuiteWithServer(st)
 }
 
 func TestGetMetricHandler(t *testing.T) {
@@ -83,10 +84,10 @@ func (st *getMetricTestSuite) TestGetMetricJSON() {
 			assert.Equal(t, tt.want.code, response.StatusCode)
 
 			if response.StatusCode == http.StatusOK {
-				receivedData := models.Metrics{}
+				receivedData := responses.GetMetricResponse{}
 				err := json.Unmarshal(responseBody, &receivedData)
 				assert.NoError(t, err)
-				assert.Equal(t, tt.want.metricValue, *receivedData.Delta)
+				assert.Equal(t, tt.want.metricValue, *receivedData.CounterValue)
 			}
 		})
 	}

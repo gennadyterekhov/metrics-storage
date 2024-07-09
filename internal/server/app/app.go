@@ -7,6 +7,8 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers/handlers"
@@ -21,7 +23,7 @@ import (
 
 type App struct {
 	Config      config.ServerConfig
-	DBOrRam     storage.StorageInterface
+	DBOrRAM     storage.StorageInterface
 	Repository  repositories.RepositoryInterface
 	Services    services.Services
 	Controllers handlers.Controllers
@@ -30,15 +32,16 @@ type App struct {
 
 func New() App {
 	conf := config.New()
-	DBOrRam := storage.New(conf.DBDsn)
-	repo := repositories.New(DBOrRam)
+	DBOrRAM := storage.New(conf.DBDsn)
+	repo := repositories.New(DBOrRAM)
 	servicesPack := services.New(&repo, &conf)
-	controllers := handlers.NewControllers(&servicesPack)
+	middlewareSet := middleware.New(&conf)
+	controllers := handlers.NewControllers(&servicesPack, middlewareSet)
 	rtr := router.New(&controllers)
 
 	return App{
 		Config:      conf,
-		DBOrRam:     DBOrRam,
+		DBOrRAM:     DBOrRAM,
 		Repository:  repo,
 		Services:    servicesPack,
 		Controllers: controllers,
@@ -51,7 +54,7 @@ func (a App) StartServer() error {
 
 	if a.Config.FileStorage != "" {
 		if a.Config.Restore {
-			err = a.DBOrRam.LoadFromDisk(context.Background(), a.Config.FileStorage)
+			err = a.DBOrRAM.LoadFromDisk(context.Background(), a.Config.FileStorage)
 			if err != nil {
 				logger.ZapSugarLogger.Debugln("could not load metrics from disk, loaded empty repository")
 				logger.ZapSugarLogger.Errorln("error when loading metrics from disk", err.Error())
@@ -63,18 +66,18 @@ func (a App) StartServer() error {
 		a.Services.TimeTracker.StartTrackingIntervals()
 	}
 
-	defer func(DBOrRam storage.StorageInterface) {
-		err := DBOrRam.CloseDB()
+	defer func(DBOrRAM storage.StorageInterface) {
+		err := DBOrRAM.CloseDB()
 		if err != nil {
 			fmt.Println(err.Error())
 		}
-	}(a.DBOrRam)
+	}(a.DBOrRAM)
 
 	go a.onStop()
 	fmt.Printf("Server started on %v\n", a.Config.Addr)
 	err = http.ListenAndServe(a.Config.Addr, a.Router.ChiRouter)
 
-	return nil
+	return err
 }
 
 func (a App) onStop() {

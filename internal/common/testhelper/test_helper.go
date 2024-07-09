@@ -6,49 +6,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"testing"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/iohelpler"
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/require"
 )
 
-// deprecated
-var TestServer *httptest.Server
-
-// deprecated
-func Bootstrap(m *testing.M) {
-	setUp(nil)
-	code := m.Run()
-	tearDown()
-	os.Exit(code)
-}
-
-// deprecated
-func bootstrapWithServer(m *testing.M, server *httptest.Server) {
-	setUp(server)
-	code := m.Run()
-	tearDown()
-	os.Exit(code)
-}
-
-// deprecated
-func BootstrapWithDefaultServer(m *testing.M, routerInterface chi.Router) {
-	server := httptest.NewServer(
-		routerInterface,
-	)
-	bootstrapWithServer(m, server)
-}
-
-func setUp(server *httptest.Server) {
-}
-
-func tearDown() {
-}
-
-// deprecated
 func SendRequest(
 	t *testing.T,
 	ts *httptest.Server,
@@ -66,7 +30,6 @@ func SendRequest(
 	return response, string(respBody)
 }
 
-// deprecated
 func SendAlreadyJSONedBody(
 	t *testing.T,
 	ts *httptest.Server,
@@ -88,7 +51,6 @@ func SendAlreadyJSONedBody(
 	return response, respBody
 }
 
-// deprecated
 func SendGzipRequest(
 	t *testing.T,
 	ts *httptest.Server,
@@ -118,14 +80,13 @@ func SendGzipRequest(
 	response, err := ts.Client().Do(request)
 
 	require.NoError(t, err)
-	// i dont know why, but here it does not decompress automatically in contrast to compressor package
+	// I don't know why, but here it does not decompress automatically in contrast to compressor package
 	respBody := iohelpler.ReadFromGzipReadCloserOrDie(response.Body)
 	response.Body.Close()
 
 	return response, respBody
 }
 
-// deprecated
 func SendGzipNoBodyRequest(
 	t *testing.T,
 	ts *httptest.Server,
@@ -146,7 +107,7 @@ func SendGzipNoBodyRequest(
 	response, err := ts.Client().Do(request)
 
 	require.NoError(t, err)
-	// i dont know why, but here it does not decompress automatically in contrast to compressor package
+	// I don't know why, but here it does not decompress automatically in contrast to compressor package
 	respBody := iohelpler.ReadFromGzipReadCloserOrDie(response.Body)
 	response.Body.Close()
 

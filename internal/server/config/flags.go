@@ -21,9 +21,6 @@ func New() ServerConfig {
 	return *getConfig()
 }
 
-// deprecated
-var Conf *ServerConfig = getConfig()
-
 func getConfig() *ServerConfig {
 	if strings.HasSuffix(os.Args[0], ".test") {
 		return &ServerConfig{}

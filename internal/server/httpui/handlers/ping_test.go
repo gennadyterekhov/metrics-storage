@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
@@ -9,7 +8,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -25,8 +23,8 @@ func TestPingHandler(t *testing.T) {
 	suite.Run(t, new(pingTestSuite))
 }
 
-func (st *pingTestSuite) TestPing() {
-	st.T().Skip("only manual use because depends on host")
+func (suite *pingTestSuite) TestPing() {
+	suite.T().Skip("only manual use because depends on host")
 	type want struct {
 		code int
 	}
@@ -34,7 +32,7 @@ func (st *pingTestSuite) TestPing() {
 		username string
 	}
 
-	tests := []struct {
+	cases := []struct {
 		name string
 		args args
 		want want
@@ -52,21 +50,20 @@ func (st *pingTestSuite) TestPing() {
 	}
 	var err error
 
-	for _, tt := range tests {
-		st.T().Run(tt.name, func(t *testing.T) {
-			DBDsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s sslmode=disable",
-				`localhost`, tt.args.username, `metrics_pass`, `metrics_db_test`)
-
-			config.Conf.DBDsn = DBDsn
+	for _, tt := range cases {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			assert.NoError(t, err)
 
 			response, _ := testhelper.SendRequest(
 				t,
-				st.TestHTTPServer.Server,
+				suite.TestHTTPServer.Server,
 				http.MethodGet,
 				"/ping",
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			if err != nil {
+				panic(err)
+			}
 			assert.Equal(t, tt.want.code, response.StatusCode)
 		})
 	}

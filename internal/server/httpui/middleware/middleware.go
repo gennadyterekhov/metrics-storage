@@ -1,26 +1,39 @@
 package middleware
 
 import (
+	"net/http"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/compressor"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/hashchecker"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/logger"
-	"net/http"
 )
+
+type Set struct {
+	Config *config.ServerConfig
+}
 
 type Middleware func(http.Handler) http.Handler
 
-func CommonConveyor(h http.Handler, middlewares ...Middleware) http.Handler {
-	allMiddlewares := getCommonMiddlewares()
+func New(conf *config.ServerConfig) *Set {
+	return &Set{
+		Config: conf,
+	}
+}
+
+func (set *Set) CommonConveyor(h http.Handler, middlewares ...Middleware) http.Handler {
+	allMiddlewares := getCommonMiddlewares(set.Config)
 	allMiddlewares = append(allMiddlewares, middlewares...)
 	return conveyor(h, allMiddlewares...)
 }
 
-func getCommonMiddlewares() []Middleware {
+func getCommonMiddlewares(conf *config.ServerConfig) []Middleware {
 	return []Middleware{
 		logger.RequestAndResponseLoggerMiddleware,
 		compressor.GzipCompressor,
 		ContentType,
-		hashchecker.CheckHash,
+		hashchecker.New(conf.PayloadSignatureKey).CheckHash,
 	}
 }
 

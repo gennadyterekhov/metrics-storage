@@ -32,7 +32,7 @@ func TestSaveMetricService(t *testing.T) {
 	suite.Run(t, new(saveMetricTestSuite))
 }
 
-func (st *saveMetricTestSuite) TestSaveMetricToMemory() {
+func (suite *saveMetricTestSuite) TestSaveMetricToMemory() {
 	type args struct {
 		metricType   string
 		name         string
@@ -53,20 +53,20 @@ func (st *saveMetricTestSuite) TestSaveMetricToMemory() {
 		},
 	}
 	for _, tt := range cases {
-		st.T().Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			filledDto := &requests.SaveMetricRequest{
 				MetricType:   tt.args.metricType,
 				MetricName:   tt.args.name,
 				CounterValue: &tt.args.counterValue,
 				GaugeValue:   &tt.args.gaugeValue,
 			}
-			st.Service.SaveMetricToMemory(context.Background(), filledDto)
+			suite.Service.SaveMetricToMemory(context.Background(), filledDto)
 
 			if tt.args.metricType == types.Counter {
-				assert.Equal(t, tt.args.counterValue, st.Repository.GetCounterOrZero(context.Background(), tt.args.name))
+				assert.Equal(t, tt.args.counterValue, suite.Repository.GetCounterOrZero(context.Background(), tt.args.name))
 			}
 			if tt.args.metricType == types.Gauge {
-				assert.Equal(t, tt.args.gaugeValue, st.Repository.GetGaugeOrZero(context.Background(), tt.args.name))
+				assert.Equal(t, tt.args.gaugeValue, suite.Repository.GetGaugeOrZero(context.Background(), tt.args.name))
 			}
 		})
 	}
@@ -76,14 +76,14 @@ func (st *saveMetricTestSuite) TestSaveMetricToMemory() {
 	zeroInt := int64(0)
 	zeroFloat := float64(0.0)
 	two := float64(2.5)
-	st.Service.SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
+	suite.Service.SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
 		MetricType: types.Counter, MetricName: "cnt", CounterValue: &ten, GaugeValue: &zeroFloat,
 	})
-	assert.Equal(st.T(), int64(10+1), st.Repository.GetCounterOrZero(context.Background(), "cnt"))
+	assert.Equal(suite.T(), int64(10+1), suite.Repository.GetCounterOrZero(context.Background(), "cnt"))
 
 	// check gauge is substituted, (not 2.5+1.6)
-	st.Service.SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
+	suite.Service.SaveMetricToMemory(context.Background(), &requests.SaveMetricRequest{
 		MetricType: types.Gauge, MetricName: "gaugeName", CounterValue: &zeroInt, GaugeValue: &two,
 	})
-	assert.Equal(st.T(), 2.5, st.Repository.GetGaugeOrZero(context.Background(), "gaugeName"))
+	assert.Equal(suite.T(), 2.5, suite.Repository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }
