@@ -24,6 +24,15 @@ func NewPingController(serv services.PingService) PingController {
 	}
 }
 
+// Ping check db connection
+// @Summary check db connection
+// @Description check db connection
+// @ID Ping
+// @Accept  plain
+// @Produce plain
+// @Success 200 {object} string "ok"
+// @Failure 500 {string} string "Internal server error"
+// @Router /ping [get]
 func (cont *PingController) Ping(res http.ResponseWriter, req *http.Request) {
 	var err error
 

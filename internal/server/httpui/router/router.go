@@ -23,8 +23,6 @@ func New(conts *handlers.Controllers) Router {
 }
 
 func (rtr Router) registerRoutes() {
-	rtr.ChiRouter.Head("/", handlers.HeadHandler)
-
 	rtr.ChiRouter.Get(
 		"/ping",
 		handlers.PingHandler(rtr.Controllers.PingController).ServeHTTP,
@@ -38,11 +36,11 @@ func (rtr Router) registerRoutes() {
 	)
 	rtr.ChiRouter.Post(
 		"/value/",
-		handlers.GetMetricHandler(rtr.Controllers.GetController).ServeHTTP,
+		handlers.GetMetricJSONHandler(rtr.Controllers.GetController).ServeHTTP,
 	)
 	rtr.ChiRouter.Post(
 		"/value",
-		handlers.GetMetricHandler(rtr.Controllers.GetController).ServeHTTP,
+		handlers.GetMetricJSONHandler(rtr.Controllers.GetController).ServeHTTP,
 	)
 
 	rtr.ChiRouter.Post(
@@ -60,10 +58,10 @@ func (rtr Router) registerRoutes() {
 	)
 	rtr.ChiRouter.Post(
 		"/update/",
-		handlers.SaveMetricHandler(rtr.Controllers.SaveController).ServeHTTP,
+		handlers.SaveMetricJSONHandler(rtr.Controllers.SaveController).ServeHTTP,
 	)
 	rtr.ChiRouter.Post(
 		"/update",
-		handlers.SaveMetricHandler(rtr.Controllers.SaveController).ServeHTTP,
+		handlers.SaveMetricJSONHandler(rtr.Controllers.SaveController).ServeHTTP,
 	)
 }

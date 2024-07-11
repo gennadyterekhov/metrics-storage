@@ -21,6 +21,15 @@ type SaveMetricService struct {
 	Config     *config.ServerConfig
 }
 
+// ISaveMetric is used to decouple from requests.SaveMetricRequest
+type ISaveMetric interface {
+	GetMetricType() string
+	GetMetricName() string
+	GetCounterValue() *int64
+	GetGaugeValue() *float64
+	GetIsJSON() bool
+}
+
 func NewSaveMetricService(repo repositories.RepositoryInterface, conf *config.ServerConfig) SaveMetricService {
 	return SaveMetricService{
 		Repository: repo,
@@ -28,28 +37,28 @@ func NewSaveMetricService(repo repositories.RepositoryInterface, conf *config.Se
 	}
 }
 
-func (sms SaveMetricService) SaveMetricToMemory(ctx context.Context, filledDto *requests.SaveMetricRequest) (responseDto *responses.GetMetricResponse) {
+func (sms SaveMetricService) SaveMetricToMemory(ctx context.Context, filledDto ISaveMetric) (responseDto *responses.GetMetricResponse) {
 	responseDto = &responses.GetMetricResponse{
-		MetricType:   filledDto.MetricType,
-		MetricName:   filledDto.MetricName,
+		MetricType:   filledDto.GetMetricType(),
+		MetricName:   filledDto.GetMetricName(),
 		CounterValue: nil,
 		GaugeValue:   nil,
-		IsJSON:       filledDto.IsJSON,
+		IsJSON:       filledDto.GetIsJSON(),
 		Error:        nil,
 	}
 	logger.ZapSugarLogger.Debugln("saving metric",
-		filledDto.MetricName, filledDto.MetricType, filledDto.CounterValue, filledDto.GaugeValue)
-	if filledDto.MetricType == types.Counter && filledDto.CounterValue != nil {
-		sms.Repository.AddCounter(ctx, filledDto.MetricName, *filledDto.CounterValue)
-		updatedCounter, err := sms.Repository.GetCounter(ctx, filledDto.MetricName)
+		filledDto.GetMetricName(), filledDto.GetMetricType(), filledDto.GetCounterValue(), filledDto.GetGaugeValue())
+	if filledDto.GetMetricType() == types.Counter && filledDto.GetCounterValue() != nil {
+		sms.Repository.AddCounter(ctx, filledDto.GetMetricName(), *filledDto.GetCounterValue())
+		updatedCounter, err := sms.Repository.GetCounter(ctx, filledDto.GetMetricName())
 		if err != nil {
 			updatedCounter = 0
 		}
 		responseDto.CounterValue = &updatedCounter
 	}
-	if filledDto.MetricType == types.Gauge && filledDto.GaugeValue != nil {
-		sms.Repository.SetGauge(ctx, filledDto.MetricName, *filledDto.GaugeValue)
-		responseDto.GaugeValue = filledDto.GaugeValue
+	if filledDto.GetMetricType() == types.Gauge && filledDto.GetGaugeValue() != nil {
+		sms.Repository.SetGauge(ctx, filledDto.GetMetricName(), *filledDto.GetGaugeValue())
+		responseDto.GaugeValue = filledDto.GetGaugeValue()
 	}
 
 	sms.saveToDiskSynchronously(ctx)

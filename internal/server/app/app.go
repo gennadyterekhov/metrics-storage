@@ -21,6 +21,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 )
 
+// App is main instance of server app.
 type App struct {
 	Config      config.ServerConfig
 	DBOrRAM     storage.StorageInterface
@@ -30,6 +31,7 @@ type App struct {
 	Router      router.Router
 }
 
+// New creates App instance, injects all dependencies.
 func New() App {
 	conf := config.New()
 	DBOrRAM := storage.New(conf.DBDsn)
@@ -49,6 +51,7 @@ func New() App {
 	}
 }
 
+// StartServer starts a server; has graceful shutdown
 func (a App) StartServer() error {
 	var err error
 

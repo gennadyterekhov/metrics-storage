@@ -8,12 +8,17 @@ import (
 	"strings"
 )
 
+// ServerConfig is used to tune server behaviour
 type ServerConfig struct {
+	// StoreInterval interval in seconds of saving metrics to disk. use 0 to write immediately
+	// FileStorage absolute path to json file for db to be saved into. on omission, don't write
+	// Restore on true, loads db from file on start
+	// PayloadSignatureKey used to check authenticity and to sign response hashes
 	Addr                string
+	DBDsn               string
 	StoreInterval       int
 	FileStorage         string
 	Restore             bool
-	DBDsn               string
 	PayloadSignatureKey string
 }
 
@@ -50,7 +55,7 @@ func getConfig() *ServerConfig {
 		fileStorageFlag = flag.String(
 			"f",
 			"/tmp/metrics-db.json",
-			"[file storage] absolute path to json 2_db. on omission, dont write to 2_db",
+			"[file storage] absolute path to json file for db to be saved into. on omission, don't write",
 		)
 	}
 	if flag.Lookup("r") == nil {

@@ -47,9 +47,17 @@ mockgen -destination=mocks/mock_store.go -package=mocks project/store Store
 
 ## test coverage
 
-go clean -testcache
-go test -coverprofile cover.out ./...
-go tool cover -html=cover.out
+      go clean -testcache
+      
+      # create coverage file
+      go test -v -coverpkg=./... -coverprofile coverage/coverage.out ./...
+
+      # see results in html page
+      go tool cover -html=coverage/coverage.out
+      
+      # see results in CLI
+      go tool cover -func coverage/coverage.out
+
 
 ## benchmarks
 создать журнал профилирования с помощью бенчмарка
@@ -61,6 +69,30 @@ go test -bench=. -memprofile=mem.out
 go tool pprof -http=":9090" <test exe> cpu.out  
 например  
 go tool pprof -http=":9090" BenchmarkSaveMetricService_cpu.test BenchmarkSaveMetricService_cpu.out  
+
+## documentation
+### godoc
+start godoc server
+
+      godoc -play -http=:8080 -goroot="/Users/gena/code/yandex/practicum/golang_advanced/metrics-storage"  
+
+after that, visit  
+- [including 3rd party](http://localhost:8080/pkg/?m=all)  
+- [local project doc](http://localhost:8080/pkg/github.com/gennadyterekhov/metrics-storage/?m=all)  
+
+or download html doc using:
+
+      wget -r -np -N -E -p -k http://localhost:8080/pkg/github.com/gennadyterekhov/metrics-storage
+
+
+### swagger
+[comment format doc](https://github.com/swaggo/swag#declarative-comments-format)
+
+update doc files:
+
+      swag init --generalInfo controllers.go --dir ./internal/server/httpui/handlers/handlers --output ./swagger/
+
+visit [swagger editor](https://editor.swagger.io/) and paste `swagger/swagger.yaml`
 
 
 
