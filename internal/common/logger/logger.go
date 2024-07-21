@@ -7,7 +7,6 @@ import (
 var ZapSugarLogger zap.SugaredLogger
 
 func init() {
-
 	logger, err := zap.NewDevelopment()
 	if err != nil {
 		panic(err)
