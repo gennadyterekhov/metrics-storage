@@ -2,14 +2,14 @@ package bodypreparer
 
 import (
 	"fmt"
+	"testing"
+
 	"github.com/go-resty/resty/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"testing"
 )
 
 func TestCanHashBodyAndSaveInHeader(t *testing.T) {
-
 	type want struct {
 		hash string
 	}
