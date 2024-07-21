@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/rand"
 	"testing"
-	"time"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/server/repositories"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
@@ -38,7 +37,6 @@ func BenchmarkSaveMetricService(b *testing.B) {
 	conf := config.New()
 	repo := repositories.New(storage.New(""))
 	srv := services.NewSaveMetricService(repo, &conf)
-	rand.Seed(time.Now().UnixNano())
 
 	b.ResetTimer()
 
