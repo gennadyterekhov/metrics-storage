@@ -4,10 +4,10 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
-
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
+	_ "github.com/gennadyterekhov/metrics-storage/swagger"
 )
 
 type GetController struct {
@@ -22,6 +22,15 @@ func NewGetController(serv services.GetMetricService, middlewareSet *middleware.
 	}
 }
 
+// GetAllMetrics returns html page with a list of all metrics with their values
+// @Tags GET
+// @Summary returns html page with a list of all metrics with their values
+// @Description returns html page with a list of all metrics with their values
+// @ID GetAllMetrics
+// @Produce plain
+// @Success 200 {object} string "ok"
+// @Failure 500 {string} string "Internal server error"
+// @Router / [get]
 func (cont GetController) GetAllMetrics(res http.ResponseWriter, req *http.Request) {
 	htmlPage := cont.Service.GetMetricsListAsHTML(req.Context())
 

@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
+	_ "github.com/gennadyterekhov/metrics-storage/swagger"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -36,7 +37,49 @@ func SaveMetricHandler(cont SaveController) http.Handler {
 	)
 }
 
+func SaveMetricJSONHandler(cont SaveController) http.Handler {
+	return cont.MiddlewareSet.CommonConveyor(
+		http.HandlerFunc(cont.SaveMetricJSON),
+	)
+}
+
+// SaveMetric saves metric to db. returns json with saved metric
+// @Tags POST
+// @Summary saves metric to db
+// @Description saves metric to db
+// @ID SaveMetric
+// @Accept  plain
+// @Produce plain
+// @Param metricType path string true "'gauge' or 'counter'"
+// @Param metricName path string true "name of metric, serves as identifier"
+// @Param metricValue path string true "int64 if type is counter, float64 if type is gauge"
+// @Success 200 {object} string "ok"
+// @Failure 400 {string} string "Bad request"
+// @Failure 404 {string} string "unknown metric type"
+// @Failure 500 {string} string "Internal server error"
+// @Router /update/{metricType}/{metricName}/{metricValue} [post]
 func (cont SaveController) SaveMetric(res http.ResponseWriter, req *http.Request) {
+	cont.saveMetricCommon(res, req)
+}
+
+// SaveMetricJSON saves metric to db. returns json with saved metric
+// @Tags POST
+// @Summary saves metric to db
+// @Description saves metric to db
+// @ID SaveMetricJSON
+// @Accept  json
+// @Produce json
+// @Param   data body string true "requests.SaveMetricRequest"
+// @Success 200 {object} string "ok"
+// @Failure 400 {string} string "Bad request"
+// @Failure 404 {string} string "unknown metric type"
+// @Failure 500 {string} string "Internal server error"
+// @Router /update [post]
+func (cont SaveController) SaveMetricJSON(res http.ResponseWriter, req *http.Request) {
+	cont.saveMetricCommon(res, req)
+}
+
+func (cont SaveController) saveMetricCommon(res http.ResponseWriter, req *http.Request) {
 	requestDto := cont.getSaveDtoForService(req)
 	if requestDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during request DTO build process", requestDto.Error)

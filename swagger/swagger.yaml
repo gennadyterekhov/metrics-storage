@@ -1,0 +1,240 @@
+basePath: /
+host: localhost:8080
+info:
+  contact:
+    email: mail@example.com
+    name: API Support
+    url: https://github.com/gennadyterekhov/metrics-storage/issues/
+  description: metrics-storage API.
+  license:
+    name: MIT
+    url: https://en.wikipedia.org/wiki/MIT_License
+  termsOfService: http://swagger.io/terms/
+  title: metrics-storage API
+  version: "1.0"
+paths:
+  /:
+    get:
+      description: returns html page with a list of all metrics with their values
+      operationId: GetAllMetrics
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: returns html page with a list of all metrics with their values
+      tags:
+      - GET
+  /ping:
+    get:
+      consumes:
+      - text/plain
+      description: check db connection
+      operationId: Ping
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: check db connection
+  /update:
+    post:
+      consumes:
+      - application/json
+      description: saves metric to db
+      operationId: SaveMetricJSON
+      parameters:
+      - description: requests.SaveMetricRequest
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: unknown metric type
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: saves metric to db
+      tags:
+      - POST
+  /update/{metricType}/{metricName}/{metricValue}:
+    post:
+      consumes:
+      - text/plain
+      description: saves metric to db
+      operationId: SaveMetric
+      parameters:
+      - description: '''gauge'' or ''counter'''
+        in: path
+        name: metricType
+        required: true
+        type: string
+      - description: name of metric, serves as identifier
+        in: path
+        name: metricName
+        required: true
+        type: string
+      - description: int64 if type is counter, float64 if type is gauge
+        in: path
+        name: metricValue
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: unknown metric type
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: saves metric to db
+      tags:
+      - POST
+  /updates:
+    post:
+      consumes:
+      - application/json
+      description: saves metric batch to db
+      operationId: SaveMetricList
+      parameters:
+      - description: requests.SaveMetricListRequest
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: unknown metric type
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: saves metric batch to db
+      tags:
+      - POST
+  /value:
+    get:
+      consumes:
+      - application/json
+      description: get one metric from db in json
+      operationId: GetMetricJSON
+      parameters:
+      - description: requests.GetMetricRequest
+        in: body
+        name: data
+        required: true
+        schema:
+          type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: unknown metric type
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: get one metric from db in json
+      tags:
+      - GET
+  /value/{metricType}/{metricName}:
+    get:
+      consumes:
+      - text/plain
+      description: get one metric from db in plain text
+      operationId: GetMetric
+      parameters:
+      - description: '''gauge'' or ''counter'''
+        in: path
+        name: metricType
+        required: true
+        type: string
+      - description: name of metric, serves as identifier
+        in: path
+        name: metricName
+        required: true
+        type: string
+      produces:
+      - text/plain
+      responses:
+        "200":
+          description: ok
+          schema:
+            type: string
+        "400":
+          description: Bad request
+          schema:
+            type: string
+        "404":
+          description: unknown metric type
+          schema:
+            type: string
+        "500":
+          description: Internal server error
+          schema:
+            type: string
+      summary: get one metric from db in plain text
+      tags:
+      - GET
+swagger: "2.0"

@@ -23,7 +23,48 @@ func GetMetricHandler(cont GetController) http.Handler {
 	)
 }
 
+func GetMetricJSONHandler(cont GetController) http.Handler {
+	return cont.MiddlewareSet.CommonConveyor(
+		http.HandlerFunc(cont.GetMetricJSON),
+	)
+}
+
+// GetMetric get one metric from db in plain text
+// @Tags GET
+// @Summary get one metric from db in plain text
+// @Description get one metric from db in plain text
+// @ID GetMetric
+// @Accept  plain
+// @Produce plain
+// @Param metricType path string true "'gauge' or 'counter'"
+// @Param metricName path string true "name of metric, serves as identifier"
+// @Success 200 {object} string "ok"
+// @Failure 400 {string} string "Bad request"
+// @Failure 404 {string} string "unknown metric type"
+// @Failure 500 {string} string "Internal server error"
+// @Router /value/{metricType}/{metricName} [get]
 func (cont GetController) GetMetric(res http.ResponseWriter, req *http.Request) {
+	cont.getMetricCommon(res, req)
+}
+
+// GetMetricJSON get one metric from db in json
+// @Tags GET
+// @Summary get one metric from db in json
+// @Description get one metric from db in json
+// @ID GetMetricJSON
+// @Accept  json
+// @Produce json
+// @Param data body string true "requests.GetMetricRequest"
+// @Success 200 {object} string "ok"
+// @Failure 400 {string} string "Bad request"
+// @Failure 404 {string} string "unknown metric type"
+// @Failure 500 {string} string "Internal server error"
+// @Router /value [get]
+func (cont GetController) GetMetricJSON(res http.ResponseWriter, req *http.Request) {
+	cont.getMetricCommon(res, req)
+}
+
+func (cont GetController) getMetricCommon(res http.ResponseWriter, req *http.Request) {
 	requestDto := cont.getDtoForService(req)
 	if requestDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during request DTO build process", requestDto.Error)
