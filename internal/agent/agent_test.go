@@ -155,7 +155,10 @@ func (suite *agentTestSuite) TestSameValueReturnedFromServer() {
 		url := "/value/gauge/BuckHashSys"
 
 		r, responseBody := testhelper.SendRequest(suite.T(), suite.TestHTTPServer.Server, http.MethodGet, url)
-		r.Body.Close()
+		err := r.Body.Close()
+		if err != nil {
+			return
+		}
 		savedValue := suite.Repository.GetGaugeOrZero(context.Background(), "BuckHashSys")
 
 		assert.Equal(

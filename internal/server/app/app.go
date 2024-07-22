@@ -70,14 +70,17 @@ func (a App) StartServer() error {
 	}
 
 	defer func(DBOrRAM storage.Interface) {
-		err := DBOrRAM.CloseDB()
-		if err != nil {
-			fmt.Println(err.Error())
+		errOnClose := DBOrRAM.CloseDB()
+		if errOnClose != nil {
+			logger.ZapSugarLogger.Errorln(errOnClose.Error())
 		}
 	}(a.DBOrRAM)
 
 	go a.onStop()
-	fmt.Printf("Server started on %v\n", a.Config.Addr)
+	_, err = fmt.Printf("Server started on %v\n", a.Config.Addr)
+	if err != nil {
+		return err
+	}
 	err = http.ListenAndServe(a.Config.Addr, a.Router.ChiRouter)
 
 	return err

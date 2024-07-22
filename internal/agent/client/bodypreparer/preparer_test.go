@@ -1,7 +1,6 @@
 package bodypreparer
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-resty/resty/v2"
@@ -40,7 +39,6 @@ func TestCanHashBodyAndSaveInHeader(t *testing.T) {
 			)
 			require.NoError(t, err)
 
-			fmt.Println(request.Header.Get("HashSHA256"))
 			assert.Equal(t,
 				tt.want.hash,
 				request.Header.Get("HashSHA256"),
