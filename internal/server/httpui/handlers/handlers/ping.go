@@ -33,7 +33,7 @@ func NewPingController(serv services.PingService) PingController {
 // @Success 200 {object} string "ok"
 // @Failure 500 {string} string "Internal server error"
 // @Router /ping [get]
-func (cont *PingController) Ping(res http.ResponseWriter, req *http.Request) {
+func (cont *PingController) Ping(res http.ResponseWriter, _ *http.Request) {
 	var err error
 
 	if cont.Service.Repository == nil {
