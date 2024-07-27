@@ -96,7 +96,7 @@ func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet
 	logger.ZapSugarLogger.Infoln("reporting started")
 
 	var metricsSet metric.MetricsSet
-	for i := 0; ; i += 1 {
+	for i := 0; ; i++ {
 		select {
 		case <-ctx.Done():
 			logger.ZapSugarLogger.Infoln("report context finished")
