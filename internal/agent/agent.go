@@ -107,12 +107,11 @@ func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet
 				if len(metricsChannel) == 0 {
 					// nothing to report yet, need to wait for poller
 					continue
-				} else {
-					metricsSet = <-metricsChannel
-					metricsChannel <- metricsSet
-
-					senderInstance.Report(&metricsSet, metricsStorageClient)
 				}
+				metricsSet = <-metricsChannel
+				metricsChannel <- metricsSet
+
+				senderInstance.Report(&metricsSet, metricsStorageClient)
 			}
 
 			time.Sleep(time.Duration(config.ReportInterval) * time.Second)
