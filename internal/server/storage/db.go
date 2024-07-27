@@ -11,8 +11,7 @@ import (
 )
 
 type DBStorage struct {
-	DBConnection       *sql.DB
-	HTTPRequestContext context.Context
+	DBConnection *sql.DB
 }
 
 func NewDBStorage(dsn string) *DBStorage {
