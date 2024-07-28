@@ -4,6 +4,8 @@ import (
 	"context"
 	"testing"
 
+	"github.com/go-resty/resty/v2"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
 	"github.com/stretchr/testify/suite"
 
@@ -27,8 +29,9 @@ func TestAgentSuite(t *testing.T) {
 
 func (suite *clientTestSuite) TestCanSendCounterValue() {
 	metricsStorageClient := MetricsStorageClient{
-		Address: suite.TestHTTPServer.Server.URL,
-		IsGzip:  false,
+		Address:     suite.TestHTTPServer.Server.URL,
+		IsGzip:      false,
+		RestyClient: resty.New(),
 	}
 
 	type want struct {
@@ -84,8 +87,9 @@ func (suite *clientTestSuite) TestCanSendCounterValue() {
 
 func (suite *clientTestSuite) TestCanSendGaugeValue() {
 	metricsStorageClient := MetricsStorageClient{
-		Address: suite.TestHTTPServer.Server.URL,
-		IsGzip:  false,
+		Address:     suite.TestHTTPServer.Server.URL,
+		IsGzip:      false,
+		RestyClient: resty.New(),
 	}
 	type want struct {
 		gaugeValue float64

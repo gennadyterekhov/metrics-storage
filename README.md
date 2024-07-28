@@ -1,5 +1,10 @@
 # metrics-storage
 
+## linting
+
+revive -config revive_config.toml -formatter friendly ./... > revive_result.txt
+
+
 ## db installation (one-time use)
 
       sudo -i -u postgres

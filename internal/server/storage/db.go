@@ -3,6 +3,7 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
@@ -11,8 +12,7 @@ import (
 )
 
 type DBStorage struct {
-	DBConnection       *sql.DB
-	HTTPRequestContext context.Context
+	DBConnection *sql.DB
 }
 
 func NewDBStorage(dsn string) *DBStorage {
@@ -96,7 +96,7 @@ func (strg *DBStorage) GetGauge(ctx context.Context, name string) (float64, erro
 	var gauge float64
 	err := row.Scan(&gauge)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, fmt.Errorf(exceptions.UnknownMetricName)
 		}
 		return 0, err
@@ -116,7 +116,7 @@ func (strg *DBStorage) GetCounter(ctx context.Context, name string) (int64, erro
 	var counter int64
 	err := row.Scan(&counter)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, fmt.Errorf(exceptions.UnknownMetricName)
 		}
 		return 0, err
@@ -165,7 +165,7 @@ func (strg *DBStorage) GetAllGauges(ctx context.Context) map[string]float64 {
 
 	rows, err := strg.DBConnection.QueryContext(ctx, query, types.Gauge)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return gauges
 		}
 		return nil
@@ -194,7 +194,7 @@ func (strg *DBStorage) GetAllCounters(ctx context.Context) map[string]int64 {
 
 	rows, err := strg.DBConnection.QueryContext(ctx, query, types.Counter)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return counters
 		}
 		return nil

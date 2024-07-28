@@ -31,7 +31,7 @@ func (cont SaveController) SaveMetricList(res http.ResponseWriter, req *http.Req
 	requestDto, err := getSaveListDtoForService(req)
 	if err != nil {
 		logger.ZapSugarLogger.Debugln("found error during request DTO build process", err.Error())
-		writeErrorToOutput(&res, err)
+		writeErrorToOutput(res, err)
 		return
 	}
 

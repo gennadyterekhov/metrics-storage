@@ -20,7 +20,7 @@ type RepositoryInterface interface {
 }
 
 type Repository struct {
-	stor storage.StorageInterface
+	stor storage.Interface
 }
 
 func (r Repository) GetAllGauges(ctx context.Context) map[string]float64 {
@@ -35,7 +35,7 @@ func (r Repository) SaveToDisk(ctx context.Context, fileStorage string) error {
 	return r.stor.SaveToDisk(ctx, fileStorage)
 }
 
-func New(stor storage.StorageInterface) Repository {
+func New(stor storage.Interface) Repository {
 	return Repository{
 		stor: stor,
 	}

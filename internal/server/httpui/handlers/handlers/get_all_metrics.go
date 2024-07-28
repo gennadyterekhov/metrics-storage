@@ -7,7 +7,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
-	_ "github.com/gennadyterekhov/metrics-storage/swagger"
+	_ "github.com/gennadyterekhov/metrics-storage/swagger" // swagger
 )
 
 type GetController struct {

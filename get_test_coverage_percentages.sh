@@ -1,0 +1,3 @@
+#!/bin/bash
+go test -v -coverpkg=./... -coverprofile=coverage.out -covermode=count ./...
+go tool cover -func coverage.out

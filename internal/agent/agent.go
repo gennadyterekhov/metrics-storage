@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-resty/resty/v2"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/poller"
@@ -11,7 +13,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
-type AgentConfig struct {
+type Config struct {
 	Addr                      string
 	IsGzip                    bool
 	ReportInterval            int
@@ -21,7 +23,7 @@ type AgentConfig struct {
 	SimultaneousRequestsLimit int
 }
 
-func RunAgent(ctx context.Context, config *AgentConfig) {
+func RunAgent(ctx context.Context, config *Config) {
 	metricsSet := &metric.MetricsSet{}
 
 	pollerInstance := poller.PollMaker{
@@ -41,6 +43,7 @@ func RunAgent(ctx context.Context, config *AgentConfig) {
 		Address:             config.Addr,
 		IsGzip:              config.IsGzip,
 		PayloadSignatureKey: config.PayloadSignatureKey,
+		RestyClient:         resty.New(),
 	}
 
 	// we only need to send the latest metrics,
@@ -62,10 +65,10 @@ func RunAgent(ctx context.Context, config *AgentConfig) {
 	go reportingRoutine(ctx, metricsChannel, &senderInstance, &metricsStorageClient, config)
 }
 
-func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, pollerInstance *poller.PollMaker, config *AgentConfig) {
+func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, pollerInstance *poller.PollMaker, config *Config) {
 	logger.ZapSugarLogger.Infoln("polling started")
 
-	for i := 0; ; i += 1 {
+	for i := 0; ; i++ {
 		select {
 		case <-ctx.Done():
 			logger.ZapSugarLogger.Infoln("poll context finished")
@@ -77,13 +80,8 @@ func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, 
 					metricsChannel <- *pollerInstance.Poll()
 				} else {
 					// take latest and replace it with a new poll
-					// use ok not to trigger vet
-					_, ok := <-metricsChannel
-					if ok {
-						metricsChannel <- *pollerInstance.Poll()
-					} else {
-						metricsChannel <- *pollerInstance.Poll()
-					}
+					<-metricsChannel
+					metricsChannel <- *pollerInstance.Poll()
 				}
 			}
 
@@ -92,11 +90,11 @@ func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, 
 	}
 }
 
-func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, senderInstance *sender.MetricsSender, metricsStorageClient *client.MetricsStorageClient, config *AgentConfig) {
+func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, senderInstance *sender.MetricsSender, metricsStorageClient *client.MetricsStorageClient, config *Config) {
 	logger.ZapSugarLogger.Infoln("reporting started")
 
 	var metricsSet metric.MetricsSet
-	for i := 0; ; i += 1 {
+	for i := 0; ; i++ {
 		select {
 		case <-ctx.Done():
 			logger.ZapSugarLogger.Infoln("report context finished")
@@ -107,12 +105,11 @@ func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet
 				if len(metricsChannel) == 0 {
 					// nothing to report yet, need to wait for poller
 					continue
-				} else {
-					metricsSet = <-metricsChannel
-					metricsChannel <- metricsSet
-
-					senderInstance.Report(&metricsSet, metricsStorageClient)
 				}
+				metricsSet = <-metricsChannel
+				metricsChannel <- metricsSet
+
+				senderInstance.Report(&metricsSet, metricsStorageClient)
 			}
 
 			time.Sleep(time.Duration(config.ReportInterval) * time.Second)

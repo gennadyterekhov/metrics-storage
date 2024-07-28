@@ -34,7 +34,7 @@ func Test400IfWrongHash(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		handler := New(tt.key).CheckHash(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
+		handler := New(tt.key).CheckHash(http.HandlerFunc(func(response http.ResponseWriter, _ *http.Request) {
 			response.WriteHeader(200)
 			// code reaches this point only if hashes are valid
 			assert.Equal(

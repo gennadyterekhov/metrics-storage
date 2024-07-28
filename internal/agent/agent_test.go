@@ -34,7 +34,7 @@ func (suite *agentTestSuite) TestAgent() {
 
 	defer cancelContextFn()
 
-	go runAgentRoutine(ctx, &AgentConfig{
+	go runAgentRoutine(ctx, &Config{
 		Addr:                      suite.TestHTTPServer.Server.URL, //
 		ReportInterval:            1,
 		PollInterval:              1,
@@ -67,7 +67,7 @@ func (suite *agentTestSuite) TestList() {
 
 	defer cancelContextFn()
 
-	go runAgentRoutine(ctx, &AgentConfig{
+	go runAgentRoutine(ctx, &Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
@@ -90,16 +90,15 @@ func (suite *agentTestSuite) TestList() {
 		)
 
 		return
-	} else {
-		suite.T().Error("context didnt finish")
 	}
+	suite.T().Error("context didnt finish")
 }
 
 func (suite *agentTestSuite) TestGzip() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
 
 	defer cancelContextFn()
-	go runAgentRoutine(ctx, &AgentConfig{
+	go runAgentRoutine(ctx, &Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
@@ -132,7 +131,7 @@ func (suite *agentTestSuite) TestSameValueReturnedFromServer() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
 
 	defer cancelContextFn()
-	go runAgentRoutine(ctx, &AgentConfig{
+	go runAgentRoutine(ctx, &Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
@@ -173,7 +172,7 @@ func (suite *agentTestSuite) TestReportIntervalMoreThanPollInterval() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 	defer cancelContextFn()
 
-	go runAgentRoutine(ctx, &AgentConfig{
+	go runAgentRoutine(ctx, &Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            2,
 		PollInterval:              1,
@@ -202,7 +201,7 @@ func (suite *agentTestSuite) TestReportIntervalLessThanPollInterval() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 	defer cancelContextFn()
 
-	go runAgentRoutine(ctx, &AgentConfig{
+	go runAgentRoutine(ctx, &Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              2,
@@ -227,6 +226,6 @@ func (suite *agentTestSuite) TestReportIntervalLessThanPollInterval() {
 	}
 }
 
-func runAgentRoutine(ctx context.Context, config *AgentConfig) {
+func runAgentRoutine(ctx context.Context, config *Config) {
 	RunAgent(ctx, config)
 }

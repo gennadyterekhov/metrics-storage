@@ -1,7 +1,5 @@
 package requests
 
-import _ "github.com/gennadyterekhov/metrics-storage/swagger"
-
 type GetMetricRequest struct {
 	MetricType string `json:"type"`
 	MetricName string `json:"id"`

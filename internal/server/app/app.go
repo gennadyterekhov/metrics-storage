@@ -24,7 +24,7 @@ import (
 // App is main instance of server app.
 type App struct {
 	Config      config.ServerConfig
-	DBOrRAM     storage.StorageInterface
+	DBOrRAM     storage.Interface
 	Repository  repositories.RepositoryInterface
 	Services    services.Services
 	Controllers handlers.Controllers
@@ -69,7 +69,7 @@ func (a App) StartServer() error {
 		a.Services.TimeTracker.StartTrackingIntervals()
 	}
 
-	defer func(DBOrRAM storage.StorageInterface) {
+	defer func(DBOrRAM storage.Interface) {
 		err := DBOrRAM.CloseDB()
 		if err != nil {
 			fmt.Println(err.Error())
@@ -91,5 +91,4 @@ func (a App) onStop() {
 	logger.ZapSugarLogger.Infoln("shutting down gracefully")
 
 	a.Services.SaveMetricService.SaveToDisk(context.Background())
-	os.Exit(0)
 }

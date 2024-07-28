@@ -15,19 +15,14 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-var client *resty.Client
-
 type MetricsStorageClient struct {
 	Address             string
 	IsGzip              bool
 	PayloadSignatureKey string
+	RestyClient         *resty.Client
 }
 
-func init() {
-	client = resty.New()
-}
-
-func (msc *MetricsStorageClient) SendMetric(met metric.MetricURLFormatter) (err error) {
+func (msc *MetricsStorageClient) SendMetric(met metric.URLFormatter) (err error) {
 	jsonBytes, err := bodymaker.GetBody(met)
 	if err != nil {
 		return err
@@ -64,11 +59,11 @@ func (msc *MetricsStorageClient) sendRequestToMetricsServer(body []byte, isBatch
 	if msc.IsGzip {
 		logger.ZapSugarLogger.Debugln("sending GZIP metric to server", http.MethodPost, fullURL, string(body))
 
-		err = sendBodyGzipCompressed(fullURL, body, msc.PayloadSignatureKey)
+		err = sendBodyGzipCompressed(msc.RestyClient, fullURL, body, msc.PayloadSignatureKey)
 	} else {
 		logger.ZapSugarLogger.Debugln("sending metric to server", http.MethodPost, fullURL, string(body))
 
-		err = sendBody(fullURL, body, msc.PayloadSignatureKey)
+		err = sendBody(msc.RestyClient, fullURL, body, msc.PayloadSignatureKey)
 	}
 	if err != nil {
 		return err
@@ -92,7 +87,7 @@ func getFullURL(domain string, isBatch bool) string {
 	return fullURL
 }
 
-func sendBody(url string, body []byte, key string) (err error) {
+func sendBody(client *resty.Client, url string, body []byte, key string) (err error) {
 	request, err := bodypreparer.PrepareRequest(client, body, false, key)
 	if err != nil {
 		logger.ZapSugarLogger.Errorln("error when preparing request", err.Error())
@@ -108,7 +103,7 @@ func sendBody(url string, body []byte, key string) (err error) {
 	return err
 }
 
-func sendBodyGzipCompressed(url string, body []byte, key string) (err error) {
+func sendBodyGzipCompressed(client *resty.Client, url string, body []byte, key string) (err error) {
 	request, err := bodypreparer.PrepareRequest(client, body, true, key)
 	if err != nil {
 		return err
