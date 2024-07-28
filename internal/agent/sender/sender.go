@@ -29,7 +29,7 @@ func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet, metricsStorage
 }
 
 func (msnd *MetricsSender) sendAllMetrics(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
-	jobs := make(chan metric.MetricURLFormatter)
+	jobs := make(chan metric.UrlFormatter)
 
 	for w := 1; w <= msnd.NumberOfWorkers; w++ {
 		go worker(w, jobs, metricsStorageClient)
@@ -38,7 +38,7 @@ func (msnd *MetricsSender) sendAllMetrics(metricsStorageClient *client.MetricsSt
 	close(jobs)
 }
 
-func setJobs(jobs chan metric.MetricURLFormatter, memStats *metric.MetricsSet) {
+func setJobs(jobs chan metric.UrlFormatter, memStats *metric.MetricsSet) {
 	jobs <- &memStats.Alloc
 	jobs <- &memStats.BuckHashSys
 	jobs <- &memStats.Frees
@@ -80,7 +80,7 @@ func (msnd *MetricsSender) sendAllMetricsInOneRequest(metricsStorageClient *clie
 	metricsStorageClient.SendAllMetricsInOneRequest(memStats)
 }
 
-func worker(workerIndex int, jobs <-chan metric.MetricURLFormatter, metricsStorageClient *client.MetricsStorageClient) {
+func worker(workerIndex int, jobs <-chan metric.UrlFormatter, metricsStorageClient *client.MetricsStorageClient) {
 	for j := range jobs {
 		fmt.Println("worker", workerIndex, "started  job", j.GetName())
 		metricsStorageClient.SendMetric(j)
