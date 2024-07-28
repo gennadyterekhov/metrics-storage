@@ -68,25 +68,25 @@ func (cont GetController) getMetricCommon(res http.ResponseWriter, req *http.Req
 	requestDto := cont.getDtoForService(req)
 	if requestDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during request DTO build process", requestDto.Error)
-		writeErrorToOutput(&res, requestDto.Error)
+		writeErrorToOutput(res, requestDto.Error)
 		return
 	}
 
 	validatedRequestDto := cont.validateRequest(requestDto)
 	if validatedRequestDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during request validation", validatedRequestDto.Error)
-		writeErrorToOutput(&res, validatedRequestDto.Error)
+		writeErrorToOutput(res, validatedRequestDto.Error)
 		return
 	}
 
 	responseDto := cont.Service.GetMetric(req.Context(), requestDto)
 	if responseDto.Error != nil {
 		logger.ZapSugarLogger.Debugln("found error during response DTO build process in usecase", responseDto.Error)
-		writeErrorToOutput(&res, responseDto.Error)
+		writeErrorToOutput(res, responseDto.Error)
 		return
 	}
 
-	writeDtoToOutput(&res, responseDto)
+	writeDtoToOutput(res, responseDto)
 }
 
 func (cont GetController) getDtoForService(req *http.Request) *requests.GetMetricRequest {
@@ -113,9 +113,9 @@ func (cont GetController) getDtoForService(req *http.Request) *requests.GetMetri
 	return dto
 }
 
-func writeDtoToOutput(res *http.ResponseWriter, responseDto *responses.GetMetricResponse) {
+func writeDtoToOutput(res http.ResponseWriter, responseDto *responses.GetMetricResponse) {
 	if responseDto.IsJSON {
-		(*res).Header().Set(constants.HeaderContentType, constants.ApplicationJSON)
+		(res).Header().Set(constants.HeaderContentType, constants.ApplicationJSON)
 	}
 
 	responseBody := serializeDto(responseDto)
@@ -123,9 +123,9 @@ func writeDtoToOutput(res *http.ResponseWriter, responseDto *responses.GetMetric
 	logger.ZapSugarLogger.Infoln("successfully serialized response body", string(responseBody))
 
 	var err error
-	_, err = io.WriteString(*res, string(responseBody))
+	_, err = io.WriteString(res, string(responseBody))
 	if err != nil {
-		http.Error(*res, err.Error(), http.StatusInternalServerError)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	logger.ZapSugarLogger.Infoln("successfully written response body")
@@ -149,7 +149,7 @@ func serializeDto(responseDto *responses.GetMetricResponse) []byte {
 	return []byte(strconv.FormatFloat(*responseDto.GaugeValue, 'g', -1, 64))
 }
 
-func writeErrorToOutput(res *http.ResponseWriter, err error) {
+func writeErrorToOutput(res http.ResponseWriter, err error) {
 	logger.ZapSugarLogger.Debugln("writing error to output", err.Error())
 
 	code := http.StatusInternalServerError
@@ -170,7 +170,7 @@ func writeErrorToOutput(res *http.ResponseWriter, err error) {
 	}
 	logger.ZapSugarLogger.Debugln("selected http error code ", code)
 
-	http.Error(*res, err.Error(), code)
+	http.Error(res, err.Error(), code)
 }
 
 func (cont GetController) validateRequest(requestDto *requests.GetMetricRequest) *requests.GetMetricRequest {
