@@ -90,9 +90,8 @@ func (suite *agentTestSuite) TestList() {
 		)
 
 		return
-	} else {
-		suite.T().Error("context didnt finish")
 	}
+	suite.T().Error("context didnt finish")
 }
 
 func (suite *agentTestSuite) TestGzip() {

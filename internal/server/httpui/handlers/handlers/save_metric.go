@@ -15,7 +15,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
-	_ "github.com/gennadyterekhov/metrics-storage/swagger"
+	_ "github.com/gennadyterekhov/metrics-storage/swagger" // swagger
 	"github.com/go-chi/chi/v5"
 )
 
