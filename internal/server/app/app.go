@@ -91,5 +91,4 @@ func (a App) onStop() {
 	logger.ZapSugarLogger.Infoln("shutting down gracefully")
 
 	a.Services.SaveMetricService.SaveToDisk(context.Background())
-	os.Exit(0)
 }
