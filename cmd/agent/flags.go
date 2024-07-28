@@ -10,7 +10,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
-func getConfig() *agent.AgentConfig {
+func getConfig() *agent.Config {
 	addressFlag := flag.String(
 		"a",
 		"localhost:8080",
@@ -43,7 +43,7 @@ func getConfig() *agent.AgentConfig {
 	)
 	flag.Parse()
 
-	flags := agent.AgentConfig{
+	flags := agent.Config{
 		Addr:                      *addressFlag,
 		IsGzip:                    *gzipFlag,
 		ReportInterval:            *reportIntervalFlag,
@@ -63,7 +63,7 @@ func getConfig() *agent.AgentConfig {
 	return &flags
 }
 
-func overwriteWithEnv(flags *agent.AgentConfig) {
+func overwriteWithEnv(flags *agent.Config) {
 	flags.Addr = getAddress(flags.Addr)
 	flags.IsGzip = isGzip(flags.IsGzip)
 	flags.ReportInterval = getReportInterval(flags.ReportInterval)
