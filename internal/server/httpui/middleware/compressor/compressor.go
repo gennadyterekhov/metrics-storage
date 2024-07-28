@@ -116,7 +116,7 @@ func isRequestCompressed(request *http.Request) (isOk bool) {
 func isContentEncodingGzip(request *http.Request) bool {
 	contentEncoding := request.Header.Values("Content-Encoding")
 
-	for i := 0; i < len(contentEncoding); i += 1 {
+	for i := 0; i < len(contentEncoding); i++ {
 		if strings.Contains(contentEncoding[i], "gzip") {
 			return true
 		}
@@ -126,7 +126,7 @@ func isContentEncodingGzip(request *http.Request) bool {
 
 func isCorrectAcceptEncoding(request *http.Request) bool {
 	acceptEncodings := request.Header.Values("Accept-Encoding")
-	for i := 0; i < len(acceptEncodings); i += 1 {
+	for i := 0; i < len(acceptEncodings); i++ {
 		if strings.Contains(acceptEncodings[i], "gzip") {
 			return true
 		}

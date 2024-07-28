@@ -74,7 +74,7 @@ func (sms SaveMetricService) saveToDiskSynchronously(ctx context.Context) {
 
 func (sms SaveMetricService) SaveMetricListToMemory(ctx context.Context, filledDto *requests.SaveMetricListRequest) {
 	logger.ZapSugarLogger.Debugln("saving metric list")
-	for i := 0; i < len(*filledDto); i += 1 {
+	for i := 0; i < len(*filledDto); i++ {
 		sms.SaveMetricToMemory(ctx, (*filledDto)[i])
 	}
 }

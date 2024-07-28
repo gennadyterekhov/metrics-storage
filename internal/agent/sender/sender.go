@@ -71,7 +71,7 @@ func setJobs(jobs chan metric.MetricURLFormatter, memStats *metric.MetricsSet) {
 
 	jobs <- &memStats.TotalMemory
 	jobs <- &memStats.FreeMemory
-	for i := 0; i < len(memStats.CPUUtilization); i += 1 {
+	for i := 0; i < len(memStats.CPUUtilization); i++ {
 		jobs <- &memStats.CPUUtilization[i]
 	}
 }

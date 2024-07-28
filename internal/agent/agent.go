@@ -65,7 +65,7 @@ func RunAgent(ctx context.Context, config *Config) {
 func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, pollerInstance *poller.PollMaker, config *Config) {
 	logger.ZapSugarLogger.Infoln("polling started")
 
-	for i := 0; ; i += 1 {
+	for i := 0; ; i++ {
 		select {
 		case <-ctx.Done():
 			logger.ZapSugarLogger.Infoln("poll context finished")
@@ -77,13 +77,8 @@ func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, 
 					metricsChannel <- *pollerInstance.Poll()
 				} else {
 					// take latest and replace it with a new poll
-					// use ok not to trigger vet
-					_, ok := <-metricsChannel
-					if ok {
-						metricsChannel <- *pollerInstance.Poll()
-					} else {
-						metricsChannel <- *pollerInstance.Poll()
-					}
+					<-metricsChannel
+					metricsChannel <- *pollerInstance.Poll()
 				}
 			}
 

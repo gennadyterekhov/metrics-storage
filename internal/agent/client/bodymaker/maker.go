@@ -74,7 +74,7 @@ func GetBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
 		getSubrequest(&memStats.FreeMemory),
 	}
 
-	for i := 0; i < len(memStats.CPUUtilization); i += 1 {
+	for i := 0; i < len(memStats.CPUUtilization); i++ {
 		metricToEncode = append(metricToEncode, getSubrequest(&memStats.CPUUtilization[i]))
 	}
 
