@@ -22,7 +22,7 @@ type MetricsStorageClient struct {
 	RestyClient         *resty.Client
 }
 
-func (msc *MetricsStorageClient) SendMetric(met metric.UrlFormatter) (err error) {
+func (msc *MetricsStorageClient) SendMetric(met metric.URLFormatter) (err error) {
 	jsonBytes, err := bodymaker.GetBody(met)
 	if err != nil {
 		return err

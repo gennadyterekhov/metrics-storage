@@ -40,7 +40,7 @@ func getCommonMiddlewares(conf *config.ServerConfig) []Middleware {
 func conveyor(h http.Handler, middlewares ...Middleware) http.Handler {
 	middlewaresLength := len(middlewares)
 	// in reverse, so that middlewares are applied in order that they are passed in router
-	for i := middlewaresLength - 1; i >= 0; i -= 1 {
+	for i := middlewaresLength - 1; i >= 0; i-- {
 		h = middlewares[i](h)
 	}
 	return h
