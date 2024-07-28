@@ -81,7 +81,7 @@ func (sms SaveMetricService) SaveMetricListToMemory(ctx context.Context, filledD
 
 func (sms SaveMetricService) SaveToDisk(ctx context.Context) {
 	err := retry.Retry(
-		func(attempt uint) error {
+		func(_ uint) error {
 			return sms.Repository.SaveToDisk(ctx, sms.Config.FileStorage)
 		},
 		strategy.Limit(4),
