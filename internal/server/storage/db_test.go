@@ -5,13 +5,14 @@ import (
 	"database/sql"
 	"testing"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/stretchr/testify/assert"
 )
 
+const TestDBDsn = "host=localhost user=metrics_user password=metrics_pass dbname=metrics_db_test sslmode=disable"
+
 func initDB() (*sql.DB, *sql.Tx) {
-	dbConnection, err := sql.Open("pgx", constants.TestDBDsn)
+	dbConnection, err := sql.Open("pgx", TestDBDsn)
 	if err != nil {
 		panic(err)
 	}

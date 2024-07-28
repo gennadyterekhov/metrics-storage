@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 type gzipWriter struct {
@@ -30,8 +30,18 @@ func GzipCompressor(next http.Handler) http.Handler {
 			if compressionWriter == nil {
 				return
 			}
-			defer compressionWriter.Flush()
-			defer compressionWriter.Close()
+			defer func(compressionWriter *gzip.Writer) {
+				err := compressionWriter.Flush()
+				if err != nil {
+					logger.ZapSugarLogger.Errorln("error when flushing compressionWriter", err.Error())
+				}
+			}(compressionWriter)
+			defer func(compressionWriter *gzip.Writer) {
+				err := compressionWriter.Close()
+				if err != nil {
+					logger.ZapSugarLogger.Errorln("error when closing compressionWriter", err.Error())
+				}
+			}(compressionWriter)
 
 			response.Header().Set("Content-Encoding", "gzip")
 
@@ -106,7 +116,7 @@ func isRequestCompressed(request *http.Request) (isOk bool) {
 func isContentEncodingGzip(request *http.Request) bool {
 	contentEncoding := request.Header.Values("Content-Encoding")
 
-	for i := 0; i < len(contentEncoding); i += 1 {
+	for i := 0; i < len(contentEncoding); i++ {
 		if strings.Contains(contentEncoding[i], "gzip") {
 			return true
 		}
@@ -116,7 +126,7 @@ func isContentEncodingGzip(request *http.Request) bool {
 
 func isCorrectAcceptEncoding(request *http.Request) bool {
 	acceptEncodings := request.Header.Values("Accept-Encoding")
-	for i := 0; i < len(acceptEncodings); i += 1 {
+	for i := 0; i < len(acceptEncodings); i++ {
 		if strings.Contains(acceptEncodings[i], "gzip") {
 			return true
 		}

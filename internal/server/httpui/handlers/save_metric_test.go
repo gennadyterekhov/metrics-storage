@@ -6,17 +6,29 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
-	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
+	"github.com/stretchr/testify/suite"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestSaveMetricHttpMethodJSON(t *testing.T) {
+type saveMetricTestSuite struct {
+	tests.BaseSuiteWithServer
+}
+
+func (suite *saveMetricTestSuite) SetupSuite() {
+	tests.InitBaseSuiteWithServer(suite)
+}
+
+func TestSaveMetricHandler(t *testing.T) {
+	suite.Run(t, new(saveMetricTestSuite))
+}
+
+func (suite *saveMetricTestSuite) TestSaveMetricHttpMethodJSON() {
 	type want struct {
 		code        int
 		response    string
@@ -42,23 +54,23 @@ func TestSaveMetricHttpMethodJSON(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			rawJSON := `{"id":"cnt", "type":"counter", "delta":1}`
 			response, _ := testhelper.SendAlreadyJSONedBody(
 				t,
-				testhelper.TestServer,
+				suite.TestHTTPServer.Server,
 				tt.method,
 				"/update/counter/cnt/1",
 				bytes.NewBuffer([]byte(rawJSON)),
 			)
 			response.Body.Close()
 
-			assert.Equal(t, tt.want.code, response.StatusCode)
+			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 		})
 	}
 }
 
-func TestSaveMetricJSON(t *testing.T) {
+func (suite *saveMetricTestSuite) TestSaveMetricJSON() {
 	type want struct {
 		code        int
 		response    string
@@ -87,78 +99,78 @@ func TestSaveMetricJSON(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			storage.MetricsRepository.Clear()
+		suite.T().Run(tt.name, func(t *testing.T) {
+			suite.Repository.Clear()
 
 			response, _ := testhelper.SendAlreadyJSONedBody(
 				t,
-				testhelper.TestServer,
+				suite.TestHTTPServer.Server,
 				http.MethodPost,
 				tt.url,
 				bytes.NewBuffer([]byte(tt.rawJSON)),
 			)
 			response.Body.Close()
 
-			assert.Equal(t, tt.want.code, response.StatusCode)
+			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 
 			if tt.want.typ == types.Counter {
-				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(context.Background(), tt.want.metricName))
+				assert.Equal(suite.T(), tt.want.metricValue, suite.Repository.GetCounterOrZero(context.Background(), tt.want.metricName))
 			}
 			if tt.want.typ == types.Gauge {
-				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(context.Background(), tt.want.metricName)))
+				assert.Equal(suite.T(), tt.want.metricValue, int64(suite.Repository.GetGaugeOrZero(context.Background(), tt.want.metricName)))
 			}
 		})
 	}
 
 	// check counter is added to itself
-	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
+	suite.Repository.AddCounter(context.Background(), "cnt", 1)
 	response, _ := testhelper.SendAlreadyJSONedBody(
-		t,
-		testhelper.TestServer,
+		suite.T(),
+		suite.TestHTTPServer.Server,
 		http.MethodPost,
 		"/update/counter/cnt/10",
 		bytes.NewBuffer([]byte(`{"id":"cnt", "type":"counter", "delta":10}`)),
 	)
 	response.Body.Close()
 
-	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero(context.Background(), "cnt"))
+	assert.Equal(suite.T(), int64(10+1), suite.Repository.GetCounterOrZero(context.Background(), "cnt"))
 
 	// check gauge is substituted
-	storage.MetricsRepository.SetGauge(context.Background(), "gaugeName", 1)
+	suite.Repository.SetGauge(context.Background(), "gaugeName", 1)
 	response, _ = testhelper.SendAlreadyJSONedBody(
-		t,
-		testhelper.TestServer,
+		suite.T(),
+		suite.TestHTTPServer.Server,
 		http.MethodPost,
 		"/update/gauge/gaugeName/3",
 		bytes.NewBuffer([]byte(`{"id":"gaugeName", "type":"gauge", "value":3}`)),
 	)
 	response.Body.Close()
 
-	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero(context.Background(), "gaugeName"))
+	assert.Equal(suite.T(), float64(3), suite.Repository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }
 
-func TestSaveMetricJSONReturnsUpdatedValuesInBody(t *testing.T) {
+func (suite *saveMetricTestSuite) TestSaveMetricJSONReturnsUpdatedValuesInBody() {
 	rawJSON := `{"id":"cnt", "type":"counter", "delta":10}`
-	storage.MetricsRepository.Clear()
-	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
+	suite.Repository.Clear()
+	suite.Repository.AddCounter(context.Background(), "cnt", 1)
 
 	response, responseBody := testhelper.SendAlreadyJSONedBody(
-		t,
-		testhelper.TestServer,
+		suite.T(),
+		suite.TestHTTPServer.Server,
 		http.MethodPost,
 		"/update/counter/cnt/10",
 		bytes.NewBuffer([]byte(rawJSON)),
 	)
 	response.Body.Close()
 
-	assert.Equal(t, http.StatusOK, response.StatusCode)
+	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 
 	logger.ZapSugarLogger.Debugln("responseBody", responseBody)
 
-	assert.Equal(t, `{"type":"counter","id":"cnt","delta":11}`, string(responseBody))
+	assert.Equal(suite.T(), `{"type":"counter","id":"cnt","delta":11}`, string(responseBody))
 }
 
-func TestSaveMetricHttpMethod(t *testing.T) {
+func (suite *saveMetricTestSuite) TestSaveMetricHttpMethod() {
 	type want struct {
 		code        int
 		response    string
@@ -184,21 +196,21 @@ func TestSaveMetricHttpMethod(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			response, _ := testhelper.SendRequest(
 				t,
-				testhelper.TestServer,
+				suite.TestHTTPServer.Server,
 				tt.method,
 				"/update/counter/cnt/1",
 			)
 			response.Body.Close()
 
-			assert.Equal(t, tt.want.code, response.StatusCode)
+			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 		})
 	}
 }
 
-func TestSaveMetric(t *testing.T) {
+func (suite *saveMetricTestSuite) TestSaveMetric() {
 	type want struct {
 		code        int
 		response    string
@@ -229,62 +241,62 @@ func TestSaveMetric(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			storage.MetricsRepository.Clear()
+		suite.T().Run(tt.name, func(t *testing.T) {
+			suite.Repository.Clear()
 			response, _ := testhelper.SendRequest(
 				t,
-				testhelper.TestServer,
+				suite.TestHTTPServer.Server,
 				http.MethodPost,
 				tt.url,
 			)
 			response.Body.Close()
 
-			assert.Equal(t, tt.want.code, response.StatusCode)
+			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 
 			if tt.want.typ == types.Counter {
-				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(context.Background(), tt.want.metricName))
+				assert.Equal(suite.T(), tt.want.metricValue, suite.Repository.GetCounterOrZero(context.Background(), tt.want.metricName))
 			}
 			if tt.want.typ == types.Gauge {
-				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(context.Background(), tt.want.metricName)))
+				assert.Equal(suite.T(), tt.want.metricValue, int64(suite.Repository.GetGaugeOrZero(context.Background(), tt.want.metricName)))
 			}
 		})
 	}
 
 	// check counter is added to itself
-	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
+	suite.Repository.AddCounter(context.Background(), "cnt", 1)
 	response, _ := testhelper.SendRequest(
-		t,
-		testhelper.TestServer,
+		suite.T(),
+		suite.TestHTTPServer.Server,
 		http.MethodPost,
 		"/update/counter/cnt/10",
 	)
 	response.Body.Close()
 
-	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero(context.Background(), "cnt"))
+	assert.Equal(suite.T(), int64(10+1), suite.Repository.GetCounterOrZero(context.Background(), "cnt"))
 
 	// check gauge is substituted
-	storage.MetricsRepository.SetGauge(context.Background(), "gaugeName", 1)
+	suite.Repository.SetGauge(context.Background(), "gaugeName", 1)
 	response, _ = testhelper.SendRequest(
-		t,
-		testhelper.TestServer,
+		suite.T(),
+		suite.TestHTTPServer.Server,
 		http.MethodPost,
 		"/update/gauge/gaugeName/3",
 	)
 	response.Body.Close()
 
-	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero(context.Background(), "gaugeName"))
+	assert.Equal(suite.T(), float64(3), suite.Repository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }
 
-func TestGzipCompression(t *testing.T) {
+func (suite *saveMetricTestSuite) TestGzipCompression() {
 	requestBody := `{"id":"cnt", "type":"counter", "delta":1}`
 	successBody := `{"id":"cnt", "type":"counter", "delta":1}`
 
-	t.Run("client can send gzipped request", func(t *testing.T) {
-		storage.MetricsRepository.Clear()
+	suite.T().Run("client can send gzipped request", func(t *testing.T) {
+		suite.Repository.Clear()
 
 		response, _ := testhelper.SendGzipRequest(
 			t,
-			testhelper.TestServer,
+			suite.TestHTTPServer.Server,
 			http.MethodPost,
 			"/update/",
 			requestBody,
@@ -294,14 +306,14 @@ func TestGzipCompression(t *testing.T) {
 		require.Equal(t, http.StatusOK, response.StatusCode)
 	})
 
-	t.Run("client can send gzipped request and server can respond with gzipped body", func(t *testing.T) {
-		storage.MetricsRepository.Clear()
+	suite.T().Run("client can send gzipped request and server can respond with gzipped body", func(t *testing.T) {
+		suite.Repository.Clear()
 
-		storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
+		suite.Repository.AddCounter(context.Background(), "cnt", 1)
 
 		response, responseBody := testhelper.SendGzipRequest(
 			t,
-			testhelper.TestServer,
+			suite.TestHTTPServer.Server,
 			http.MethodPost,
 			"/value",
 			requestBody,
@@ -312,11 +324,9 @@ func TestGzipCompression(t *testing.T) {
 	})
 }
 
-func TestCanSaveMetricToDB(t *testing.T) {
-	t.Skip("only manual use because depends on host")
+func (suite *saveMetricTestSuite) TestCanSaveMetricToDB() {
+	suite.T().Skip("only manual use because depends on host")
 
-	config.Conf.DBDsn = constants.TestDBDsn
-	storage.MetricsRepository = storage.CreateDBStorage()
 	type want struct {
 		code        int
 		response    string
@@ -347,75 +357,72 @@ func TestCanSaveMetricToDB(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			storage.MetricsRepository.Clear()
+		suite.T().Run(tt.name, func(t *testing.T) {
+			suite.Repository.Clear()
 			response, _ := testhelper.SendRequest(
 				t,
-				testhelper.TestServer,
+				suite.TestHTTPServer.Server,
 				http.MethodPost,
 				tt.url,
 			)
 			response.Body.Close()
 
-			assert.Equal(t, tt.want.code, response.StatusCode)
+			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 
 			if tt.want.typ == types.Counter {
-				assert.Equal(t, tt.want.metricValue, storage.MetricsRepository.GetCounterOrZero(context.Background(), tt.want.metricName))
+				assert.Equal(suite.T(), tt.want.metricValue, suite.Repository.GetCounterOrZero(context.Background(), tt.want.metricName))
 			}
 			if tt.want.typ == types.Gauge {
-				assert.Equal(t, tt.want.metricValue, int64(storage.MetricsRepository.GetGaugeOrZero(context.Background(), tt.want.metricName)))
+				assert.Equal(suite.T(), tt.want.metricValue, int64(suite.Repository.GetGaugeOrZero(context.Background(), tt.want.metricName)))
 			}
 		})
 	}
 
 	// check counter is added to itself
-	storage.MetricsRepository.AddCounter(context.Background(), "cnt", 1)
+	suite.Repository.AddCounter(context.Background(), "cnt", 1)
 	response, _ := testhelper.SendRequest(
-		t,
-		testhelper.TestServer,
+		suite.T(),
+		suite.TestHTTPServer.Server,
 		http.MethodPost,
 		"/update/counter/cnt/10",
 	)
 	response.Body.Close()
 
-	assert.Equal(t, int64(10+1), storage.MetricsRepository.GetCounterOrZero(context.Background(), "cnt"))
+	assert.Equal(suite.T(), int64(10+1), suite.Repository.GetCounterOrZero(context.Background(), "cnt"))
 
 	// check gauge is substituted
-	storage.MetricsRepository.SetGauge(context.Background(), "gaugeName", 1)
+	suite.Repository.SetGauge(context.Background(), "gaugeName", 1)
 	response, _ = testhelper.SendRequest(
-		t,
-		testhelper.TestServer,
+		suite.T(),
+		suite.TestHTTPServer.Server,
 		http.MethodPost,
 		"/update/gauge/gaugeName/3",
 	)
 	response.Body.Close()
 
-	assert.Equal(t, float64(3), storage.MetricsRepository.GetGaugeOrZero(context.Background(), "gaugeName"))
-	config.Conf.DBDsn = ""
-	storage.MetricsRepository.CloseDB()
-	storage.MetricsRepository = storage.CreateRAMStorage()
+	assert.Equal(suite.T(), float64(3), suite.Repository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }
 
-func TestSaveMetricList(t *testing.T) {
-	storage.MetricsRepository.Clear()
+func (suite *saveMetricTestSuite) TestSaveMetricList() {
+	suite.Repository.Clear()
 	rawJSON := `[
 					{"id":"Alloc", "type":"gauge", "value":1.1},
 					{"id":"BuckHashSys", "type":"gauge", "value":2.2},
 					{"id":"PollCount", "type":"counter", "delta":3}
 	]`
-	t.Run("save list", func(t *testing.T) {
+	suite.T().Run("save list", func(t *testing.T) {
 		response, _ := testhelper.SendAlreadyJSONedBody(
 			t,
-			testhelper.TestServer,
+			suite.TestHTTPServer.Server,
 			http.MethodPost,
 			"/updates/",
 			bytes.NewBuffer([]byte(rawJSON)),
 		)
 		response.Body.Close()
 
-		assert.Equal(t, http.StatusOK, response.StatusCode)
+		assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 
-		assert.Equal(t, 2, len(storage.MetricsRepository.GetAllGauges(context.Background())))
-		assert.Equal(t, 1, len(storage.MetricsRepository.GetAllCounters(context.Background())))
+		assert.Equal(suite.T(), 2, len(suite.Repository.GetAllGauges(context.Background())))
+		assert.Equal(suite.T(), 1, len(suite.Repository.GetAllCounters(context.Background())))
 	})
 }

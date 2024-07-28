@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/agent"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 func getConfig() *agent.Config {

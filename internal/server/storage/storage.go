@@ -2,8 +2,6 @@ package storage
 
 import (
 	"context"
-
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 )
 
 type Interface interface {
@@ -28,11 +26,9 @@ type Interface interface {
 	CloseDB() error
 }
 
-var MetricsRepository = CreateStorage()
-
-func CreateStorage() Interface {
-	if config.Conf.DBDsn == "" {
-		return CreateRAMStorage()
+func New(dsn string) Interface {
+	if dsn == "" {
+		return NewRAMStorage()
 	}
-	return CreateDBStorage()
+	return NewDBStorage(dsn)
 }

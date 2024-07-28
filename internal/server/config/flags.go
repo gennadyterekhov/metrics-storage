@@ -8,52 +8,78 @@ import (
 	"strings"
 )
 
+// ServerConfig is used to tune server behaviour
 type ServerConfig struct {
+	// StoreInterval interval in seconds of saving metrics to disk. use 0 to write immediately
+	// FileStorage absolute path to json file for db to be saved into. on omission, don't write
+	// Restore on true, loads db from file on start
+	// PayloadSignatureKey used to check authenticity and to sign response hashes
 	Addr                string
+	DBDsn               string
 	StoreInterval       int
 	FileStorage         string
 	Restore             bool
-	DBDsn               string
 	PayloadSignatureKey string
 }
 
-var Conf *ServerConfig = getConfig()
+func New() ServerConfig {
+	return *getConfig()
+}
 
 func getConfig() *ServerConfig {
 	if strings.HasSuffix(os.Args[0], ".test") {
 		return &ServerConfig{}
 	}
+	var addressFlag *string
+	var storeIntervalFlag *int
+	var fileStorageFlag *string
+	var restoreFlag *bool
+	var DBDsnFlag *string
+	var payloadSignatureKeyFlag *string
 
-	addressFlag := flag.String(
-		"a",
-		"localhost:8080",
-		"[address] Net address host:port without protocol",
-	)
-	storeIntervalFlag := flag.Int(
-		"i",
-		300,
-		"[store interval] interval in seconds of saving metrics to disk. use 0 to write immediately",
-	)
-	fileStorageFlag := flag.String(
-		"f",
-		"/tmp/metrics-db.json",
-		"[file storage] absolute path to json 2_db. on omission, dont write to 2_db",
-	)
-	restoreFlag := flag.Bool(
-		"r",
-		true,
-		"[restore] on true, loads db from file on start",
-	)
-	DBDsnFlag := flag.String(
-		"d",
-		"",
-		"[db dsn] format: `host=%s user=%s password=%s dbname=%s sslmode=%s` if empty, ram is used",
-	)
-	payloadSignatureKeyFlag := flag.String(
-		"k",
-		"",
-		"[key] used to check authenticity (bad request on failure) and to sign response hashes",
-	)
+	if flag.Lookup("a") == nil {
+		addressFlag = flag.String(
+			"a",
+			"localhost:8080",
+			"[address] Net address host:port without protocol",
+		)
+	}
+	if flag.Lookup("i") == nil {
+		storeIntervalFlag = flag.Int(
+			"i",
+			300,
+			"[store interval] interval in seconds of saving metrics to disk. use 0 to write immediately",
+		)
+	}
+	if flag.Lookup("f") == nil {
+		fileStorageFlag = flag.String(
+			"f",
+			"/tmp/metrics-db.json",
+			"[file storage] absolute path to json file for db to be saved into. on omission, don't write",
+		)
+	}
+	if flag.Lookup("r") == nil {
+		restoreFlag = flag.Bool(
+			"r",
+			true,
+			"[restore] on true, loads db from file on start",
+		)
+	}
+	if flag.Lookup("d") == nil {
+		DBDsnFlag = flag.String(
+			"d",
+			"",
+			"[db dsn] format: `host=%s user=%s password=%s dbname=%s sslmode=%s` if empty, ram is used",
+		)
+	}
+	if flag.Lookup("k") == nil {
+		payloadSignatureKeyFlag = flag.String(
+			"k",
+			"",
+			"[key] used to check authenticity (bad request on failure) and to sign response hashes",
+		)
+	}
+
 	flag.Parse()
 
 	flags := ServerConfig{

@@ -3,22 +3,23 @@ package storage
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 type DBStorage struct {
 	DBConnection *sql.DB
 }
 
-func CreateDBStorage() *DBStorage {
-	conn, err := sql.Open("pgx", config.Conf.DBDsn)
+func NewDBStorage(dsn string) *DBStorage {
+	conn, err := sql.Open("pgx", dsn)
 	if err != nil {
-		logger.ZapSugarLogger.Panicln("could not connect to db using dsn: " + config.Conf.DBDsn)
+		//
+		logger.ZapSugarLogger.Panicln("could not connect to db using dsn: " + dsn)
 	}
 
 	createType := `DO $$ BEGIN    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'metric_type') THEN
@@ -95,7 +96,7 @@ func (strg *DBStorage) GetGauge(ctx context.Context, name string) (float64, erro
 	var gauge float64
 	err := row.Scan(&gauge)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, fmt.Errorf(exceptions.UnknownMetricName)
 		}
 		return 0, err
@@ -115,7 +116,7 @@ func (strg *DBStorage) GetCounter(ctx context.Context, name string) (int64, erro
 	var counter int64
 	err := row.Scan(&counter)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return 0, fmt.Errorf(exceptions.UnknownMetricName)
 		}
 		return 0, err
@@ -164,7 +165,7 @@ func (strg *DBStorage) GetAllGauges(ctx context.Context) map[string]float64 {
 
 	rows, err := strg.DBConnection.QueryContext(ctx, query, types.Gauge)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return gauges
 		}
 		return nil
@@ -193,7 +194,7 @@ func (strg *DBStorage) GetAllCounters(ctx context.Context) map[string]int64 {
 
 	rows, err := strg.DBConnection.QueryContext(ctx, query, types.Counter)
 	if err != nil {
-		if err.Error() == "sql: no rows in result set" {
+		if errors.Is(err, sql.ErrNoRows) {
 			return counters
 		}
 		return nil

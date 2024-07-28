@@ -9,7 +9,7 @@ import (
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 type SavedOnDisc struct {
@@ -42,7 +42,6 @@ func (strg *MemStorage) LoadFromDisk(_ context.Context, filename string) (err er
 		logger.ZapSugarLogger.Errorln("error when reading metrics file", err.Error())
 		logger.ZapSugarLogger.Infoln("loading empty metrics")
 		strg.Clear()
-		MetricsRepository = CreateStorage()
 
 		return err
 	}

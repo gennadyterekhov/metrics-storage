@@ -3,8 +3,8 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 func ContentType(next http.Handler) http.Handler {

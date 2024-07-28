@@ -2,7 +2,7 @@ package metric
 
 import "fmt"
 
-type MetricURLFormatter interface {
+type URLFormatter interface {
 	GetName() string
 	GetType() string
 	GetValueAsString() string

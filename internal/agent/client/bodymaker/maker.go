@@ -5,19 +5,25 @@ import (
 	"strconv"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/domain/models"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
 )
 
-func GetBody(met metric.MetricURLFormatter) ([]byte, error) {
+type MetricsRequest struct {
+	ID    string   `json:"id"`              // имя метрики
+	MType string   `json:"type"`            // параметр, принимающий значение gauge или counter
+	Delta *int64   `json:"delta,omitempty"` // значение метрики в случае передачи counter
+	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
+}
+
+func GetBody(met metric.URLFormatter) ([]byte, error) {
 	counterValue, gaugeValue, err := getMetricValues(met)
 	if err != nil {
 		return nil, err
 	}
 
-	metricToEncode := models.Metrics{
+	metricToEncode := MetricsRequest{
 		ID:    met.GetName(),
 		MType: met.GetType(),
 		Delta: &counterValue,
@@ -68,7 +74,7 @@ func GetBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
 		getSubrequest(&memStats.FreeMemory),
 	}
 
-	for i := 0; i < len(memStats.CPUUtilization); i += 1 {
+	for i := 0; i < len(memStats.CPUUtilization); i++ {
 		metricToEncode = append(metricToEncode, getSubrequest(&memStats.CPUUtilization[i]))
 	}
 
@@ -81,7 +87,7 @@ func GetBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
 	return jsonBytes, nil
 }
 
-func getSubrequest(met metric.MetricURLFormatter) *requests.SaveMetricRequest {
+func getSubrequest(met metric.URLFormatter) *requests.SaveMetricRequest {
 	counter, gauge, err := getMetricValues(met)
 	if err != nil {
 		return nil
@@ -95,7 +101,7 @@ func getSubrequest(met metric.MetricURLFormatter) *requests.SaveMetricRequest {
 	}
 }
 
-func getMetricValues(met metric.MetricURLFormatter) (counterValue int64, gaugeValue float64, err error) {
+func getMetricValues(met metric.URLFormatter) (counterValue int64, gaugeValue float64, err error) {
 	if met.GetType() == types.Counter {
 		counterValue, err = strconv.ParseInt(met.GetValueAsString(), 10, 64)
 		if err != nil {

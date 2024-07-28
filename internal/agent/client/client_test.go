@@ -2,31 +2,42 @@ package client
 
 import (
 	"context"
-	"net/http/httptest"
 	"testing"
 
+	"github.com/go-resty/resty/v2"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestCanSendCounterValue(t *testing.T) {
-	testServer := httptest.NewServer(
-		handlers.GetRouter(),
-	)
+type clientTestSuite struct {
+	tests.BaseSuiteWithServer
+}
 
+func (suite *clientTestSuite) SetupSuite() {
+	tests.InitBaseSuiteWithServer(suite)
+}
+
+func TestAgentSuite(t *testing.T) {
+	suite.Run(t, new(clientTestSuite))
+}
+
+func (suite *clientTestSuite) TestCanSendCounterValue() {
 	metricsStorageClient := MetricsStorageClient{
-		Address: testServer.URL,
-		IsGzip:  false,
+		Address:     suite.TestHTTPServer.Server.URL,
+		IsGzip:      false,
+		RestyClient: resty.New(),
 	}
 
 	type want struct {
 		counterValue int64
 	}
-	tests := []struct {
+	cases := []struct {
 		name   string
 		isGzip bool
 		want   want
@@ -43,9 +54,9 @@ func TestCanSendCounterValue(t *testing.T) {
 		},
 	}
 	var err error
-	for _, tt := range tests {
-		storage.MetricsRepository.Clear()
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tt := range cases {
+		suite.T().Run(tt.name, func(t *testing.T) {
+			suite.Repository.Clear()
 			if tt.isGzip {
 				metricsStorageClient.IsGzip = true
 			}
@@ -59,35 +70,31 @@ func TestCanSendCounterValue(t *testing.T) {
 
 			assert.Equal(t,
 				1,
-				len(storage.MetricsRepository.GetAllCounters(context.Background())),
+				len(suite.Repository.GetAllCounters(context.Background())),
 			)
 			assert.Equal(t,
 				0,
-				len(storage.MetricsRepository.GetAllGauges(context.Background())),
+				len(suite.Repository.GetAllGauges(context.Background())),
 			)
 
 			assert.Equal(t,
 				tt.want.counterValue,
-				storage.MetricsRepository.GetCounterOrZero(context.Background(), "nm"),
+				suite.Repository.GetCounterOrZero(context.Background(), "nm"),
 			)
 		})
 	}
 }
 
-func TestCanSendGaugeValue(t *testing.T) {
-	storage.MetricsRepository.Clear()
-	testServer := httptest.NewServer(
-		handlers.GetRouter(),
-	)
-
+func (suite *clientTestSuite) TestCanSendGaugeValue() {
 	metricsStorageClient := MetricsStorageClient{
-		Address: testServer.URL,
-		IsGzip:  false,
+		Address:     suite.TestHTTPServer.Server.URL,
+		IsGzip:      false,
+		RestyClient: resty.New(),
 	}
 	type want struct {
 		gaugeValue float64
 	}
-	tests := []struct {
+	cases := []struct {
 		name string
 		want want
 	}{
@@ -97,8 +104,8 @@ func TestCanSendGaugeValue(t *testing.T) {
 		},
 	}
 	var err error
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tt := range cases {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			metrics := metric.GaugeMetric{
 				Name:  "nm",
 				Type:  types.Gauge,
@@ -110,16 +117,16 @@ func TestCanSendGaugeValue(t *testing.T) {
 
 			assert.Equal(t,
 				0,
-				len(storage.MetricsRepository.GetAllCounters(context.Background())),
+				len(suite.Repository.GetAllCounters(context.Background())),
 			)
 			assert.Equal(t,
 				1,
-				len(storage.MetricsRepository.GetAllGauges(context.Background())),
+				len(suite.Repository.GetAllGauges(context.Background())),
 			)
 
 			assert.Equal(t,
 				tt.want.gaugeValue,
-				storage.MetricsRepository.GetGaugeOrZero(context.Background(), "nm"),
+				suite.Repository.GetGaugeOrZero(context.Background(), "nm"),
 			)
 		})
 	}

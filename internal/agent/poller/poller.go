@@ -6,8 +6,8 @@ import (
 	"runtime"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 )
@@ -63,7 +63,7 @@ func (pmk *PollMaker) saveRuntimeStatsToMetricSet(runtimeStats *runtime.MemStats
 	pmk.MetricsSet.StackSys.Value = float64(runtimeStats.StackSys)
 	pmk.MetricsSet.Sys.Value = float64(runtimeStats.Sys)
 	pmk.MetricsSet.TotalAlloc.Value = float64(runtimeStats.TotalAlloc)
-	pmk.MetricsSet.PollCount.Value += 1
+	pmk.MetricsSet.PollCount.Value++
 	pmk.MetricsSet.RandomValue.Value = rand.Float64()
 }
 
@@ -161,7 +161,7 @@ func (pmk *PollMaker) saveCPUUtilization(memoryStats *mem.VirtualMemoryStat) {
 		logger.ZapSugarLogger.Debugln("error when getting psutil/cpu stats", err.Error())
 		return
 	}
-	for i := range cpus {
+	for i := 0; i < len(cpus); i++ {
 		pmk.MetricsSet.CPUUtilization[i].Value = float64(memoryStats.Used)
 		pmk.MetricsSet.CPUUtilization[i].Name = fmt.Sprintf("CPUutilization%v", i+1)
 		pmk.MetricsSet.CPUUtilization[i].Type = types.Gauge

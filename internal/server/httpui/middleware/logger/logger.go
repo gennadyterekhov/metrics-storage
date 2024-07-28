@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
 type (

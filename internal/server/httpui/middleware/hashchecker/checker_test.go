@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -34,16 +33,16 @@ func Test400IfWrongHash(t *testing.T) {
 		},
 	}
 
-	handler := CheckHash(http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		response.WriteHeader(200)
-		// code reaches this point only if hashes are valid
-		assert.Equal(
-			t,
-			"d6c552977ca4ae14249a3ad8ac77f361265993e49376e8115a27daa4c67e0509",
-			response.Header().Get("HashSHA256"),
-		)
-	}))
 	for _, tt := range tests {
+		handler := New(tt.key).CheckHash(http.HandlerFunc(func(response http.ResponseWriter, _ *http.Request) {
+			response.WriteHeader(200)
+			// code reaches this point only if hashes are valid
+			assert.Equal(
+				t,
+				"d6c552977ca4ae14249a3ad8ac77f361265993e49376e8115a27daa4c67e0509",
+				response.Header().Get("HashSHA256"),
+			)
+		}))
 		t.Run(tt.name, func(t *testing.T) {
 			var bodyReader bytes.Buffer
 			_, err := bodyReader.WriteString(tt.body)
@@ -53,7 +52,6 @@ func Test400IfWrongHash(t *testing.T) {
 				"http://localhost:8080/",
 				&bodyReader,
 			)
-			config.Conf.PayloadSignatureKey = tt.key
 			request.Header.Set("HashSHA256", tt.hashedBody)
 
 			responseWriter := httptest.NewRecorder()

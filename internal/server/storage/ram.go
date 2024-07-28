@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/constants/exceptions"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
 )
 
 type MemStorage struct {
@@ -14,7 +14,7 @@ type MemStorage struct {
 	mu       sync.Mutex
 }
 
-func CreateRAMStorage() *MemStorage {
+func NewRAMStorage() *MemStorage {
 	return &MemStorage{
 		Counters: make(map[string]int64, 0),
 		Gauges:   make(map[string]float64, 0),

@@ -4,16 +4,32 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/testhelper"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
+
+	"github.com/stretchr/testify/suite"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetAllMetrics(t *testing.T) {
+type getAllTestSuite struct {
+	tests.BaseSuiteWithServer
+}
+
+func (suite *getAllTestSuite) SetupSuite() {
+	tests.InitBaseSuiteWithServer(suite)
+}
+
+func TestGetAll(t *testing.T) {
+	suite.Run(t, new(getAllTestSuite))
+}
+
+func (suite *getAllTestSuite) TestGetAllMetrics() {
 	type args struct {
 		res http.ResponseWriter
 		req *http.Request
 	}
-	tests := []struct {
+	cases := []struct {
 		name string
 		args args
 	}{
@@ -38,11 +54,11 @@ func TestGetAllMetrics(t *testing.T) {
   </body>
 </html>
 `
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tt := range cases {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			response, responseBody := testhelper.SendRequest(
 				t,
-				testhelper.TestServer,
+				suite.TestHTTPServer.Server,
 				http.MethodGet,
 				"/",
 			)
@@ -59,12 +75,12 @@ func TestGetAllMetrics(t *testing.T) {
 	}
 }
 
-func TestGetAllMetricsGzip(t *testing.T) {
+func (suite *getAllTestSuite) TestGetAllMetricsGzip() {
 	type args struct {
 		res http.ResponseWriter
 		req *http.Request
 	}
-	tests := []struct {
+	cases := []struct {
 		name string
 		args args
 	}{
@@ -89,11 +105,11 @@ func TestGetAllMetricsGzip(t *testing.T) {
   </body>
 </html>
 `
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, tt := range cases {
+		suite.T().Run(tt.name, func(t *testing.T) {
 			response, responseBody := testhelper.SendGzipNoBodyRequest(
 				t,
-				testhelper.TestServer,
+				suite.TestHTTPServer.Server,
 				http.MethodGet,
 				"/",
 			)
