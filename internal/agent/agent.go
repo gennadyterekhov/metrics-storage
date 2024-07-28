@@ -4,6 +4,8 @@ import (
 	"context"
 	"time"
 
+	"github.com/go-resty/resty/v2"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/poller"
@@ -41,6 +43,7 @@ func RunAgent(ctx context.Context, config *Config) {
 		Address:             config.Addr,
 		IsGzip:              config.IsGzip,
 		PayloadSignatureKey: config.PayloadSignatureKey,
+		RestyClient:         resty.New(),
 	}
 
 	// we only need to send the latest metrics,
