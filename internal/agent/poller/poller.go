@@ -63,7 +63,7 @@ func (pmk *PollMaker) saveRuntimeStatsToMetricSet(runtimeStats *runtime.MemStats
 	pmk.MetricsSet.StackSys.Value = float64(runtimeStats.StackSys)
 	pmk.MetricsSet.Sys.Value = float64(runtimeStats.Sys)
 	pmk.MetricsSet.TotalAlloc.Value = float64(runtimeStats.TotalAlloc)
-	pmk.MetricsSet.PollCount.Value += 1
+	pmk.MetricsSet.PollCount.Value++
 	pmk.MetricsSet.RandomValue.Value = rand.Float64()
 }
 

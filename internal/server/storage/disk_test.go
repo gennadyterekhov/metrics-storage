@@ -54,7 +54,7 @@ func TestLoadEmptyWhenError(t *testing.T) {
 	assert.True(t, isEqual(NewRAMStorage(), &result))
 }
 
-func isEqual(strg *MemStorage, anotherStorage StorageInterface) (eq bool) {
+func isEqual(strg *MemStorage, anotherStorage Interface) (eq bool) {
 	ctx := context.Background()
 
 	gauges, counters := strg.GetAllGauges(ctx), strg.GetAllCounters(ctx)

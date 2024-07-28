@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-type StorageInterface interface {
+type Interface interface {
 	Clear()
 
 	AddCounter(ctx context.Context, key string, value int64)
@@ -26,7 +26,7 @@ type StorageInterface interface {
 	CloseDB() error
 }
 
-func New(dsn string) StorageInterface {
+func New(dsn string) Interface {
 	if dsn == "" {
 		return NewRAMStorage()
 	}

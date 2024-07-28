@@ -24,7 +24,7 @@ import (
 // App is main instance of server app.
 type App struct {
 	Config      config.ServerConfig
-	DBOrRAM     storage.StorageInterface
+	DBOrRAM     storage.Interface
 	Repository  repositories.RepositoryInterface
 	Services    services.Services
 	Controllers handlers.Controllers
@@ -69,7 +69,7 @@ func (a App) StartServer() error {
 		a.Services.TimeTracker.StartTrackingIntervals()
 	}
 
-	defer func(DBOrRAM storage.StorageInterface) {
+	defer func(DBOrRAM storage.Interface) {
 		err := DBOrRAM.CloseDB()
 		if err != nil {
 			fmt.Println(err.Error())

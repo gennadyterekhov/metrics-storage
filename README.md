@@ -1,5 +1,10 @@
 # metrics-storage
 
+## linting
+
+revive  -formatter friendly ./...
+
+
 ## db installation (one-time use)
 
       sudo -i -u postgres
