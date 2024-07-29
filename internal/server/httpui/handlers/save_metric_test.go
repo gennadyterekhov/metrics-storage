@@ -63,7 +63,10 @@ func (suite *saveMetricTestSuite) TestSaveMetricHttpMethodJSON() {
 				"/update/counter/cnt/1",
 				bytes.NewBuffer([]byte(rawJSON)),
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			if err != nil {
+				return
+			}
 
 			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 		})
@@ -109,7 +112,10 @@ func (suite *saveMetricTestSuite) TestSaveMetricJSON() {
 				tt.url,
 				bytes.NewBuffer([]byte(tt.rawJSON)),
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			if err != nil {
+				return
+			}
 
 			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 
@@ -131,7 +137,10 @@ func (suite *saveMetricTestSuite) TestSaveMetricJSON() {
 		"/update/counter/cnt/10",
 		bytes.NewBuffer([]byte(`{"id":"cnt", "type":"counter", "delta":10}`)),
 	)
-	response.Body.Close()
+	err := response.Body.Close()
+	if err != nil {
+		return
+	}
 
 	assert.Equal(suite.T(), int64(10+1), suite.Repository.GetCounterOrZero(context.Background(), "cnt"))
 
@@ -144,7 +153,10 @@ func (suite *saveMetricTestSuite) TestSaveMetricJSON() {
 		"/update/gauge/gaugeName/3",
 		bytes.NewBuffer([]byte(`{"id":"gaugeName", "type":"gauge", "value":3}`)),
 	)
-	response.Body.Close()
+	err = response.Body.Close()
+	if err != nil {
+		return
+	}
 
 	assert.Equal(suite.T(), float64(3), suite.Repository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }
@@ -161,7 +173,10 @@ func (suite *saveMetricTestSuite) TestSaveMetricJSONReturnsUpdatedValuesInBody()
 		"/update/counter/cnt/10",
 		bytes.NewBuffer([]byte(rawJSON)),
 	)
-	response.Body.Close()
+	err := response.Body.Close()
+	if err != nil {
+		return
+	}
 
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 
@@ -203,7 +218,10 @@ func (suite *saveMetricTestSuite) TestSaveMetricHttpMethod() {
 				tt.method,
 				"/update/counter/cnt/1",
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			if err != nil {
+				return
+			}
 
 			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 		})
@@ -249,7 +267,10 @@ func (suite *saveMetricTestSuite) TestSaveMetric() {
 				http.MethodPost,
 				tt.url,
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			if err != nil {
+				return
+			}
 
 			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 
@@ -270,7 +291,10 @@ func (suite *saveMetricTestSuite) TestSaveMetric() {
 		http.MethodPost,
 		"/update/counter/cnt/10",
 	)
-	response.Body.Close()
+	err := response.Body.Close()
+	if err != nil {
+		return
+	}
 
 	assert.Equal(suite.T(), int64(10+1), suite.Repository.GetCounterOrZero(context.Background(), "cnt"))
 
@@ -282,7 +306,10 @@ func (suite *saveMetricTestSuite) TestSaveMetric() {
 		http.MethodPost,
 		"/update/gauge/gaugeName/3",
 	)
-	response.Body.Close()
+	err = response.Body.Close()
+	if err != nil {
+		return
+	}
 
 	assert.Equal(suite.T(), float64(3), suite.Repository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }
@@ -301,7 +328,10 @@ func (suite *saveMetricTestSuite) TestGzipCompression() {
 			"/update/",
 			requestBody,
 		)
-		response.Body.Close()
+		err := response.Body.Close()
+		if err != nil {
+			return
+		}
 
 		require.Equal(t, http.StatusOK, response.StatusCode)
 	})
@@ -318,7 +348,10 @@ func (suite *saveMetricTestSuite) TestGzipCompression() {
 			"/value",
 			requestBody,
 		)
-		response.Body.Close()
+		err := response.Body.Close()
+		if err != nil {
+			return
+		}
 		require.Equal(t, http.StatusOK, response.StatusCode)
 		require.JSONEq(t, successBody, string(responseBody))
 	})
@@ -365,7 +398,10 @@ func (suite *saveMetricTestSuite) TestCanSaveMetricToDB() {
 				http.MethodPost,
 				tt.url,
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			if err != nil {
+				return
+			}
 
 			assert.Equal(suite.T(), tt.want.code, response.StatusCode)
 
@@ -386,7 +422,10 @@ func (suite *saveMetricTestSuite) TestCanSaveMetricToDB() {
 		http.MethodPost,
 		"/update/counter/cnt/10",
 	)
-	response.Body.Close()
+	err := response.Body.Close()
+	if err != nil {
+		return
+	}
 
 	assert.Equal(suite.T(), int64(10+1), suite.Repository.GetCounterOrZero(context.Background(), "cnt"))
 
@@ -398,7 +437,10 @@ func (suite *saveMetricTestSuite) TestCanSaveMetricToDB() {
 		http.MethodPost,
 		"/update/gauge/gaugeName/3",
 	)
-	response.Body.Close()
+	err = response.Body.Close()
+	if err != nil {
+		return
+	}
 
 	assert.Equal(suite.T(), float64(3), suite.Repository.GetGaugeOrZero(context.Background(), "gaugeName"))
 }
@@ -418,7 +460,10 @@ func (suite *saveMetricTestSuite) TestSaveMetricList() {
 			"/updates/",
 			bytes.NewBuffer([]byte(rawJSON)),
 		)
-		response.Body.Close()
+		err := response.Body.Close()
+		if err != nil {
+			return
+		}
 
 		assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 

@@ -10,10 +10,12 @@ import (
 )
 
 func main() {
-	fmt.Println("Starting")
-
+	_, err := fmt.Println("Starting")
+	if err != nil {
+		panic(err)
+	}
 	appInstance := app.New()
-	err := appInstance.StartServer()
+	err = appInstance.StartServer()
 	if err != nil {
 		panic(err)
 	}

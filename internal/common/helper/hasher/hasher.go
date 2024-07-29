@@ -11,20 +11,22 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
-func HashBytes(target []byte, key string) []byte {
+func HashBytes(target []byte, key string) ([]byte, error) {
 	keyBytes := []byte(key)
 
 	sig := hmac.New(sha256.New, keyBytes)
-	sig.Write(target)
-
-	return sig.Sum(nil)
+	_, err := sig.Write(target)
+	if err != nil {
+		return nil, err
+	}
+	return sig.Sum(nil), nil
 }
 
-func IsBodyHashValid(req *http.Request, key string) bool {
+func IsBodyHashValid(req *http.Request, key string) (bool, error) {
 	if key == "" {
 		logger.ZapSugarLogger.Debugln("hash key is empty -> hash checking is successful")
 
-		return true
+		return true, nil
 	}
 	logger.ZapSugarLogger.Debugln("hash key is not empty -> checking hash")
 
@@ -34,7 +36,7 @@ func IsBodyHashValid(req *http.Request, key string) bool {
 		bodyBytes, err = io.ReadAll(req.Body)
 		if err != nil {
 			logger.ZapSugarLogger.Errorln("could not read body to check hash", err.Error())
-			return false
+			return false, nil
 		}
 	}
 	req.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
@@ -42,11 +44,14 @@ func IsBodyHashValid(req *http.Request, key string) bool {
 	return isBytesHashValid(bodyBytes, req.Header.Get("HashSHA256"), key)
 }
 
-func isBytesHashValid(body []byte, hash string, key string) bool {
+func isBytesHashValid(body []byte, hash string, key string) (bool, error) {
 	keyBytes := []byte(key)
 
 	sig := hmac.New(sha256.New, keyBytes)
-	sig.Write(body)
+	_, err := sig.Write(body)
+	if err != nil {
+		return false, err
+	}
 
 	bodyHash := sig.Sum(nil)
 
@@ -57,5 +62,5 @@ func isBytesHashValid(body []byte, hash string, key string) bool {
 		hash,
 	)
 
-	return hex.EncodeToString(bodyHash) == hash
+	return hex.EncodeToString(bodyHash) == hash, nil
 }

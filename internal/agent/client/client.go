@@ -119,18 +119,7 @@ func sendBodyGzipCompressed(client *resty.Client, url string, body []byte, key s
 
 func sendRequestWithRetries(request *resty.Request, url string) (err error) {
 	err = retry.Retry(
-		func(numberOfAttempt uint) error {
-			_, err := request.Post(url)
-			if err != nil {
-				logger.ZapSugarLogger.Debugf(
-					"error when sending request. attempt: %v error: %v",
-					numberOfAttempt,
-					err.Error(),
-				)
-				return err
-			}
-			return nil
-		},
+		attempt(request, url),
 		strategy.Limit(3),
 		strategy.Backoff(backoff.Incremental(0*time.Second, 3*time.Second)),
 	)
@@ -139,4 +128,19 @@ func sendRequestWithRetries(request *resty.Request, url string) (err error) {
 		return err
 	}
 	return nil
+}
+
+func attempt(request *resty.Request, url string) func(numberOfAttempt uint) error {
+	return func(numberOfAttempt uint) error {
+		_, err := request.Post(url)
+		if err != nil {
+			logger.ZapSugarLogger.Debugf(
+				"error when sending request. attempt: %v error: %v",
+				numberOfAttempt,
+				err.Error(),
+			)
+			return err
+		}
+		return nil
+	}
 }

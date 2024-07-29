@@ -18,7 +18,11 @@ func New(payloadSignatureKey string) Hashchecker {
 
 func (mdl Hashchecker) CheckHash(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, request *http.Request) {
-		ok, hash := mdl.isHashValid(request)
+		hash, ok, err := mdl.isHashValid(request)
+		if err != nil {
+			response.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		if ok {
 			response.Header().Set("HashSHA256", hash)
 			next.ServeHTTP(response, request)
@@ -34,6 +38,8 @@ func (mdl Hashchecker) CheckHash(next http.Handler) http.Handler {
 	})
 }
 
-func (mdl Hashchecker) isHashValid(request *http.Request) (bool, string) {
-	return hasher.IsBodyHashValid(request, mdl.PayloadSignatureKey), request.Header.Get("HashSHA256")
+func (mdl Hashchecker) isHashValid(request *http.Request) (string, bool, error) {
+	hash := request.Header.Get("HashSHA256")
+	ok, err := hasher.IsBodyHashValid(request, mdl.PayloadSignatureKey)
+	return hash, ok, err
 }

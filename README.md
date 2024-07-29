@@ -1,9 +1,15 @@
 # metrics-storage
 
-## linting
+## linting & static checks
+revive:
 
-revive -config revive_config.toml -formatter friendly ./... > revive_result.txt
+      revive -config revive_config.toml -formatter friendly ./... &> linter_reports/revive.out
 
+custom multichecker:
+
+      cd cmd/staticlint 
+      go build .
+      ./staticlint ../../... &> ../../linter_reports/multichecker.out
 
 ## db installation (one-time use)
 
@@ -25,8 +31,6 @@ after that, use this to connect to db in cli
 or
 
       psql -U metrics_user -d metrics_db_test
-
-
 
 ## test locally
 

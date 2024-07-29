@@ -10,7 +10,10 @@ import (
 
 func main() {
 	config := getConfig()
-	fmt.Printf("Agent started with server addr %v\n", config.Addr)
+	_, err := fmt.Printf("Agent started with server addr %v\n", config.Addr)
+	if err != nil {
+		panic(err)
+	}
 	if config.IsGzip {
 		logger.ZapSugarLogger.Infoln("Attention, using gzip")
 	}

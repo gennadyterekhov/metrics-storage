@@ -59,7 +59,8 @@ func TestCanCheckHash(t *testing.T) {
 			)
 			request.Header.Set("HashSHA256", tt.hashedBody)
 
-			ok := IsBodyHashValid(request, tt.key)
+			ok, err := IsBodyHashValid(request, tt.key)
+			assert.NoError(t, err)
 			assert.Equal(t, tt.ok, ok)
 		})
 	}

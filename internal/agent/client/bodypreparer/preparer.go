@@ -16,7 +16,11 @@ func PrepareRequest(client *resty.Client, body []byte, isGzip bool, key string) 
 		SetHeader(constants.HeaderContentType, constants.ApplicationJSON)
 
 	if key != "" {
-		request.SetHeader("HashSHA256", hex.EncodeToString(hashBytes(body, key)))
+		hashedBytes, err := hashBytes(body, key)
+		if err != nil {
+			return nil, err
+		}
+		request.SetHeader("HashSHA256", hex.EncodeToString(hashedBytes))
 	}
 
 	if !isGzip {
@@ -43,7 +47,7 @@ func prepareCompressed(request *resty.Request, body []byte) (*resty.Request, err
 	return request, nil
 }
 
-func hashBytes(target []byte, key string) []byte {
+func hashBytes(target []byte, key string) ([]byte, error) {
 	return hasher.HashBytes(target, key)
 }
 

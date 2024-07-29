@@ -62,7 +62,9 @@ func (suite *getAllTestSuite) TestGetAllMetrics() {
 				http.MethodGet,
 				"/",
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			assert.NoError(t, err)
+
 			assert.Equal(t,
 				http.StatusOK,
 				response.StatusCode,
@@ -113,7 +115,8 @@ func (suite *getAllTestSuite) TestGetAllMetricsGzip() {
 				http.MethodGet,
 				"/",
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			assert.NoError(t, err)
 
 			assert.Equal(t,
 				http.StatusOK,
