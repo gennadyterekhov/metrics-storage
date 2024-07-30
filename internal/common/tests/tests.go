@@ -133,10 +133,6 @@ func (ts *TestHTTPServer) SendGet(
 	}
 	err = response.Body.Close()
 	if err != nil {
-		return 0, nil
-	}
-
-	if err != nil {
 		panic(err)
 	}
 	return response.StatusCode, bodyAsBytes
@@ -181,12 +177,9 @@ func (ts *TestHTTPServer) SendPostAndReturnBody(
 	}
 	bodyAsBytes, err := getBodyAsBytes(response.Body)
 	if err != nil {
-		return 0, nil
+		panic(err)
 	}
 	err = response.Body.Close()
-	if err != nil {
-		return 0, nil
-	}
 	if err != nil {
 		panic(err)
 	}
