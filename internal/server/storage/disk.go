@@ -39,7 +39,7 @@ func (strg *MemStorage) LoadFromDisk(_ context.Context, filename string) (err er
 
 	err = strg.loadFromDiskWithRetry(filename)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when reading metrics file", err.Error())
+		logger.ZapSugarLogger.Debugln("error when reading metrics file", err.Error())
 		logger.ZapSugarLogger.Infoln("loading empty metrics")
 		strg.Clear()
 
@@ -56,13 +56,13 @@ func (strg *MemStorage) loadFromDiskWithRetry(filename string) error {
 
 			fileBytes, err := os.ReadFile(filename)
 			if err != nil {
-				logger.ZapSugarLogger.Errorln("error when reading metrics file", err.Error())
+				logger.ZapSugarLogger.Debugln("error when reading metrics file", err.Error())
 				return err
 			}
 
 			err = json.Unmarshal(fileBytes, strg)
 			if err != nil {
-				logger.ZapSugarLogger.Errorln("error when json decoding metrics from disk.", err.Error())
+				logger.ZapSugarLogger.Debugln("error when json decoding metrics from disk.", err.Error())
 				return err
 			}
 			return nil

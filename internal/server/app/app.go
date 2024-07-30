@@ -60,7 +60,6 @@ func (a App) StartServer() error {
 			err = a.DBOrRAM.LoadFromDisk(context.Background(), a.Config.FileStorage)
 			if err != nil {
 				logger.ZapSugarLogger.Debugln("could not load metrics from disk, loaded empty repository")
-				logger.ZapSugarLogger.Errorln("error when loading metrics from disk", err.Error())
 			}
 		}
 	}
