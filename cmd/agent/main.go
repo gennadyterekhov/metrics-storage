@@ -26,7 +26,7 @@ func main() {
 		panic(err)
 	}
 	if config.IsGzip {
-		logger.ZapSugarLogger.Infoln("Attention, using gzip")
+		logger.Custom.Infoln("Attention, using gzip")
 	}
 
 	agent.RunAgent(context.Background(), config)

@@ -32,7 +32,7 @@ type App struct {
 }
 
 // New creates App instance, injects all dependencies.
-func New() App {
+func New() *App {
 	conf := config.New()
 	DBOrRAM := storage.New(conf.DBDsn)
 	repo := repositories.New(DBOrRAM)
@@ -41,7 +41,7 @@ func New() App {
 	controllers := handlers.NewControllers(&servicesPack, middlewareSet)
 	rtr := router.New(&controllers)
 
-	return App{
+	return &App{
 		Config:      conf,
 		DBOrRAM:     DBOrRAM,
 		Repository:  repo,
@@ -59,7 +59,7 @@ func (a App) StartServer() error {
 		if a.Config.Restore {
 			err = a.DBOrRAM.LoadFromDisk(context.Background(), a.Config.FileStorage)
 			if err != nil {
-				logger.ZapSugarLogger.Debugln("could not load metrics from disk, loaded empty repository")
+				logger.Custom.Debugln("could not load metrics from disk, loaded empty repository")
 			}
 		}
 	}
@@ -71,7 +71,7 @@ func (a App) StartServer() error {
 	defer func(DBOrRAM storage.Interface) {
 		errOnClose := DBOrRAM.CloseDB()
 		if errOnClose != nil {
-			logger.ZapSugarLogger.Errorln(errOnClose.Error())
+			logger.Custom.Errorln(errOnClose.Error())
 		}
 	}(a.DBOrRAM)
 
@@ -90,7 +90,7 @@ func (a App) onStop() {
 	defer close(sigchan)
 	signal.Notify(sigchan, os.Interrupt)
 	<-sigchan
-	logger.ZapSugarLogger.Infoln("shutting down gracefully")
+	logger.Custom.Infoln("shutting down gracefully")
 
 	a.Services.SaveMetricService.SaveToDisk(context.Background())
 }

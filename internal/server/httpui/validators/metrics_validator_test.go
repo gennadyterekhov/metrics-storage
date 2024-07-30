@@ -268,7 +268,7 @@ func TestGetDataToSave(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			filledDto := GetDataToSave(tt.args.metricType, tt.args.metricName, tt.args.metricValue)
-			logger.ZapSugarLogger.Debugln(filledDto)
+			logger.Custom.Debugln(filledDto)
 
 			if tt.wantErr {
 				assert.Error(t, filledDto.Error)
