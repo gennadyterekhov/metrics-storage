@@ -19,7 +19,7 @@ func NewDBStorage(dsn string) *DBStorage {
 	conn, err := sql.Open("pgx", dsn)
 	if err != nil {
 		//
-		logger.ZapSugarLogger.Panicln("could not connect to db using dsn: " + dsn)
+		logger.Custom.Panicln("could not connect to db using dsn: " + dsn)
 	}
 
 	createType := `DO $$ BEGIN    IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'metric_type') THEN
@@ -53,7 +53,7 @@ func NewDBStorage(dsn string) *DBStorage {
 func (strg *DBStorage) Clear() {
 	_, err := strg.DBConnection.Exec("delete from metrics")
 	if err != nil {
-		logger.ZapSugarLogger.Errorln(err.Error())
+		logger.Custom.Errorln(err.Error())
 	}
 }
 
@@ -67,7 +67,7 @@ func (strg *DBStorage) AddCounter(ctx context.Context, key string, value int64) 
 
 	_, err := strg.DBConnection.ExecContext(ctx, query, key, types.Counter, value)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("could not add counter", err.Error())
+		logger.Custom.Errorln("could not add counter", err.Error())
 	}
 }
 
@@ -81,7 +81,7 @@ func (strg *DBStorage) SetGauge(ctx context.Context, key string, value float64) 
 
 	_, err := strg.DBConnection.ExecContext(ctx, query, key, types.Gauge, value)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln(err.Error())
+		logger.Custom.Errorln(err.Error())
 	}
 }
 
@@ -220,7 +220,7 @@ func (strg *DBStorage) GetAllCounters(ctx context.Context) map[string]int64 {
 func (strg *DBStorage) CloseDB() error {
 	err := strg.DBConnection.Close()
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("could not close db", err.Error())
+		logger.Custom.Errorln("could not close db", err.Error())
 	}
 	return err
 }

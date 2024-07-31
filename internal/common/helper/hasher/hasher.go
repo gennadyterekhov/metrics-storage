@@ -24,18 +24,18 @@ func HashBytes(target []byte, key string) ([]byte, error) {
 
 func IsBodyHashValid(req *http.Request, key string) (bool, error) {
 	if key == "" {
-		logger.ZapSugarLogger.Debugln("hash key is empty -> hash checking is successful")
+		logger.Custom.Debugln("hash key is empty -> hash checking is successful")
 
 		return true, nil
 	}
-	logger.ZapSugarLogger.Debugln("hash key is not empty -> checking hash")
+	logger.Custom.Debugln("hash key is not empty -> checking hash")
 
 	var bodyBytes []byte
 	var err error
 	if req.Body != nil {
 		bodyBytes, err = io.ReadAll(req.Body)
 		if err != nil {
-			logger.ZapSugarLogger.Errorln("could not read body to check hash", err.Error())
+			logger.Custom.Errorln("could not read body to check hash", err.Error())
 			return false, nil
 		}
 	}
@@ -55,7 +55,7 @@ func isBytesHashValid(body []byte, hash string, key string) (bool, error) {
 
 	bodyHash := sig.Sum(nil)
 
-	logger.ZapSugarLogger.Debugln(
+	logger.Custom.Debugln(
 		"hash of body:",
 		hex.EncodeToString(bodyHash),
 		"hash sent by client in the header:",

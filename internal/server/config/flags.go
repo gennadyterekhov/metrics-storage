@@ -20,6 +20,7 @@ type ServerConfig struct {
 	FileStorage         string
 	Restore             bool
 	PayloadSignatureKey string
+	PrivateKeyFilePath  string
 }
 
 func New() ServerConfig {
@@ -36,6 +37,7 @@ func getConfig() *ServerConfig {
 	var restoreFlag *bool
 	var DBDsnFlag *string
 	var payloadSignatureKeyFlag *string
+	var privateKeyFlag *string
 
 	if flag.Lookup("a") == nil {
 		addressFlag = flag.String(
@@ -79,6 +81,13 @@ func getConfig() *ServerConfig {
 			"[key] used to check authenticity (bad request on failure) and to sign response hashes",
 		)
 	}
+	if flag.Lookup("-crypto-key") == nil {
+		privateKeyFlag = flag.String(
+			"-crypto-key",
+			"",
+			"path to private key file used to decrypt response",
+		)
+	}
 
 	flag.Parse()
 
@@ -89,6 +98,7 @@ func getConfig() *ServerConfig {
 		Restore:             *restoreFlag,
 		DBDsn:               *DBDsnFlag,
 		PayloadSignatureKey: *payloadSignatureKeyFlag,
+		PrivateKeyFilePath:  *privateKeyFlag,
 	}
 
 	overwriteWithEnv(&flags)
@@ -97,30 +107,14 @@ func getConfig() *ServerConfig {
 }
 
 func overwriteWithEnv(flags *ServerConfig) {
-	flags.Addr = getAddress(flags.Addr)
 	flags.StoreInterval = getStoreInterval(flags.StoreInterval)
-	flags.FileStorage = getFileStorage(flags.FileStorage)
 	flags.Restore = getRestore(flags.Restore)
-	flags.DBDsn = getDBDsn(flags.DBDsn)
-	flags.PayloadSignatureKey = getKey(flags.PayloadSignatureKey)
-}
 
-func getAddress(current string) string {
-	rawAddress, ok := os.LookupEnv("ADDRESS")
-	if ok {
-		return rawAddress
-	}
-
-	return current
-}
-
-func getDBDsn(current string) string {
-	raw, ok := os.LookupEnv("DATABASE_DSN")
-	if ok {
-		return raw
-	}
-
-	return current
+	flags.Addr = getStringFromEnvOrFallback("ADDRESS", flags.Addr)
+	flags.FileStorage = getStringFromEnvOrFallback("FILE_STORAGE_PATH", flags.FileStorage)
+	flags.DBDsn = getStringFromEnvOrFallback("DATABASE_DSN", flags.DBDsn)
+	flags.PayloadSignatureKey = getStringFromEnvOrFallback("KEY", flags.PayloadSignatureKey)
+	flags.PrivateKeyFilePath = getStringFromEnvOrFallback("CRYPTO_KEY", flags.PrivateKeyFilePath)
 }
 
 func getStoreInterval(current int) int {
@@ -131,15 +125,6 @@ func getStoreInterval(current int) int {
 			log.Fatalln("incorrect format of env var STORE_INTERVAL")
 		}
 		return interval
-	}
-
-	return current
-}
-
-func getFileStorage(current string) string {
-	rawInterval, ok := os.LookupEnv("FILE_STORAGE_PATH")
-	if ok {
-		return rawInterval
 	}
 
 	return current
@@ -157,11 +142,11 @@ func getRestore(current bool) bool {
 	return current
 }
 
-func getKey(current string) string {
-	raw, ok := os.LookupEnv("KEY")
+func getStringFromEnvOrFallback(envKey string, fallback string) string {
+	fromEnv, ok := os.LookupEnv(envKey)
 	if ok {
-		return raw
+		return fromEnv
 	}
 
-	return current
+	return fallback
 }

@@ -34,8 +34,8 @@ func run(pass *analysis.Pass) (interface{}, error) {
 func reportOsExit(pass *analysis.Pass, mainFuncDeclNode ast.Node) {
 	ast.Inspect(mainFuncDeclNode, func(node ast.Node) bool {
 		if selectorExpr, ok := node.(*ast.SelectorExpr); ok {
-			if selId, ok := selectorExpr.X.(*ast.Ident); ok {
-				if selId.Name == "os" && selectorExpr.Sel.Name == "Exit" {
+			if selIdent, ok := selectorExpr.X.(*ast.Ident); ok {
+				if selIdent.Name == "os" && selectorExpr.Sel.Name == "Exit" {
 					pass.Reportf(selectorExpr.Pos(), "cannot use os Exit in main function of package main")
 				}
 			}
