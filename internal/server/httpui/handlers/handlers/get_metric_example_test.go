@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/stretchr/testify/require"
 )
 
@@ -28,5 +30,6 @@ func ExampleGetMetricHandler() {
 	err = response.Body.Close()
 	require.NoError(nil, err)
 
-	fmt.Println(string(readBytes))
+	_, err = fmt.Println(string(readBytes))
+	assert.NoError(nil, err)
 }

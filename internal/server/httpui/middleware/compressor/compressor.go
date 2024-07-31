@@ -60,9 +60,9 @@ func GzipCompressor(next http.Handler) http.Handler {
 func getCompressedWriter(response http.ResponseWriter) *gzip.Writer {
 	compressionWriter, err := gzip.NewWriterLevel(response, gzip.BestSpeed)
 	if err != nil {
-		_, err := io.WriteString(response, err.Error())
-		if err != nil {
-			logger.ZapSugarLogger.Errorln("error when creation gzip writer ", err.Error())
+		_, errWriteString := io.WriteString(response, err.Error())
+		if errWriteString != nil {
+			logger.ZapSugarLogger.Errorln("error when creation gzip writer ", errWriteString.Error())
 		}
 		return nil
 	}

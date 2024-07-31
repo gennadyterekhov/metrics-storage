@@ -60,7 +60,6 @@ func (a App) StartServer() error {
 			err = a.DBOrRAM.LoadFromDisk(context.Background(), a.Config.FileStorage)
 			if err != nil {
 				logger.ZapSugarLogger.Debugln("could not load metrics from disk, loaded empty repository")
-				logger.ZapSugarLogger.Errorln("error when loading metrics from disk", err.Error())
 			}
 		}
 	}
@@ -70,14 +69,17 @@ func (a App) StartServer() error {
 	}
 
 	defer func(DBOrRAM storage.Interface) {
-		err := DBOrRAM.CloseDB()
-		if err != nil {
-			fmt.Println(err.Error())
+		errOnClose := DBOrRAM.CloseDB()
+		if errOnClose != nil {
+			logger.ZapSugarLogger.Errorln(errOnClose.Error())
 		}
 	}(a.DBOrRAM)
 
 	go a.onStop()
-	fmt.Printf("Server started on %v\n", a.Config.Addr)
+	_, err = fmt.Printf("Server started on %v\n", a.Config.Addr)
+	if err != nil {
+		return err
+	}
 	err = http.ListenAndServe(a.Config.Addr, a.Router.ChiRouter)
 
 	return err

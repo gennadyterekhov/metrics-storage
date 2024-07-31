@@ -80,7 +80,10 @@ func (st *getMetricTestSuite) TestGetMetricJSON() {
 				"/value",
 				body,
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			if err != nil {
+				return
+			}
 			assert.Equal(t, tt.want.code, response.StatusCode)
 
 			if response.StatusCode == http.StatusOK {
@@ -146,9 +149,15 @@ func (st *getMetricTestSuite) TestGetMetric() {
 				http.MethodGet,
 				url,
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			assert.NoError(t, err)
 
-			metricFromResponseAsInt, _ := strconv.ParseInt(string(responseBody), 10, 64)
+			metricFromResponseAsInt, err := strconv.ParseInt(string(responseBody), 10, 64) //
+			if tt.name == "ok" {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
 			assert.Equal(t, tt.want.code, response.StatusCode)
 			assert.Equal(t, tt.want.metricValue, metricFromResponseAsInt)
 		})
@@ -205,9 +214,15 @@ func (st *getMetricTestSuite) TestCanGetMetricFromDB() {
 				http.MethodGet,
 				url,
 			)
-			response.Body.Close()
+			err := response.Body.Close()
+			assert.NoError(t, err)
 
-			metricFromResponseAsInt, _ := strconv.ParseInt(string(responseBody), 10, 64)
+			metricFromResponseAsInt, err := strconv.ParseInt(string(responseBody), 10, 64)
+			if tt.name == "ok" {
+				assert.NoError(t, err)
+			} else {
+				assert.Error(t, err)
+			}
 			assert.Equal(t, tt.want.code, response.StatusCode)
 			assert.Equal(t, tt.want.metricValue, metricFromResponseAsInt)
 		})
