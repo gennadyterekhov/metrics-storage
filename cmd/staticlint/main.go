@@ -1,3 +1,8 @@
+// custom multichecker
+// is used to combine different analyzers/linters and use them with 1 command
+// for usage, see root README.md section "linting & static checks"
+// uses config.json to specify https://staticcheck.dev/ rules
+// also uses 2 custom analyzers errcheck.New and noosexit.New
 package main
 
 import (
