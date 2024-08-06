@@ -36,13 +36,13 @@ func New() *App {
 	conf := config.New()
 	DBOrRAM := storage.New(conf.DBDsn)
 	repo := repositories.New(DBOrRAM)
-	servicesPack := services.New(&repo, &conf)
-	middlewareSet := middleware.New(&conf)
+	servicesPack := services.New(&repo, conf)
+	middlewareSet := middleware.New(conf)
 	controllers := handlers.NewControllers(&servicesPack, middlewareSet)
 	rtr := router.New(&controllers)
 
 	return &App{
-		Config:      conf,
+		Config:      *conf,
 		DBOrRAM:     DBOrRAM,
 		Repository:  repo,
 		Services:    servicesPack,

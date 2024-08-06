@@ -14,14 +14,14 @@ import (
 )
 
 type Config struct {
-	Addr                      string
+	Addr                      string `json:"address"`
 	IsGzip                    bool
-	ReportInterval            int
-	PollInterval              int
+	ReportInterval            int `json:"report_interval"`
+	PollInterval              int `json:"poll_interval"`
 	IsBatch                   bool
 	PayloadSignatureKey       string
 	SimultaneousRequestsLimit int
-	PublicKeyFilePath         string
+	PublicKeyFilePath         string `json:"crypto_key"`
 }
 
 func RunAgent(ctx context.Context, config *Config) {
