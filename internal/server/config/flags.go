@@ -1,11 +1,18 @@
 package config
 
 import (
+	"encoding/json"
 	"flag"
 	"log"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/generics"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/iohelpler"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
+	"github.com/pkg/errors"
 )
 
 // ServerConfig is used to tune server behaviour
@@ -14,6 +21,16 @@ type ServerConfig struct {
 	// FileStorage absolute path to json file for db to be saved into. on omission, don't write
 	// Restore on true, loads db from file on start
 	// PayloadSignatureKey used to check authenticity and to sign response hashes
+	Addr                string `json:"address"`
+	DBDsn               string `json:"database_dsn"`
+	StoreInterval       int    `json:"store_interval"`
+	FileStorage         string `json:"store_file"`
+	Restore             bool   `json:"restore"`
+	PayloadSignatureKey string
+	PrivateKeyFilePath  string `json:"crypto_key"`
+}
+
+type cliFlags struct {
 	Addr                string
 	DBDsn               string
 	StoreInterval       int
@@ -21,16 +38,33 @@ type ServerConfig struct {
 	Restore             bool
 	PayloadSignatureKey string
 	PrivateKeyFilePath  string
+	ConfigFilePath      string
 }
 
-func New() ServerConfig {
-	return *getConfig()
+// New gets config from these places, each overwriting the previous one
+// - config file (path taken from CONFIG env var or -config flag)
+// - cli flags
+// - env vars
+func New() *ServerConfig {
+	return getConfig()
 }
 
 func getConfig() *ServerConfig {
 	if strings.HasSuffix(os.Args[0], ".test") {
 		return &ServerConfig{}
 	}
+	CLIFlags := declareCLIFlags()
+
+	resultConfig := getConfigFromFile(CLIFlags.ConfigFilePath)
+
+	resultConfig = overwriteWithFlags(resultConfig, CLIFlags)
+
+	resultConfig = overwriteWithEnv(resultConfig)
+
+	return resultConfig
+}
+
+func declareCLIFlags() *cliFlags {
 	var addressFlag *string
 	var storeIntervalFlag *int
 	var fileStorageFlag *string
@@ -38,6 +72,7 @@ func getConfig() *ServerConfig {
 	var DBDsnFlag *string
 	var payloadSignatureKeyFlag *string
 	var privateKeyFlag *string
+	var configFilePathFlag string
 
 	if flag.Lookup("a") == nil {
 		addressFlag = flag.String(
@@ -81,17 +116,21 @@ func getConfig() *ServerConfig {
 			"[key] used to check authenticity (bad request on failure) and to sign response hashes",
 		)
 	}
-	if flag.Lookup("-crypto-key") == nil {
+	if flag.Lookup("crypto-key") == nil {
 		privateKeyFlag = flag.String(
-			"-crypto-key",
+			"crypto-key",
 			"",
 			"path to private key file used to decrypt response",
 		)
 	}
+	if flag.Lookup("c") == nil && flag.Lookup("config") == nil {
+		flag.StringVar(&configFilePathFlag, "c", "", "path to config file")
+		flag.StringVar(&configFilePathFlag, "config", "", "path to config file")
+	}
 
 	flag.Parse()
 
-	flags := ServerConfig{
+	flags := &cliFlags{
 		Addr:                *addressFlag,
 		StoreInterval:       *storeIntervalFlag,
 		FileStorage:         *fileStorageFlag,
@@ -99,22 +138,56 @@ func getConfig() *ServerConfig {
 		DBDsn:               *DBDsnFlag,
 		PayloadSignatureKey: *payloadSignatureKeyFlag,
 		PrivateKeyFilePath:  *privateKeyFlag,
+		ConfigFilePath:      configFilePathFlag,
 	}
 
-	overwriteWithEnv(&flags)
-
-	return &flags
+	return flags
 }
 
-func overwriteWithEnv(flags *ServerConfig) {
-	flags.StoreInterval = getStoreInterval(flags.StoreInterval)
-	flags.Restore = getRestore(flags.Restore)
+func getConfigFromFile(configFilePathFlag string) *ServerConfig {
+	config := &ServerConfig{}
+	configFilePath := getStringFromEnvOrFallback("CONFIG", configFilePathFlag)
 
-	flags.Addr = getStringFromEnvOrFallback("ADDRESS", flags.Addr)
-	flags.FileStorage = getStringFromEnvOrFallback("FILE_STORAGE_PATH", flags.FileStorage)
-	flags.DBDsn = getStringFromEnvOrFallback("DATABASE_DSN", flags.DBDsn)
-	flags.PayloadSignatureKey = getStringFromEnvOrFallback("KEY", flags.PayloadSignatureKey)
-	flags.PrivateKeyFilePath = getStringFromEnvOrFallback("CRYPTO_KEY", flags.PrivateKeyFilePath)
+	if configFilePath == "" {
+		return config
+	}
+
+	configBytes, err := iohelpler.GetFileContents(configFilePath)
+	if err != nil {
+		logger.Custom.Panicln(errors.Wrap(err, "config file is supplied but could not be read").Error())
+	}
+	err = json.Unmarshal(configBytes, config)
+	if err != nil {
+		logger.Custom.Panicln(errors.Wrap(err, "config file is supplied but could not be decoded").Error())
+	}
+
+	return config
+}
+
+func overwriteWithFlags(resultConfig *ServerConfig, CLIFlags *cliFlags) *ServerConfig {
+	resultConfig.StoreInterval = generics.Overwrite(resultConfig.StoreInterval, CLIFlags.StoreInterval)
+	resultConfig.Restore = generics.Overwrite(resultConfig.Restore, CLIFlags.Restore)
+
+	resultConfig.Addr = generics.Overwrite(resultConfig.Addr, CLIFlags.Addr)
+	resultConfig.FileStorage = generics.Overwrite(resultConfig.FileStorage, CLIFlags.FileStorage)
+	resultConfig.DBDsn = generics.Overwrite(resultConfig.DBDsn, CLIFlags.DBDsn)
+	resultConfig.PayloadSignatureKey = generics.Overwrite(resultConfig.PayloadSignatureKey, CLIFlags.PayloadSignatureKey)
+	resultConfig.PrivateKeyFilePath = generics.Overwrite(resultConfig.PrivateKeyFilePath, CLIFlags.PrivateKeyFilePath)
+
+	return resultConfig
+}
+
+func overwriteWithEnv(resultConfig *ServerConfig) *ServerConfig {
+	resultConfig.StoreInterval = getStoreInterval(resultConfig.StoreInterval)
+	resultConfig.Restore = getRestore(resultConfig.Restore)
+
+	resultConfig.Addr = getStringFromEnvOrFallback("ADDRESS", resultConfig.Addr)
+	resultConfig.FileStorage = getStringFromEnvOrFallback("FILE_STORAGE_PATH", resultConfig.FileStorage)
+	resultConfig.DBDsn = getStringFromEnvOrFallback("DATABASE_DSN", resultConfig.DBDsn)
+	resultConfig.PayloadSignatureKey = getStringFromEnvOrFallback("KEY", resultConfig.PayloadSignatureKey)
+	resultConfig.PrivateKeyFilePath = getStringFromEnvOrFallback("CRYPTO_KEY", resultConfig.PrivateKeyFilePath)
+
+	return resultConfig
 }
 
 func getStoreInterval(current int) int {
