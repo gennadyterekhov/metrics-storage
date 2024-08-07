@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
 
@@ -55,6 +55,9 @@ func New() *App {
 func (a App) StartServer() error {
 	var err error
 
+	rootContext, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	defer stop()
+
 	if a.Config.FileStorage != "" {
 		if a.Config.Restore {
 			err = a.DBOrRAM.LoadFromDisk(context.Background(), a.Config.FileStorage)
@@ -75,22 +78,33 @@ func (a App) StartServer() error {
 		}
 	}(a.DBOrRAM)
 
-	go a.onStop()
 	_, err = fmt.Printf("Server started on %v\n", a.Config.Addr)
 	if err != nil {
 		return err
 	}
-	err = http.ListenAndServe(a.Config.Addr, a.Router.ChiRouter)
+
+	server := &http.Server{}
+	server.Handler = a.Router.ChiRouter
+	server.Addr = a.Config.Addr
+	go a.gracefulShutdown(rootContext, server)
+
+	err = server.ListenAndServe()
+	if err != nil {
+		return err
+	}
 
 	return err
 }
 
-func (a App) onStop() {
-	sigchan := make(chan os.Signal, 1)
-	defer close(sigchan)
-	signal.Notify(sigchan, os.Interrupt)
-	<-sigchan
+// gracefulShutdown - this code runs if app gets any of (syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+func (a App) gracefulShutdown(ctx context.Context, server *http.Server) {
+	<-ctx.Done()
+
 	logger.Custom.Infoln("shutting down gracefully")
 
 	a.Services.SaveMetricService.SaveToDisk(context.Background())
+	err := server.Shutdown(ctx)
+	if err != nil {
+		logger.Custom.Errorln("error during server shutdown", err.Error())
+	}
 }

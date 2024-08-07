@@ -6,6 +6,8 @@ package main
 import (
 	"fmt"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
 )
 
@@ -22,7 +24,7 @@ func main() {
 	appInstance := app.New()
 	err := appInstance.StartServer()
 	if err != nil {
-		panic(err)
+		logger.Custom.Infoln(err.Error())
 	}
 }
 
