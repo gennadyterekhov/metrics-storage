@@ -65,12 +65,14 @@ func RunAgent(ctx context.Context, config *Config) {
 
 	go pollingRoutine(ctx, metricsChannel, &pollerInstance, config)
 	go reportingRoutine(ctx, metricsChannel, &senderInstance, &metricsStorageClient, config)
+
+	<-ctx.Done()
 }
 
 func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, pollerInstance *poller.PollMaker, config *Config) {
 	logger.Custom.Infoln("polling started")
 
-	for i := 0; ; i++ {
+	for {
 		select {
 		case <-ctx.Done():
 			logger.Custom.Infoln("poll context finished")
@@ -92,11 +94,16 @@ func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, 
 	}
 }
 
-func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, senderInstance *sender.MetricsSender, metricsStorageClient *client.MetricsStorageClient, config *Config) {
+func reportingRoutine(
+	ctx context.Context,
+	metricsChannel chan metric.MetricsSet,
+	senderInstance *sender.MetricsSender,
+	metricsStorageClient *client.MetricsStorageClient,
+	config *Config,
+) {
 	logger.Custom.Infoln("reporting started")
-
 	var metricsSet metric.MetricsSet
-	for i := 0; ; i++ {
+	for {
 		select {
 		case <-ctx.Done():
 			logger.Custom.Infoln("report context finished")

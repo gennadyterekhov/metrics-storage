@@ -35,6 +35,32 @@ func TestSaveLoad(t *testing.T) {
 	assert.NoError(t, err)
 }
 
+func TestSaveLoadDB(t *testing.T) {
+	ctx := context.Background()
+	repo := NewDBStorage("")
+	repo.AddCounter(ctx, "c1", 1)
+	repo.AddCounter(ctx, "c2", 2)
+	repo.AddCounter(ctx, "c3", 3)
+	repo.SetGauge(ctx, "g1", 1.5)
+	repo.SetGauge(ctx, "g2", 2.6)
+	repo.SetGauge(ctx, "g3", 3.7)
+
+	filename := `metrics.json`
+	var err error
+	err = repo.SaveToDisk(ctx, filename)
+	assert.NoError(t, err)
+	assert.NoError(t, err)
+
+	var result MemStorage
+	err = (&result).LoadFromDisk(ctx, filename)
+	assert.NoError(t, err)
+
+	assert.True(t, isEqual(repo, &result))
+
+	err = os.Remove(filename)
+	assert.NoError(t, err)
+}
+
 func TestLoadEmptyWhenError(t *testing.T) {
 	ctx := context.Background()
 
@@ -54,7 +80,7 @@ func TestLoadEmptyWhenError(t *testing.T) {
 	assert.True(t, isEqual(NewRAMStorage(), &result))
 }
 
-func isEqual(strg *MemStorage, anotherStorage Interface) (eq bool) {
+func isEqual(strg Interface, anotherStorage Interface) (eq bool) {
 	ctx := context.Background()
 
 	gauges, counters := strg.GetAllGauges(ctx), strg.GetAllCounters(ctx)
