@@ -18,7 +18,6 @@ type DBStorage struct {
 func NewDBStorage(dsn string) *DBStorage {
 	conn, err := sql.Open("pgx", dsn)
 	if err != nil {
-		//
 		logger.Custom.Panicln("could not connect to db using dsn: " + dsn)
 	}
 

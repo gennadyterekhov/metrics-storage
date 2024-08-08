@@ -8,11 +8,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/generics"
+	"github.com/pkg/errors"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/generics"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/iohelpler"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
-	"github.com/pkg/errors"
 )
 
 // ServerConfig is used to tune server behaviour
