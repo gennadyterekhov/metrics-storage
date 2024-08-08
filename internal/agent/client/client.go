@@ -5,6 +5,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pkg/errors"
+
 	"github.com/Rican7/retry"
 	"github.com/Rican7/retry/backoff"
 	"github.com/Rican7/retry/strategy"
@@ -31,10 +33,8 @@ func (msc *MetricsStorageClient) SendMetric(met metric.URLFormatter) (err error)
 
 	err = msc.sendRequestToMetricsServer(jsonBytes, false)
 	if err != nil {
-		logger.Custom.Errorln("error when sending metric "+met.GetName()+" to server", err.Error())
-		return err
+		return errors.Wrap(err, "error when sending metric "+met.GetName()+" to server")
 	}
-	logger.Custom.Debugln("request seemingly sent without errors")
 
 	return nil
 }
@@ -46,8 +46,7 @@ func (msc *MetricsStorageClient) SendAllMetricsInOneRequest(memStats *metric.Met
 	}
 	err = msc.sendRequestToMetricsServer(jsonBytes, true)
 	if err != nil {
-		logger.Custom.Errorln("error when sending metric batch to server", err.Error())
-		return err
+		return errors.Wrap(err, "error when sending metric batch to server")
 	}
 	logger.Custom.Debugln("request seemingly sent without errors")
 
@@ -91,14 +90,12 @@ func getFullURL(domain string, isBatch bool) string {
 func sendBody(client *resty.Client, url string, body []byte, key string) (err error) {
 	request, err := bodypreparer.PrepareRequest(client, body, false, key)
 	if err != nil {
-		logger.Custom.Errorln("error when preparing request", err.Error())
-		return err
+		return errors.Wrap(err, "error when preparing request")
 	}
 
 	err = sendRequestWithRetries(request, url)
 	if err != nil {
-		logger.Custom.Errorln("error when sending metric", err.Error())
-		return err
+		return errors.Wrap(err, "error when sending metric")
 	}
 
 	return err
@@ -111,8 +108,7 @@ func sendBodyGzipCompressed(client *resty.Client, url string, body []byte, key s
 	}
 	err = sendRequestWithRetries(request, url)
 	if err != nil {
-		logger.Custom.Errorln("error when sending compressed metric", err.Error())
-		return err
+		return errors.Wrap(err, "error when sending compressed metric")
 	}
 
 	return err
@@ -125,8 +121,7 @@ func sendRequestWithRetries(request *resty.Request, url string) (err error) {
 		strategy.Backoff(backoff.Incremental(0*time.Second, 3*time.Second)),
 	)
 	if err != nil {
-		logger.Custom.Errorln("error when sending request with 3 retries", err.Error())
-		return err
+		return errors.Wrap(err, "error when sending request with 3 retries")
 	}
 	return nil
 }
@@ -135,12 +130,7 @@ func attempt(request *resty.Request, url string) func(numberOfAttempt uint) erro
 	return func(numberOfAttempt uint) error {
 		_, err := request.Post(url)
 		if err != nil {
-			logger.Custom.Debugf(
-				"error when sending request. attempt: %v error: %v",
-				numberOfAttempt,
-				err.Error(),
-			)
-			return err
+			return errors.Wrapf(err, "error when sending request. attempt: %v", numberOfAttempt)
 		}
 		return nil
 	}

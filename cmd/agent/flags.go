@@ -7,10 +7,11 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/pkg/errors"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/generics"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/iohelpler"
-	"github.com/pkg/errors"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/agent"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"

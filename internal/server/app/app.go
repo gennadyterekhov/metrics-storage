@@ -52,7 +52,7 @@ func New() *App {
 }
 
 // StartServer starts a server; has graceful shutdown
-func (a App) StartServer() error {
+func (a *App) StartServer() error {
 	var err error
 
 	rootContext, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
@@ -97,7 +97,7 @@ func (a App) StartServer() error {
 }
 
 // gracefulShutdown - this code runs if app gets any of (syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-func (a App) gracefulShutdown(ctx context.Context, server *http.Server) {
+func (a *App) gracefulShutdown(ctx context.Context, server *http.Server) {
 	<-ctx.Done()
 
 	logger.Custom.Infoln("shutting down gracefully")
