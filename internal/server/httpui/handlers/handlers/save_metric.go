@@ -82,21 +82,21 @@ func (cont SaveController) SaveMetricJSON(res http.ResponseWriter, req *http.Req
 func (cont SaveController) saveMetricCommon(res http.ResponseWriter, req *http.Request) {
 	requestDto := cont.getSaveDtoForService(req)
 	if requestDto.Error != nil {
-		logger.ZapSugarLogger.Debugln("found error during request DTO build process", requestDto.Error)
+		logger.Custom.Debugln("found error during request DTO build process", requestDto.Error)
 		writeErrorToOutput(res, requestDto.Error)
 		return
 	}
 
 	validatedRequestDto := cont.validateSaveRequest(requestDto)
 	if validatedRequestDto.Error != nil {
-		logger.ZapSugarLogger.Debugln("found error during request validation", requestDto.Error)
+		logger.Custom.Debugln("found error during request validation", requestDto.Error)
 		writeErrorToOutput(res, validatedRequestDto.Error)
 		return
 	}
 
 	responseDto := cont.Service.SaveMetricToMemory(req.Context(), requestDto)
 	if responseDto.Error != nil {
-		logger.ZapSugarLogger.Debugln(
+		logger.Custom.Debugln(
 			"found error during response DTO build process in usecase",
 			requestDto.Error)
 		writeErrorToOutput(res, responseDto.Error)

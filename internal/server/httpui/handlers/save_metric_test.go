@@ -180,7 +180,7 @@ func (suite *saveMetricTestSuite) TestSaveMetricJSONReturnsUpdatedValuesInBody()
 
 	assert.Equal(suite.T(), http.StatusOK, response.StatusCode)
 
-	logger.ZapSugarLogger.Debugln("responseBody", responseBody)
+	logger.Custom.Debugln("responseBody", responseBody)
 
 	assert.Equal(suite.T(), `{"type":"counter","id":"cnt","delta":11}`, string(responseBody))
 }

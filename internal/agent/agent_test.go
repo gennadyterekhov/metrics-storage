@@ -6,9 +6,19 @@ package agent
 import (
 	"context"
 	"net/http"
+	"net/http/httptest"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
+
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/router"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/repositories"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
 	"github.com/stretchr/testify/suite"
@@ -227,6 +237,66 @@ func (suite *agentTestSuite) TestReportIntervalLessThanPollInterval() {
 	} else {
 		suite.T().Error("context didnt finish")
 	}
+}
+
+// TestAsymmetricEncryptionUsingKeyFiles is not part of suite because it relies on overridden config
+func TestAsymmetricEncryptionUsingKeyFiles(t *testing.T) {
+	type app struct {
+		tests.BaseSuiteWithServer
+	}
+	appCustomServer := app{}
+
+	privateKeyFilePath := "../../keys/private.test"
+	serverConfig := config.ServerConfig{
+		Addr:                "",
+		StoreInterval:       0,
+		FileStorage:         "",
+		Restore:             false,
+		DBDsn:               "",
+		PayloadSignatureKey: "",
+		PrivateKeyFilePath:  privateKeyFilePath,
+	}
+
+	repo := repositories.New(storage.New(""))
+	appCustomServer.SetRepository(&repo)
+	servs := services.New(repo, &serverConfig)
+	middlewareSet := middleware.New(&serverConfig)
+	controllersStruct := handlers.NewControllers(&servs, middlewareSet)
+	testServer := httptest.NewServer(
+		router.New(&controllersStruct).ChiRouter,
+	)
+	appCustomServer.SetServer(testServer)
+
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	publicKeyFilePath := "../../keys/public.test"
+	defer cancelContextFn()
+	go runAgentRoutine(ctx, &Config{
+		Addr:                      appCustomServer.TestHTTPServer.Server.URL,
+		ReportInterval:            1,
+		PollInterval:              1,
+		IsGzip:                    true,
+		SimultaneousRequestsLimit: 5,
+		PublicKeyFilePath:         publicKeyFilePath,
+	})
+
+	<-ctx.Done()
+
+	contextEndCondition := ctx.Err()
+
+	if contextEndCondition == context.DeadlineExceeded || contextEndCondition == context.Canceled {
+		assert.Equal(t,
+			1,
+			len(appCustomServer.Repository.GetAllCounters(context.Background())),
+		)
+		assert.LessOrEqual(t,
+			27+1,
+			len(appCustomServer.Repository.GetAllGauges(context.Background())),
+		)
+		savedValue := appCustomServer.Repository.GetCounterOrZero(context.Background(), "PollCount")
+		assert.Equal(t, int64(1), savedValue)
+		return
+	}
+	t.Error("context didnt finish")
 }
 
 func runAgentRoutine(ctx context.Context, config *Config) {

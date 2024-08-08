@@ -38,9 +38,9 @@ func (tt TimeTracker) routine(ticker *time.Ticker) {
 }
 
 func (tt TimeTracker) onInterval() {
-	logger.ZapSugarLogger.Infoln("STORE_INTERVAL passed, saving metrics to disk")
+	logger.Custom.Infoln("STORE_INTERVAL passed, saving metrics to disk")
 	err := tt.Repository.SaveToDisk(context.Background(), tt.Config.FileStorage)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when saving to disk on interval")
+		logger.Custom.Errorln("error when saving to disk on interval")
 	}
 }

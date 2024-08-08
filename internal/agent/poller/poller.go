@@ -134,7 +134,7 @@ func (pmk *PollMaker) setTypes() {
 func (pmk *PollMaker) saveAdditionalMetrics() {
 	memoryStats, err := mem.VirtualMemory()
 	if err != nil {
-		logger.ZapSugarLogger.Debugln("error when getting psutil stats", err.Error())
+		logger.Custom.Debugln("error when getting psutil stats", err.Error())
 		return
 	}
 	pmk.saveTotalMemory(memoryStats)
@@ -158,7 +158,7 @@ func (pmk *PollMaker) saveCPUUtilization(memoryStats *mem.VirtualMemoryStat) {
 	cpus, err := cpu.Percent(0, true)
 	pmk.MetricsSet.CPUUtilization = make([]metric.GaugeMetric, len(cpus))
 	if err != nil {
-		logger.ZapSugarLogger.Debugln("error when getting psutil/cpu stats", err.Error())
+		logger.Custom.Debugln("error when getting psutil/cpu stats", err.Error())
 		return
 	}
 	for i := 0; i < len(cpus); i++ {

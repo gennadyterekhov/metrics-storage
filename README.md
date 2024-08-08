@@ -11,6 +11,9 @@ custom multichecker:
       go build .
       ./staticlint ../../... &> ../../linter_reports/multichecker.out
 
+or
+
+      ./cmd/staticlint/staticlint ./... &> linter_reports/multichecker.out
 ## db installation (one-time use)
 
       sudo -i -u postgres

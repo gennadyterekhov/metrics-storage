@@ -24,19 +24,19 @@ import (
 type saveMetricTestSuite struct {
 	tests.BaseSuite
 	Service services.SaveMetricService
-	Config  config.ServerConfig
+	Config  *config.ServerConfig
 }
 
 func (suite *saveMetricTestSuite) SetupSuite() {
 	tests.InitBaseSuite(suite)
 	suite.Config = config.New()
-	suite.Service = services.NewSaveMetricService(suite.Repository, &suite.Config)
+	suite.Service = services.NewSaveMetricService(suite.Repository, suite.Config)
 }
 
 func BenchmarkSaveMetricService(b *testing.B) {
 	conf := config.New()
 	repo := repositories.New(storage.New(""))
-	srv := services.NewSaveMetricService(repo, &conf)
+	srv := services.NewSaveMetricService(repo, conf)
 
 	b.ResetTimer()
 

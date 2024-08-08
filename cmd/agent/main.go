@@ -5,6 +5,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/agent"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
@@ -26,10 +29,15 @@ func main() {
 		panic(err)
 	}
 	if config.IsGzip {
-		logger.ZapSugarLogger.Infoln("Attention, using gzip")
+		logger.Custom.Infoln("Attention, using gzip")
 	}
 
-	agent.RunAgent(context.Background(), config)
+	rootContext, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	defer stop()
+
+	go gracefulShutdown(rootContext)
+
+	agent.RunAgent(rootContext, config)
 }
 
 func printBuildInfo() {
@@ -43,4 +51,11 @@ func printOrPanic(data string) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// gracefulShutdown - this code runs if app gets any of (syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+func gracefulShutdown(ctx context.Context) {
+	<-ctx.Done()
+	logger.Custom.Infoln("graceful shutdown. waiting a little")
+	time.Sleep(time.Second)
 }

@@ -88,8 +88,8 @@ func InitBaseSuiteWithServer[T BaseSuiteWithServerInterface](srv T) {
 
 	repo := repositories.New(storage.New(""))
 	srv.SetRepository(&repo)
-	servs := services.New(repo, &serverConfig)
-	middlewareSet := middleware.New(&serverConfig)
+	servs := services.New(repo, serverConfig)
+	middlewareSet := middleware.New(serverConfig)
 	controllersStruct := handlers.NewControllers(&servs, middlewareSet)
 	srv.SetServer(httptest.NewServer(
 		router.New(&controllersStruct).ChiRouter,

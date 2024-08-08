@@ -23,7 +23,7 @@ func NewGetMetricService(repo repositories.RepositoryInterface) GetMetricService
 }
 
 func (srv GetMetricService) GetMetric(ctx context.Context, requestDto *requests.GetMetricRequest) (responseDto *responses.GetMetricResponse) {
-	logger.ZapSugarLogger.Debugln("GetMetricAsString name, metricType", requestDto.MetricName, requestDto.MetricType)
+	logger.Custom.Debugln("GetMetricAsString name, metricType", requestDto.MetricName, requestDto.MetricType)
 	responseDto = &responses.GetMetricResponse{
 		MetricType:   requestDto.MetricType,
 		MetricName:   requestDto.MetricName,

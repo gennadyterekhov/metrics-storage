@@ -55,21 +55,21 @@ func getCompressedBody(body []byte) (*bytes.Buffer, error) {
 	var bodyBuffer bytes.Buffer
 	compressedBodyWriter, err := gzip.NewWriterLevel(&bodyBuffer, gzip.BestSpeed)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when opening gzip writer", err.Error())
+		logger.Custom.Errorln("error when opening gzip writer", err.Error())
 		return nil, err
 	}
 	defer compressedBodyWriter.Close()
 	_, err = compressedBodyWriter.Write(body)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when writing gzip body", err.Error())
+		logger.Custom.Errorln("error when writing gzip body", err.Error())
 		return nil, err
 	}
 	err = compressedBodyWriter.Flush()
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when flushing gzip body", err.Error())
+		logger.Custom.Errorln("error when flushing gzip body", err.Error())
 		return nil, err
 	}
-	logger.ZapSugarLogger.Debugln("compressed body as sent by agent", bodyBuffer.String())
+	logger.Custom.Debugln("compressed body as sent by agent", bodyBuffer.String())
 
 	return &bodyBuffer, nil
 }

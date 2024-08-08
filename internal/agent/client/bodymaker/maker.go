@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strconv"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/common/crypto/encrypt"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
@@ -17,7 +19,7 @@ type MetricsRequest struct {
 	Value *float64 `json:"value,omitempty"` // значение метрики в случае передачи gauge
 }
 
-func GetBody(met metric.URLFormatter) ([]byte, error) {
+func GetBody(met metric.URLFormatter, publicKeyFilePath string) ([]byte, error) {
 	counterValue, gaugeValue, err := getMetricValues(met)
 	if err != nil {
 		return nil, err
@@ -31,11 +33,16 @@ func GetBody(met metric.URLFormatter) ([]byte, error) {
 	}
 	jsonBytes, err := json.Marshal(metricToEncode)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when encoding metric", err.Error())
+		logger.Custom.Errorln("error when encoding metric", err.Error())
 
 		return nil, err
 	}
-	return jsonBytes, nil
+
+	if publicKeyFilePath == "" {
+		return jsonBytes, nil
+	}
+
+	return encrypt.TryUsingKeyFileOrReturnPlainText(publicKeyFilePath, jsonBytes), nil
 }
 
 func GetBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
@@ -80,7 +87,7 @@ func GetBodyForAllMetrics(memStats *metric.MetricsSet) ([]byte, error) {
 
 	jsonBytes, err := json.Marshal(metricToEncode)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when encoding metric batch", err.Error())
+		logger.Custom.Errorln("error when encoding metric batch", err.Error())
 
 		return nil, err
 	}

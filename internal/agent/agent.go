@@ -14,13 +14,14 @@ import (
 )
 
 type Config struct {
-	Addr                      string
+	Addr                      string `json:"address"`
 	IsGzip                    bool
-	ReportInterval            int
-	PollInterval              int
+	ReportInterval            int `json:"report_interval"`
+	PollInterval              int `json:"poll_interval"`
 	IsBatch                   bool
 	PayloadSignatureKey       string
 	SimultaneousRequestsLimit int
+	PublicKeyFilePath         string `json:"crypto_key"`
 }
 
 func RunAgent(ctx context.Context, config *Config) {
@@ -44,6 +45,7 @@ func RunAgent(ctx context.Context, config *Config) {
 		IsGzip:              config.IsGzip,
 		PayloadSignatureKey: config.PayloadSignatureKey,
 		RestyClient:         resty.New(),
+		PublicKeyFilePath:   config.PublicKeyFilePath,
 	}
 
 	// we only need to send the latest metrics,
@@ -63,15 +65,17 @@ func RunAgent(ctx context.Context, config *Config) {
 
 	go pollingRoutine(ctx, metricsChannel, &pollerInstance, config)
 	go reportingRoutine(ctx, metricsChannel, &senderInstance, &metricsStorageClient, config)
+
+	<-ctx.Done()
 }
 
 func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, pollerInstance *poller.PollMaker, config *Config) {
-	logger.ZapSugarLogger.Infoln("polling started")
+	logger.Custom.Infoln("polling started")
 
-	for i := 0; ; i++ {
+	for {
 		select {
 		case <-ctx.Done():
-			logger.ZapSugarLogger.Infoln("poll context finished")
+			logger.Custom.Infoln("poll context finished")
 			return
 		default:
 			if !pollerInstance.IsRunning {
@@ -90,14 +94,19 @@ func pollingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, 
 	}
 }
 
-func reportingRoutine(ctx context.Context, metricsChannel chan metric.MetricsSet, senderInstance *sender.MetricsSender, metricsStorageClient *client.MetricsStorageClient, config *Config) {
-	logger.ZapSugarLogger.Infoln("reporting started")
-
+func reportingRoutine(
+	ctx context.Context,
+	metricsChannel chan metric.MetricsSet,
+	senderInstance *sender.MetricsSender,
+	metricsStorageClient *client.MetricsStorageClient,
+	config *Config,
+) {
+	logger.Custom.Infoln("reporting started")
 	var metricsSet metric.MetricsSet
-	for i := 0; ; i++ {
+	for {
 		select {
 		case <-ctx.Done():
-			logger.ZapSugarLogger.Infoln("report context finished")
+			logger.Custom.Infoln("report context finished")
 			return
 		default:
 

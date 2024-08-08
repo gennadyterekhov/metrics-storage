@@ -3,6 +3,8 @@ package middleware
 import (
 	"net/http"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/decryptor"
+
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/compressor"
@@ -32,6 +34,7 @@ func getCommonMiddlewares(conf *config.ServerConfig) []Middleware {
 	return []Middleware{
 		logger.RequestAndResponseLoggerMiddleware,
 		compressor.GzipCompressor,
+		decryptor.New(conf.PrivateKeyFilePath).TryToDecryptUsingPrivateKey,
 		ContentType,
 		hashchecker.New(conf.PayloadSignatureKey).CheckHash,
 	}

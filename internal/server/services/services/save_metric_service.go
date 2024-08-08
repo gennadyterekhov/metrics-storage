@@ -46,7 +46,7 @@ func (sms SaveMetricService) SaveMetricToMemory(ctx context.Context, filledDto I
 		IsJSON:       filledDto.GetIsJSON(),
 		Error:        nil,
 	}
-	logger.ZapSugarLogger.Debugln("saving metric",
+	logger.Custom.Debugln("saving metric",
 		filledDto.GetMetricName(), filledDto.GetMetricType(), filledDto.GetCounterValue(), filledDto.GetGaugeValue())
 	if filledDto.GetMetricType() == types.Counter && filledDto.GetCounterValue() != nil {
 		sms.Repository.AddCounter(ctx, filledDto.GetMetricName(), *filledDto.GetCounterValue())
@@ -73,7 +73,7 @@ func (sms SaveMetricService) saveToDiskSynchronously(ctx context.Context) {
 }
 
 func (sms SaveMetricService) SaveMetricListToMemory(ctx context.Context, filledDto *requests.SaveMetricListRequest) {
-	logger.ZapSugarLogger.Debugln("saving metric list")
+	logger.Custom.Debugln("saving metric list")
 	for i := 0; i < len(*filledDto); i++ {
 		sms.SaveMetricToMemory(ctx, (*filledDto)[i])
 	}
@@ -88,6 +88,6 @@ func (sms SaveMetricService) SaveToDisk(ctx context.Context) {
 		strategy.Backoff(backoff.Incremental(-1*time.Second, 2*time.Second)),
 	)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when saving metric to file synchronously")
+		logger.Custom.Errorln("error when saving metric to file synchronously")
 	}
 }

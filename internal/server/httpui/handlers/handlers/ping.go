@@ -41,6 +41,6 @@ func (cont *PingController) Ping(res http.ResponseWriter, _ *http.Request) {
 	res.WriteHeader(http.StatusOK)
 	_, err = io.WriteString(res, "ok")
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when writing ping response", err.Error())
+		logger.Custom.Errorln("error when writing ping response", err.Error())
 	}
 }

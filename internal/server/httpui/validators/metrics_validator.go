@@ -25,7 +25,7 @@ func GetDataToSave(metricType string, metricName string, metricValue string) *re
 	counterValue, gaugeValue, err := validateParameters(metricType, metricName, metricValue)
 	if err != nil {
 		filledDto.Error = fmt.Errorf(exceptions.InvalidMetricValueFormat)
-		logger.ZapSugarLogger.Errorln("error when building save request dto", filledDto.Error, err)
+		logger.Custom.Errorln("error when building save request dto", filledDto.Error, err)
 	}
 	filledDto.MetricName = metricName
 	filledDto.MetricType = metricType

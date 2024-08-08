@@ -33,13 +33,13 @@ func (lrw *LoggingResponseWriter) Write(b []byte) (int, error) {
 }
 
 func (lrw *LoggingResponseWriter) WriteHeader(statusCode int) {
-	logger.ZapSugarLogger.Debugln("writing header from log middleware, status:", statusCode)
+	logger.Custom.Debugln("writing header from log middleware, status:", statusCode)
 	lrw.ResponseWriter.WriteHeader(statusCode)
 	lrw.LogContext.status = statusCode
 }
 
 func (lrw *LoggingResponseWriter) log() {
-	logger.ZapSugarLogger.Infoln(
+	logger.Custom.Infoln(
 		"uri", lrw.LogContext.uri,
 		"method", lrw.LogContext.method,
 		"duration", lrw.LogContext.time,
@@ -54,25 +54,25 @@ func (lrw *LoggingResponseWriter) updateContext(req *http.Request) {
 		lrw.LogContext.method = req.Method
 		lrw.LogContext.time = time.Since(lrw.LogContext.startTime)
 	} else {
-		logger.ZapSugarLogger.Debugln("could not update log ctx with actual request info")
+		logger.Custom.Debugln("could not update log ctx with actual request info")
 	}
 }
 
 func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
 		if req == nil {
-			logger.ZapSugarLogger.Debugln("logger middleware: request is nil")
+			logger.Custom.Debugln("logger middleware: request is nil")
 			next.ServeHTTP(res, req)
 			return
 		}
 		var reqBody []byte
 		reqBody, err := io.ReadAll(req.Body)
 		if err != nil {
-			logger.ZapSugarLogger.Errorln("could not read body", err.Error())
+			logger.Custom.Errorln("could not read body", err.Error())
 		}
 		req.Body = io.NopCloser(bytes.NewBuffer(reqBody))
 
-		logger.ZapSugarLogger.Debugln(
+		logger.Custom.Debugln(
 			"got request",
 			req.Method,
 			req.RequestURI,
@@ -82,7 +82,7 @@ func RequestAndResponseLoggerMiddleware(next http.Handler) http.Handler {
 
 		customWriter := initializeCustomWriter(res, req)
 		if customWriter == nil {
-			logger.ZapSugarLogger.Debugln("could not set custom logger writer")
+			logger.Custom.Debugln("could not set custom logger writer")
 		}
 		next.ServeHTTP(customWriter, req)
 

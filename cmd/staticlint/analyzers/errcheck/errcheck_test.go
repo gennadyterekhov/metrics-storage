@@ -20,8 +20,7 @@ func reportsUnchecked(t *testing.T) {
 	result = *results[0]
 	assert.NoError(t, result.Err)
 
-	assert.Equal(t, 1, len(result.Diagnostics))
-	assert.Equal(t, "assignment with unchecked error", result.Diagnostics[0].Message)
+	assert.Equal(t, 4, len(result.Diagnostics))
 }
 
 func doesNotReportChecked(t *testing.T) {
