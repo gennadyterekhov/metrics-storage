@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"log"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -17,28 +18,31 @@ import (
 
 // ServerConfig is used to tune server behaviour
 type ServerConfig struct {
+	// Restore on true, loads db from file on start
 	// StoreInterval interval in seconds of saving metrics to disk. use 0 to write immediately
 	// FileStorage absolute path to json file for db to be saved into. on omission, don't write
-	// Restore on true, loads db from file on start
 	// PayloadSignatureKey used to check authenticity and to sign response hashes
-	Addr                string `json:"address"`
-	DBDsn               string `json:"database_dsn"`
-	StoreInterval       int    `json:"store_interval"`
-	FileStorage         string `json:"store_file"`
-	Restore             bool   `json:"restore"`
-	PayloadSignatureKey string
-	PrivateKeyFilePath  string `json:"crypto_key"`
-}
-
-type cliFlags struct {
+	// TrustedSubnet is a single ip subnet that allowed to make requests in CIDR format
+	Restore             bool
+	StoreInterval       int
 	Addr                string
 	DBDsn               string
-	StoreInterval       int
 	FileStorage         string
-	Restore             bool
 	PayloadSignatureKey string
 	PrivateKeyFilePath  string
-	ConfigFilePath      string
+	TrustedSubnet       *net.IPNet
+}
+
+type cliOrJSONConfig struct {
+	Restore             bool   `json:"restore"`
+	StoreInterval       int    `json:"store_interval"`
+	Addr                string `json:"address"`
+	DBDsn               string `json:"database_dsn"`
+	FileStorage         string `json:"store_file"`
+	PrivateKeyFilePath  string `json:"crypto_key"`
+	TrustedSubnet       string `json:"trusted_subnet"`
+	ConfigFilePath      string `json:"-"`
+	PayloadSignatureKey string
 }
 
 // New gets config from these places, each overwriting the previous one
@@ -55,16 +59,36 @@ func getConfig() *ServerConfig {
 	}
 	CLIFlags := declareCLIFlags()
 
-	resultConfig := getConfigFromFile(CLIFlags.ConfigFilePath)
+	changingConfig := getConfigFromFile(CLIFlags.ConfigFilePath)
 
-	resultConfig = overwriteWithFlags(resultConfig, CLIFlags)
+	changingConfig = overwriteWithFlags(changingConfig, CLIFlags)
 
-	resultConfig = overwriteWithEnv(resultConfig)
+	changingConfig = overwriteWithEnv(changingConfig)
+
+	resultConfig := parseComplexTypes(changingConfig)
 
 	return resultConfig
 }
 
-func declareCLIFlags() *cliFlags {
+func parseComplexTypes(config *cliOrJSONConfig) *ServerConfig {
+	_, subnet, err := net.ParseCIDR(config.TrustedSubnet)
+	if err != nil {
+		logger.Custom.Panicln("could not parse subnet.TrustedSubnet from string")
+	}
+	resultConfig := &ServerConfig{
+		Restore:             false,
+		StoreInterval:       1,
+		Addr:                "",
+		DBDsn:               "",
+		FileStorage:         "",
+		PayloadSignatureKey: "",
+		PrivateKeyFilePath:  "",
+		TrustedSubnet:       subnet,
+	}
+	return resultConfig
+}
+
+func declareCLIFlags() *cliOrJSONConfig {
 	var addressFlag *string
 	var storeIntervalFlag *int
 	var fileStorageFlag *string
@@ -73,6 +97,7 @@ func declareCLIFlags() *cliFlags {
 	var payloadSignatureKeyFlag *string
 	var privateKeyFlag *string
 	var configFilePathFlag string
+	var trustedSubnetFlag *string
 
 	if flag.Lookup("a") == nil {
 		addressFlag = flag.String(
@@ -123,6 +148,13 @@ func declareCLIFlags() *cliFlags {
 			"path to private key file used to decrypt response",
 		)
 	}
+	if flag.Lookup("t") == nil {
+		trustedSubnetFlag = flag.String(
+			"t",
+			"",
+			"a single ip subnet that allowed to make requests",
+		)
+	}
 	if flag.Lookup("c") == nil && flag.Lookup("config") == nil {
 		flag.StringVar(&configFilePathFlag, "c", "", "path to config file")
 		flag.StringVar(&configFilePathFlag, "config", "", "path to config file")
@@ -130,7 +162,7 @@ func declareCLIFlags() *cliFlags {
 
 	flag.Parse()
 
-	flags := &cliFlags{
+	flags := &cliOrJSONConfig{
 		Addr:                *addressFlag,
 		StoreInterval:       *storeIntervalFlag,
 		FileStorage:         *fileStorageFlag,
@@ -139,13 +171,14 @@ func declareCLIFlags() *cliFlags {
 		PayloadSignatureKey: *payloadSignatureKeyFlag,
 		PrivateKeyFilePath:  *privateKeyFlag,
 		ConfigFilePath:      configFilePathFlag,
+		TrustedSubnet:       *trustedSubnetFlag,
 	}
 
 	return flags
 }
 
-func getConfigFromFile(configFilePathFlag string) *ServerConfig {
-	config := &ServerConfig{}
+func getConfigFromFile(configFilePathFlag string) *cliOrJSONConfig {
+	config := &cliOrJSONConfig{}
 	configFilePath := getStringFromEnvOrFallback("CONFIG", configFilePathFlag)
 
 	if configFilePath == "" {
@@ -164,7 +197,7 @@ func getConfigFromFile(configFilePathFlag string) *ServerConfig {
 	return config
 }
 
-func overwriteWithFlags(resultConfig *ServerConfig, CLIFlags *cliFlags) *ServerConfig {
+func overwriteWithFlags(resultConfig *cliOrJSONConfig, CLIFlags *cliOrJSONConfig) *cliOrJSONConfig {
 	resultConfig.StoreInterval = generics.Overwrite(resultConfig.StoreInterval, CLIFlags.StoreInterval)
 	resultConfig.Restore = generics.Overwrite(resultConfig.Restore, CLIFlags.Restore)
 
@@ -173,11 +206,12 @@ func overwriteWithFlags(resultConfig *ServerConfig, CLIFlags *cliFlags) *ServerC
 	resultConfig.DBDsn = generics.Overwrite(resultConfig.DBDsn, CLIFlags.DBDsn)
 	resultConfig.PayloadSignatureKey = generics.Overwrite(resultConfig.PayloadSignatureKey, CLIFlags.PayloadSignatureKey)
 	resultConfig.PrivateKeyFilePath = generics.Overwrite(resultConfig.PrivateKeyFilePath, CLIFlags.PrivateKeyFilePath)
+	resultConfig.TrustedSubnet = generics.Overwrite(resultConfig.PrivateKeyFilePath, CLIFlags.TrustedSubnet)
 
 	return resultConfig
 }
 
-func overwriteWithEnv(resultConfig *ServerConfig) *ServerConfig {
+func overwriteWithEnv(resultConfig *cliOrJSONConfig) *cliOrJSONConfig {
 	resultConfig.StoreInterval = getStoreInterval(resultConfig.StoreInterval)
 	resultConfig.Restore = getRestore(resultConfig.Restore)
 
@@ -186,6 +220,7 @@ func overwriteWithEnv(resultConfig *ServerConfig) *ServerConfig {
 	resultConfig.DBDsn = getStringFromEnvOrFallback("DATABASE_DSN", resultConfig.DBDsn)
 	resultConfig.PayloadSignatureKey = getStringFromEnvOrFallback("KEY", resultConfig.PayloadSignatureKey)
 	resultConfig.PrivateKeyFilePath = getStringFromEnvOrFallback("CRYPTO_KEY", resultConfig.PrivateKeyFilePath)
+	resultConfig.TrustedSubnet = getStringFromEnvOrFallback("TRUSTED_SUBNET", resultConfig.TrustedSubnet)
 
 	return resultConfig
 }

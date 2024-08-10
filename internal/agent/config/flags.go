@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"encoding/json"
@@ -13,9 +13,19 @@ import (
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/helper/iohelpler"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/agent"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
+
+type Config struct {
+	Addr                      string `json:"address"`
+	IsGzip                    bool
+	ReportInterval            int `json:"report_interval"`
+	PollInterval              int `json:"poll_interval"`
+	IsBatch                   bool
+	PayloadSignatureKey       string
+	SimultaneousRequestsLimit int
+	PublicKeyFilePath         string `json:"crypto_key"`
+}
 
 type cliFlags struct {
 	Addr                      string
@@ -29,11 +39,11 @@ type cliFlags struct {
 	ConfigFilePath            string
 }
 
-// getConfig gets config from these places, each overwriting the previous one
+// GetConfig gets config from these places, each overwriting the previous one
 // - config file (path taken from CONFIG env var or -config flag)
 // - cli flags
 // - env vars
-func getConfig() *agent.Config {
+func GetConfig() *Config {
 	CLIFlags := declareCLIFlags()
 
 	resultConfig := getConfigFromFile(CLIFlags.ConfigFilePath)
@@ -115,8 +125,8 @@ func declareCLIFlags() *cliFlags {
 	return flags
 }
 
-func getConfigFromFile(configFilePathFlag string) *agent.Config {
-	config := &agent.Config{}
+func getConfigFromFile(configFilePathFlag string) *Config {
+	config := &Config{}
 	configFilePath := getStringFromEnvOrFallback("CONFIG", configFilePathFlag)
 
 	if configFilePath == "" {
@@ -135,7 +145,7 @@ func getConfigFromFile(configFilePathFlag string) *agent.Config {
 	return config
 }
 
-func overwriteWithFlags(resultConfig *agent.Config, CLIFlags *cliFlags) *agent.Config {
+func overwriteWithFlags(resultConfig *Config, CLIFlags *cliFlags) *Config {
 	resultConfig.IsGzip = generics.Overwrite(resultConfig.IsGzip, CLIFlags.IsGzip)
 	resultConfig.ReportInterval = generics.Overwrite(resultConfig.ReportInterval, CLIFlags.ReportInterval)
 	resultConfig.PollInterval = generics.Overwrite(resultConfig.PollInterval, CLIFlags.PollInterval)
@@ -154,7 +164,7 @@ func overwriteWithFlags(resultConfig *agent.Config, CLIFlags *cliFlags) *agent.C
 	return resultConfig
 }
 
-func overwriteWithEnv(resultConfig *agent.Config) *agent.Config {
+func overwriteWithEnv(resultConfig *Config) *Config {
 	resultConfig.IsGzip = isGzip(resultConfig.IsGzip)
 	resultConfig.ReportInterval = getReportInterval(resultConfig.ReportInterval)
 	resultConfig.PollInterval = getPollInterval(resultConfig.PollInterval)

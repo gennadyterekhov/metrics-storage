@@ -36,6 +36,7 @@ func TestCanHashBodyAndSaveInHeader(t *testing.T) {
 				[]byte(body),
 				false,
 				tt.key,
+				"",
 			)
 			require.NoError(t, err)
 
