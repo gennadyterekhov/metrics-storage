@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/requests"
 )
 
-func SaveMetricListHandler(cont SaveController) http.Handler {
+func SaveMetricListHandler(cont *SaveController) http.Handler {
 	return cont.MiddlewareSet.CommonConveyor(
 		http.HandlerFunc(cont.SaveMetricList),
 	)

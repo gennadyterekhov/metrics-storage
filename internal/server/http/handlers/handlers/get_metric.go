@@ -11,19 +11,19 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/responses"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/validators"
 	"github.com/go-chi/chi/v5"
 )
 
-func GetMetricHandler(cont GetController) http.Handler {
+func GetMetricHandler(cont *GetController) http.Handler {
 	return cont.MiddlewareSet.CommonConveyor(
 		http.HandlerFunc(cont.GetMetric),
 	)
 }
 
-func GetMetricJSONHandler(cont GetController) http.Handler {
+func GetMetricJSONHandler(cont *GetController) http.Handler {
 	return cont.MiddlewareSet.CommonConveyor(
 		http.HandlerFunc(cont.GetMetricJSON),
 	)

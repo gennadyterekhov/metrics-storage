@@ -1,7 +1,7 @@
 package router
 
 import (
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/handlers/handlers"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -10,7 +10,7 @@ type Router struct {
 	ChiRouter   chi.Router
 }
 
-func New(conts *handlers.Controllers) Router {
+func New(conts *handlers.Controllers) *Router {
 	chiRouter := chi.NewRouter()
 
 	instance := Router{
@@ -19,7 +19,7 @@ func New(conts *handlers.Controllers) Router {
 	}
 	instance.registerRoutes()
 
-	return instance
+	return &instance
 }
 
 func (rtr Router) registerRoutes() {

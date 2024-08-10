@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/responses"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
 	"github.com/stretchr/testify/suite"

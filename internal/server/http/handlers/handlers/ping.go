@@ -9,16 +9,16 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
-func PingHandler(cont PingController) http.Handler {
+func PingHandler(cont *PingController) http.Handler {
 	return http.HandlerFunc(cont.Ping)
 }
 
 type PingController struct {
-	Service services.PingService
+	Service *services.PingService
 }
 
-func NewPingController(serv services.PingService) PingController {
-	return PingController{
+func NewPingController(serv *services.PingService) *PingController {
+	return &PingController{
 		Service: serv,
 	}
 }

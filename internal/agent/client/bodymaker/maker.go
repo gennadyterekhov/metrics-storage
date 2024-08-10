@@ -9,7 +9,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/metric"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/requests"
 )
 
 type MetricsRequest struct {

@@ -81,13 +81,13 @@ func (strg *DBStorage) SaveToDisk(ctx context.Context, filename string) (err err
 
 	data, err := json.MarshalIndent(savedOnDisc, "", "   ")
 	if err != nil {
-		logger.Custom.Warnln("error when json encoding metrics")
+		logger.Custom.Errorln("error when json encoding metrics")
 		return err
 	}
 
 	err = os.WriteFile(filename, data, 0o666)
 	if err != nil {
-		logger.Custom.Warnln("error when writing metrics file to disk")
+		logger.Custom.Errorln("error when writing metrics file to disk")
 		return err
 	}
 	return nil

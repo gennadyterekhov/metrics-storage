@@ -39,11 +39,11 @@ type cliFlags struct {
 	ConfigFilePath            string
 }
 
-// GetConfig gets config from these places, each overwriting the previous one
+// New gets config from these places, each overwriting the previous one
 // - config file (path taken from CONFIG env var or -config flag)
 // - cli flags
 // - env vars
-func GetConfig() *Config {
+func New() *Config {
 	CLIFlags := declareCLIFlags()
 
 	resultConfig := getConfigFromFile(CLIFlags.ConfigFilePath)
@@ -63,41 +63,67 @@ func GetConfig() *Config {
 }
 
 func declareCLIFlags() *cliFlags {
-	var publicKeyFlag *string
+	var publicKeyFlag string
 	var configFilePathFlag string
+	var addressFlag string
+	var gzipFlag bool
+	var reportIntervalFlag int
+	var pollIntervalFlag int
+	var payloadSignatureKeyFlag string
+	var simultaneousRequestsLimitFlag int
 
-	addressFlag := flag.String(
-		"a",
-		"localhost:8080",
-		"[address] Net address host:port without protocol",
-	)
-	gzipFlag := flag.Bool(
-		"g",
-		true,
-		"[gzip] use gzip",
-	)
-	reportIntervalFlag := flag.Int(
-		"r",
-		10,
-		"[report interval] interval of reporting metrics to server, in seconds",
-	)
-	pollIntervalFlag := flag.Int(
-		"p",
-		2,
-		"[poll interval] interval of polling metrics from runtime package, in seconds",
-	)
-	payloadSignatureKeyFlag := flag.String(
-		"k",
-		"",
-		"[key] used to sign requests' bodies so that the server can check authenticity",
-	)
-	simultaneousRequestsLimitFlag := flag.Int(
-		"l",
-		5,
-		"[limit] used to limit the number of simultaneous requests sent to server",
-	)
+	if flag.Lookup("a") == nil {
+		flag.StringVar(
+			&addressFlag,
+			"a",
+			"localhost:8080",
+			"[address] Net address host:port without protocol",
+		)
+	}
+	if flag.Lookup("g") == nil {
+		flag.BoolVar(
+			&gzipFlag,
+			"g",
+			true,
+			"[gzip] use gzip",
+		)
+	}
+	if flag.Lookup("r") == nil {
+		flag.IntVar(
+			&reportIntervalFlag,
+			"r",
+			10,
+			"[report interval] interval of reporting metrics to server, in seconds",
+		)
+	}
+	if flag.Lookup("p") == nil {
+		flag.IntVar(
+			&pollIntervalFlag,
+			"p",
+			2,
+			"[poll interval] interval of polling metrics from runtime package, in seconds",
+		)
+	}
+	if flag.Lookup("k") == nil {
+		flag.StringVar(
+			&payloadSignatureKeyFlag,
+			"k",
+			"",
+			"[key] used to sign requests' bodies so that the server can check authenticity",
+		)
+	}
+	if flag.Lookup("l") == nil {
+		flag.IntVar(
+			&simultaneousRequestsLimitFlag,
+			"l",
+			5,
+			"[limit] used to limit the number of simultaneous requests sent to server",
+		)
+	}
+
 	if flag.Lookup("crypto-key") == nil {
-		publicKeyFlag = flag.String(
+		flag.StringVar(
+			&publicKeyFlag,
 			"crypto-key",
 			"",
 			"path to public key file used to encrypt request",
@@ -111,14 +137,14 @@ func declareCLIFlags() *cliFlags {
 	flag.Parse()
 
 	flags := &cliFlags{
-		Addr:                      *addressFlag,
-		IsGzip:                    *gzipFlag,
-		ReportInterval:            *reportIntervalFlag,
-		PollInterval:              *pollIntervalFlag,
-		PayloadSignatureKey:       *payloadSignatureKeyFlag,
-		SimultaneousRequestsLimit: *simultaneousRequestsLimitFlag,
+		Addr:                      addressFlag,
+		IsGzip:                    gzipFlag,
+		ReportInterval:            reportIntervalFlag,
+		PollInterval:              pollIntervalFlag,
+		PayloadSignatureKey:       payloadSignatureKeyFlag,
+		SimultaneousRequestsLimit: simultaneousRequestsLimitFlag,
 		IsBatch:                   true,
-		PublicKeyFilePath:         *publicKeyFlag,
+		PublicKeyFilePath:         publicKeyFlag,
 		ConfigFilePath:            configFilePathFlag,
 	}
 

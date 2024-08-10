@@ -1,6 +1,8 @@
 module github.com/gennadyterekhov/metrics-storage
 
-go 1.20
+go 1.21
+
+toolchain go1.21.13
 
 require (
 	github.com/Rican7/retry v0.3.1
@@ -15,6 +17,8 @@ require (
 	github.com/testcontainers/testcontainers-go v0.32.0
 	github.com/testcontainers/testcontainers-go/modules/postgres v0.32.0
 	golang.org/x/tools v0.24.0
+	google.golang.org/grpc v1.65.0
+	google.golang.org/protobuf v1.34.2
 	honnef.co/go/tools v0.4.7
 )
 
@@ -44,7 +48,6 @@ require (
 	github.com/go-openapi/spec v0.21.0 // indirect
 	github.com/go-openapi/swag v0.23.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
@@ -83,8 +86,6 @@ require (
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231016165738-49dd2c1f3d0b // indirect
-	google.golang.org/grpc v1.59.0 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240808171019-573a1156607a // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

@@ -15,8 +15,8 @@ type TimeTracker struct {
 	Config     *config.ServerConfig
 }
 
-func NewTimeTracker(repo repositories.RepositoryInterface, conf *config.ServerConfig) TimeTracker {
-	return TimeTracker{
+func NewTimeTracker(repo repositories.RepositoryInterface, conf *config.ServerConfig) *TimeTracker {
+	return &TimeTracker{
 		Repository: repo,
 		Config:     conf,
 	}
