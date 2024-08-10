@@ -12,13 +12,21 @@ import (
 	"github.com/shirou/gopsutil/v3/mem"
 )
 
-type PollMaker struct {
+type Poller struct {
 	MetricsSet *metric.MetricsSet
 	Interval   int
 	IsRunning  bool
 }
 
-func (pmk *PollMaker) Poll() *metric.MetricsSet {
+func New(pollInterval int) *Poller {
+	return &Poller{
+		MetricsSet: &metric.MetricsSet{},
+		Interval:   pollInterval,
+		IsRunning:  false,
+	}
+}
+
+func (pmk *Poller) Poll() *metric.MetricsSet {
 	pmk.IsRunning = true
 
 	go pmk.saveAdditionalMetrics()
@@ -35,7 +43,7 @@ func (pmk *PollMaker) Poll() *metric.MetricsSet {
 	return pmk.MetricsSet
 }
 
-func (pmk *PollMaker) saveRuntimeStatsToMetricSet(runtimeStats *runtime.MemStats) {
+func (pmk *Poller) saveRuntimeStatsToMetricSet(runtimeStats *runtime.MemStats) {
 	pmk.MetricsSet.Alloc.Value = float64(runtimeStats.Alloc)
 	pmk.MetricsSet.BuckHashSys.Value = float64(runtimeStats.BuckHashSys)
 	pmk.MetricsSet.Frees.Value = float64(runtimeStats.Frees)
@@ -67,7 +75,7 @@ func (pmk *PollMaker) saveRuntimeStatsToMetricSet(runtimeStats *runtime.MemStats
 	pmk.MetricsSet.RandomValue.Value = rand.Float64()
 }
 
-func (pmk *PollMaker) setNames() {
+func (pmk *Poller) setNames() {
 	pmk.MetricsSet.Alloc.Name = "Alloc"
 	pmk.MetricsSet.BuckHashSys.Name = "BuckHashSys"
 	pmk.MetricsSet.Frees.Name = "Frees"
@@ -99,7 +107,7 @@ func (pmk *PollMaker) setNames() {
 	pmk.MetricsSet.RandomValue.Name = "RandomValue"
 }
 
-func (pmk *PollMaker) setTypes() {
+func (pmk *Poller) setTypes() {
 	pmk.MetricsSet.Alloc.Type = types.Gauge
 	pmk.MetricsSet.BuckHashSys.Type = types.Gauge
 	pmk.MetricsSet.Frees.Type = types.Gauge
@@ -131,7 +139,7 @@ func (pmk *PollMaker) setTypes() {
 	pmk.MetricsSet.RandomValue.Type = types.Gauge
 }
 
-func (pmk *PollMaker) saveAdditionalMetrics() {
+func (pmk *Poller) saveAdditionalMetrics() {
 	memoryStats, err := mem.VirtualMemory()
 	if err != nil {
 		logger.Custom.Debugln("error when getting psutil stats", err.Error())
@@ -142,19 +150,19 @@ func (pmk *PollMaker) saveAdditionalMetrics() {
 	pmk.saveCPUUtilization(memoryStats)
 }
 
-func (pmk *PollMaker) saveTotalMemory(memoryStats *mem.VirtualMemoryStat) {
+func (pmk *Poller) saveTotalMemory(memoryStats *mem.VirtualMemoryStat) {
 	pmk.MetricsSet.TotalMemory.Value = float64(memoryStats.Total)
 	pmk.MetricsSet.TotalMemory.Name = "TotalMemory"
 	pmk.MetricsSet.TotalMemory.Type = types.Gauge
 }
 
-func (pmk *PollMaker) saveFreeMemory(memoryStats *mem.VirtualMemoryStat) {
+func (pmk *Poller) saveFreeMemory(memoryStats *mem.VirtualMemoryStat) {
 	pmk.MetricsSet.FreeMemory.Value = float64(memoryStats.Free)
 	pmk.MetricsSet.FreeMemory.Name = "FreeMemory"
 	pmk.MetricsSet.FreeMemory.Type = types.Gauge
 }
 
-func (pmk *PollMaker) saveCPUUtilization(memoryStats *mem.VirtualMemoryStat) {
+func (pmk *Poller) saveCPUUtilization(memoryStats *mem.VirtualMemoryStat) {
 	cpus, err := cpu.Percent(0, true)
 	pmk.MetricsSet.CPUUtilization = make([]metric.GaugeMetric, len(cpus))
 	if err != nil {

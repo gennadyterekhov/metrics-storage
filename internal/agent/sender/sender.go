@@ -1,6 +1,7 @@
 package sender
 
 import (
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/config"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
@@ -8,31 +9,44 @@ import (
 )
 
 type MetricsSender struct {
-	Address         string
-	IsGzip          bool
-	Interval        int
-	IsRunning       bool
-	IsBatch         bool
-	NumberOfWorkers int
+	MetricsStorageClient *client.MetricsStorageClient
+	Address              string
+	IsGzip               bool
+	Interval             int
+	IsRunning            bool
+	IsBatch              bool
+	NumberOfWorkers      int
 }
 
-func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet, metricsStorageClient *client.MetricsStorageClient) {
+func New(metricsStorageClient *client.MetricsStorageClient, conf *config.Config) *MetricsSender {
+	return &MetricsSender{
+		MetricsStorageClient: metricsStorageClient,
+		Address:              conf.Addr,
+		IsGzip:               conf.IsGzip,
+		Interval:             conf.ReportInterval,
+		IsRunning:            false,
+		IsBatch:              conf.IsBatch,
+		NumberOfWorkers:      conf.SimultaneousRequestsLimit,
+	}
+}
+
+func (msnd *MetricsSender) Report(memStatsPtr *metric.MetricsSet) {
 	msnd.IsRunning = true
 
 	if msnd.IsBatch {
-		msnd.sendAllMetricsInOneRequest(metricsStorageClient, memStatsPtr)
+		msnd.sendAllMetricsInOneRequest(memStatsPtr)
 	} else {
-		msnd.sendAllMetrics(metricsStorageClient, memStatsPtr)
+		msnd.sendAllMetrics(memStatsPtr)
 	}
 
 	msnd.IsRunning = false
 }
 
-func (msnd *MetricsSender) sendAllMetrics(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
+func (msnd *MetricsSender) sendAllMetrics(memStats *metric.MetricsSet) {
 	jobs := make(chan metric.URLFormatter)
 
 	for w := 1; w <= msnd.NumberOfWorkers; w++ {
-		go worker(w, jobs, metricsStorageClient)
+		go msnd.worker(w, jobs)
 	}
 	setJobs(jobs, memStats)
 	close(jobs)
@@ -76,17 +90,17 @@ func setJobs(jobs chan metric.URLFormatter, memStats *metric.MetricsSet) {
 	}
 }
 
-func (msnd *MetricsSender) sendAllMetricsInOneRequest(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
-	err := metricsStorageClient.SendAllMetricsInOneRequest(memStats)
+func (msnd *MetricsSender) sendAllMetricsInOneRequest(memStats *metric.MetricsSet) {
+	err := msnd.MetricsStorageClient.SendAllMetricsInOneRequest(memStats)
 	if err != nil {
 		logger.Custom.Errorln("error when sending all metrics in one request ")
 	}
 }
 
-func worker(workerIndex int, jobs <-chan metric.URLFormatter, metricsStorageClient *client.MetricsStorageClient) {
+func (msnd *MetricsSender) worker(workerIndex int, jobs <-chan metric.URLFormatter) {
 	for j := range jobs {
 		logger.Custom.Debugln("worker", workerIndex, "started  job", j.GetName())
-		err := metricsStorageClient.SendMetric(j)
+		err := msnd.MetricsStorageClient.SendMetric(j)
 		if err != nil {
 			logger.Custom.Errorln("error when sending metric from worker ")
 		}

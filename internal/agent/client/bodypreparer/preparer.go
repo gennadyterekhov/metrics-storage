@@ -11,9 +11,10 @@ import (
 	"github.com/go-resty/resty/v2"
 )
 
-func PrepareRequest(client *resty.Client, body []byte, isGzip bool, key string) (*resty.Request, error) {
+func PrepareRequest(client *resty.Client, body []byte, isGzip bool, key string, ip string) (*resty.Request, error) {
 	request := client.R().
-		SetHeader(constants.HeaderContentType, constants.ApplicationJSON)
+		SetHeader(constants.HeaderContentType, constants.ApplicationJSON).
+		SetHeader("X-Real-IP", ip)
 
 	if key != "" {
 		hashedBytes, err := hashBytes(body, key)
@@ -58,7 +59,12 @@ func getCompressedBody(body []byte) (*bytes.Buffer, error) {
 		logger.Custom.Errorln("error when opening gzip writer", err.Error())
 		return nil, err
 	}
-	defer compressedBodyWriter.Close()
+	defer func(compressedBodyWriter *gzip.Writer) {
+		err := compressedBodyWriter.Close()
+		if err != nil {
+			logger.Custom.Errorln("error when clising compressedBodyWriter", err.Error())
+		}
+	}(compressedBodyWriter)
 	_, err = compressedBodyWriter.Write(body)
 	if err != nil {
 		logger.Custom.Errorln("error when writing gzip body", err.Error())
@@ -69,7 +75,6 @@ func getCompressedBody(body []byte) (*bytes.Buffer, error) {
 		logger.Custom.Errorln("error when flushing gzip body", err.Error())
 		return nil, err
 	}
-	logger.Custom.Debugln("compressed body as sent by agent", bodyBuffer.String())
 
 	return &bodyBuffer, nil
 }
