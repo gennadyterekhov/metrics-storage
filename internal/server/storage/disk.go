@@ -18,29 +18,29 @@ type SavedOnDisc struct {
 }
 
 func (strg *MemStorage) SaveToDisk(_ context.Context, filename string) (err error) {
-	logger.ZapSugarLogger.Infoln("saving metrics to disk")
+	logger.Custom.Infoln("saving metrics to disk")
 
 	data, err := json.MarshalIndent(strg, "", "   ")
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when json encoding metrics")
+		logger.Custom.Errorln("error when json encoding metrics")
 		return err
 	}
 
 	err = os.WriteFile(filename, data, 0o666)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when writing metrics file to disk")
+		logger.Custom.Errorln("error when writing metrics file to disk")
 		return err
 	}
 	return nil
 }
 
 func (strg *MemStorage) LoadFromDisk(_ context.Context, filename string) (err error) {
-	logger.ZapSugarLogger.Infoln("loading metrics from disk")
+	logger.Custom.Infoln("loading metrics from disk")
 
 	err = strg.loadFromDiskWithRetry(filename)
 	if err != nil {
-		logger.ZapSugarLogger.Debugln("error when reading metrics file", err.Error())
-		logger.ZapSugarLogger.Infoln("loading empty metrics")
+		logger.Custom.Debugln("error when reading metrics file", err.Error())
+		logger.Custom.Infoln("loading empty metrics")
 		strg.Clear()
 
 		return err
@@ -52,17 +52,17 @@ func (strg *MemStorage) LoadFromDisk(_ context.Context, filename string) (err er
 func (strg *MemStorage) loadFromDiskWithRetry(filename string) error {
 	return retry.Retry(
 		func(attempt uint) error {
-			logger.ZapSugarLogger.Debugf("loading metrics from disk attempt: %v", attempt)
+			logger.Custom.Debugf("loading metrics from disk attempt: %v", attempt)
 
 			fileBytes, err := os.ReadFile(filename)
 			if err != nil {
-				logger.ZapSugarLogger.Debugln("error when reading metrics file", err.Error())
+				logger.Custom.Debugln("error when reading metrics file", err.Error())
 				return err
 			}
 
 			err = json.Unmarshal(fileBytes, strg)
 			if err != nil {
-				logger.ZapSugarLogger.Debugln("error when json decoding metrics from disk.", err.Error())
+				logger.Custom.Debugln("error when json decoding metrics from disk.", err.Error())
 				return err
 			}
 			return nil
@@ -73,7 +73,7 @@ func (strg *MemStorage) loadFromDiskWithRetry(filename string) error {
 }
 
 func (strg *DBStorage) SaveToDisk(ctx context.Context, filename string) (err error) {
-	logger.ZapSugarLogger.Infoln("saving metrics to disk")
+	logger.Custom.Infoln("saving metrics to disk")
 
 	savedOnDisc := &SavedOnDisc{}
 	savedOnDisc.Gauges = strg.GetAllGauges(ctx)
@@ -81,20 +81,20 @@ func (strg *DBStorage) SaveToDisk(ctx context.Context, filename string) (err err
 
 	data, err := json.MarshalIndent(savedOnDisc, "", "   ")
 	if err != nil {
-		logger.ZapSugarLogger.Warnln("error when json encoding metrics")
+		logger.Custom.Warnln("error when json encoding metrics")
 		return err
 	}
 
 	err = os.WriteFile(filename, data, 0o666)
 	if err != nil {
-		logger.ZapSugarLogger.Warnln("error when writing metrics file to disk")
+		logger.Custom.Warnln("error when writing metrics file to disk")
 		return err
 	}
 	return nil
 }
 
 func (strg *DBStorage) LoadFromDisk(_ context.Context, _ string) (err error) {
-	logger.ZapSugarLogger.Infoln("will not load from disk to db, database is already persistent storage")
+	logger.Custom.Infoln("will not load from disk to db, database is already persistent storage")
 
 	return nil
 }

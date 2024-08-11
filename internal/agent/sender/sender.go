@@ -79,17 +79,17 @@ func setJobs(jobs chan metric.URLFormatter, memStats *metric.MetricsSet) {
 func (msnd *MetricsSender) sendAllMetricsInOneRequest(metricsStorageClient *client.MetricsStorageClient, memStats *metric.MetricsSet) {
 	err := metricsStorageClient.SendAllMetricsInOneRequest(memStats)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when sending all metrics in one request ")
+		logger.Custom.Errorln("error when sending all metrics in one request ")
 	}
 }
 
 func worker(workerIndex int, jobs <-chan metric.URLFormatter, metricsStorageClient *client.MetricsStorageClient) {
 	for j := range jobs {
-		logger.ZapSugarLogger.Debugln("worker", workerIndex, "started  job", j.GetName())
+		logger.Custom.Debugln("worker", workerIndex, "started  job", j.GetName())
 		err := metricsStorageClient.SendMetric(j)
 		if err != nil {
-			logger.ZapSugarLogger.Errorln("error when sending metric from worker ")
+			logger.Custom.Errorln("error when sending metric from worker ")
 		}
-		logger.ZapSugarLogger.Debugln("worker", workerIndex, "finished job", j.GetName())
+		logger.Custom.Debugln("worker", workerIndex, "finished job", j.GetName())
 	}
 }

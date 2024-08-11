@@ -33,13 +33,13 @@ func GzipCompressor(next http.Handler) http.Handler {
 			defer func(compressionWriter *gzip.Writer) {
 				err := compressionWriter.Flush()
 				if err != nil {
-					logger.ZapSugarLogger.Errorln("error when flushing compressionWriter", err.Error())
+					logger.Custom.Errorln("error when flushing compressionWriter", err.Error())
 				}
 			}(compressionWriter)
 			defer func(compressionWriter *gzip.Writer) {
 				err := compressionWriter.Close()
 				if err != nil {
-					logger.ZapSugarLogger.Errorln("error when closing compressionWriter", err.Error())
+					logger.Custom.Errorln("error when closing compressionWriter", err.Error())
 				}
 			}(compressionWriter)
 
@@ -52,7 +52,7 @@ func GzipCompressor(next http.Handler) http.Handler {
 			)
 			return
 		}
-		logger.ZapSugarLogger.Debugln("gzip not accepted for this request")
+		logger.Custom.Debugln("gzip not accepted for this request")
 		next.ServeHTTP(response, request)
 	})
 }
@@ -62,7 +62,7 @@ func getCompressedWriter(response http.ResponseWriter) *gzip.Writer {
 	if err != nil {
 		_, errWriteString := io.WriteString(response, err.Error())
 		if errWriteString != nil {
-			logger.ZapSugarLogger.Errorln("error when creation gzip writer ", errWriteString.Error())
+			logger.Custom.Errorln("error when creation gzip writer ", errWriteString.Error())
 		}
 		return nil
 	}
@@ -81,14 +81,14 @@ func decompressRequest(request *http.Request) *http.Request {
 		return request
 	}
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when reading body ", err.Error())
+		logger.Custom.Errorln("error when reading body ", err.Error())
 		return request
 	}
-	logger.ZapSugarLogger.Debugln("decompressing body ", bodyBuf.String())
+	logger.Custom.Debugln("decompressing body ", bodyBuf.String())
 
 	compressionReader, err := gzip.NewReader(request.Body)
 	if err != nil {
-		logger.ZapSugarLogger.Errorln("error when creating gzip reader ", err.Error())
+		logger.Custom.Errorln("error when creating gzip reader ", err.Error())
 
 		return request
 	}

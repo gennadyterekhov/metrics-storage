@@ -3,14 +3,24 @@ package iohelpler
 import (
 	"compress/gzip"
 	"io"
+	"os"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 )
 
+func GetFileContents(filename string) ([]byte, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
+}
+
 func ReadFromReaderOrDie(reader io.Reader) []byte {
 	readBytes, err := io.ReadAll(reader)
 	if err != nil {
-		logger.ZapSugarLogger.Panicln("error when reading", err.Error())
+		logger.Custom.Panicln("error when reading", err.Error())
 	}
 
 	return readBytes
@@ -19,11 +29,11 @@ func ReadFromReaderOrDie(reader io.Reader) []byte {
 func ReadFromGzipReaderOrDie(reader io.Reader) []byte {
 	gzipBodyReader, err := gzip.NewReader(reader)
 	if err != nil {
-		logger.ZapSugarLogger.Panicln("error when creating gzip reader", err.Error())
+		logger.Custom.Panicln("error when creating gzip reader", err.Error())
 	}
 	err = gzipBodyReader.Close()
 	if err != nil {
-		logger.ZapSugarLogger.Panicln("error when closing", err.Error())
+		logger.Custom.Panicln("error when closing", err.Error())
 	}
 	bts := ReadFromReaderOrDie(gzipBodyReader)
 
@@ -47,6 +57,6 @@ func ReadFromGzipReadCloserOrDie(reader io.ReadCloser) []byte {
 func CloseOrPanic(reader io.ReadCloser) {
 	err := reader.Close()
 	if err != nil {
-		logger.ZapSugarLogger.Panicln("error when closing", err.Error())
+		logger.Custom.Panicln("error when closing", err.Error())
 	}
 }

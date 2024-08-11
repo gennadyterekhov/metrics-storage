@@ -13,8 +13,8 @@ import (
 func SetUpExampleRouter() (*chi.Mux, Controllers) {
 	serverConfig := config.New()
 	repo := repositories.New(storage.New(""))
-	servs := services.New(repo, &serverConfig)
-	middlewareSet := middleware.New(&serverConfig)
+	servs := services.New(repo, serverConfig)
+	middlewareSet := middleware.New(serverConfig)
 	controllersStruct := NewControllers(&servs, middlewareSet)
 	chiRouter := chi.NewRouter()
 	return chiRouter, controllersStruct
