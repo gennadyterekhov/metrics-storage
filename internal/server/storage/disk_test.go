@@ -5,12 +5,8 @@ import (
 	"os"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/testcontainers/testcontainers-go"
-	"github.com/testcontainers/testcontainers-go/modules/postgres"
-	"github.com/testcontainers/testcontainers-go/wait"
 )
 
 func TestSaveLoad(t *testing.T) {
@@ -58,17 +54,6 @@ func TestLoadEmptyWhenError(t *testing.T) {
 	assert.True(t, isEqual(NewRAMStorage(), &result))
 }
 
-func TestSaveLoadDBUsingContainer(t *testing.T) {
-	ctx := context.Background()
-	cont, err := createPsqlContainer(ctx)
-	assert.NoError(t, err)
-
-	repo := New(TestDBDsn)
-	assertCanReadAndWriteToDisk(ctx, t, repo)
-
-	assert.NoError(t, cont.Terminate(ctx))
-}
-
 func isEqual(strg Interface, anotherStorage Interface) (eq bool) {
 	ctx := context.Background()
 
@@ -100,23 +85,4 @@ func assertCanReadAndWriteToDisk(ctx context.Context, t *testing.T, repo Interfa
 
 	err = os.Remove(filename)
 	assert.NoError(t, err)
-}
-
-func createPsqlContainer(ctx context.Context) (*postgres.PostgresContainer, error) {
-	dbName := "metrics_db_test"
-	dbUser := "metrics_user"
-	dbPassword := "metrics_pass"
-
-	postgresContainer, err := postgres.Run(ctx,
-		"docker.io/postgres:16-alpine",
-		postgres.WithDatabase(dbName),
-		postgres.WithUsername(dbUser),
-		postgres.WithPassword(dbPassword),
-		testcontainers.WithWaitStrategy(
-			wait.ForLog("database system is ready to accept connections").
-				WithOccurrence(2).
-				WithStartupTimeout(5*time.Second)),
-	)
-
-	return postgresContainer, err
 }

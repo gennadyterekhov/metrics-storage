@@ -106,7 +106,12 @@ update doc files:
 
 visit [swagger editor](https://editor.swagger.io/) and paste `swagger/swagger.yaml`
 
+## grpc generation
 
+      cd internal/common/protobuf
+      protoc --go_out=. --go_opt=paths=source_relative \
+      --go-grpc_out=. --go-grpc_opt=paths=source_relative \
+      contracts.proto
 
 ## CI tests locally
 

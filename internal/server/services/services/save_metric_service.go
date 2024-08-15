@@ -12,8 +12,8 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/responses"
 )
 
 type SaveMetricService struct {
@@ -30,8 +30,8 @@ type ISaveMetric interface {
 	GetIsJSON() bool
 }
 
-func NewSaveMetricService(repo repositories.RepositoryInterface, conf *config.ServerConfig) SaveMetricService {
-	return SaveMetricService{
+func NewSaveMetricService(repo repositories.RepositoryInterface, conf *config.ServerConfig) *SaveMetricService {
+	return &SaveMetricService{
 		Repository: repo,
 		Config:     conf,
 	}

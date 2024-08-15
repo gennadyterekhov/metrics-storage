@@ -3,13 +3,13 @@ package middleware
 import (
 	"net/http"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/decryptor"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/middleware/decryptor"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/compressor"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/hashchecker"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware/logger"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/middleware/compressor"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/middleware/hashchecker"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/middleware/logger"
 )
 
 type Set struct {

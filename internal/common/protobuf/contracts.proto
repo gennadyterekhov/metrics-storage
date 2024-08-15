@@ -1,0 +1,60 @@
+syntax = "proto3";
+
+package protobuf;
+
+option go_package = "internal/common/protobuf";
+
+
+service Metrics {
+  rpc Ping(PingRequest) returns (PingResponse);
+  rpc GetAllMetrics(GetAllMetricsRequest) returns (GetAllMetricsResponse);
+  rpc GetMetric(GetMetricRequest) returns (GetMetricResponse);
+  rpc SaveMetricList(SaveMetricListRequest) returns (SaveMetricListResponse);
+  rpc SaveMetric(SaveMetricRequest) returns (SaveMetricResponse);
+}
+
+
+message PingRequest {}
+message PingResponse {
+  string message = 1;
+}
+
+
+message GetAllMetricsRequest {}
+message GetAllMetricsResponse {
+  string Html = 1;
+}
+
+
+enum MetricType {
+  COUNTER = 0;
+  GAUGE = 1;
+}
+message GetMetricRequest {
+  MetricType type = 1;
+  string name = 2;
+}
+message GetMetricResponse {
+  MetricType type = 1;
+  sint64 counter = 2;
+  double gauge = 3;
+}
+
+
+message SaveMetricListRequest {
+  repeated SaveMetricRequest request = 1;
+}
+message SaveMetricListResponse {
+  string message = 1;
+}
+
+
+message SaveMetricRequest {
+  MetricType type = 1;
+  string name = 2;
+  sint64 counter = 3;
+  double gauge = 4;
+}
+message SaveMetricResponse {
+  string message = 1;
+}

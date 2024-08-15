@@ -7,7 +7,6 @@ import (
 	"net"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/pkg/errors"
 
@@ -18,11 +17,13 @@ import (
 
 // ServerConfig is used to tune server behaviour
 type ServerConfig struct {
+	// IsGrpc on true, use grpc and don't use HTTP
 	// Restore on true, loads db from file on start
 	// StoreInterval interval in seconds of saving metrics to disk. use 0 to write immediately
 	// FileStorage absolute path to json file for db to be saved into. on omission, don't write
 	// PayloadSignatureKey used to check authenticity and to sign response hashes
 	// TrustedSubnet is a single ip subnet that allowed to make requests in CIDR format
+	IsGrpc              bool
 	Restore             bool
 	StoreInterval       int
 	Addr                string
@@ -34,6 +35,7 @@ type ServerConfig struct {
 }
 
 type cliOrJSONConfig struct {
+	IsGrpc              bool   `json:"grpc"`
 	Restore             bool   `json:"restore"`
 	StoreInterval       int    `json:"store_interval"`
 	Addr                string `json:"address"`
@@ -54,9 +56,6 @@ func New() *ServerConfig {
 }
 
 func getConfig() *ServerConfig {
-	if strings.HasSuffix(os.Args[0], ".test") {
-		return &ServerConfig{}
-	}
 	CLIFlags := declareCLIFlags()
 
 	changingConfig := getConfigFromFile(CLIFlags.ConfigFilePath)
@@ -73,83 +72,93 @@ func getConfig() *ServerConfig {
 func parseComplexTypes(config *cliOrJSONConfig) *ServerConfig {
 	_, subnet, err := net.ParseCIDR(config.TrustedSubnet)
 	if err != nil {
-		logger.Custom.Panicln("could not parse subnet.TrustedSubnet from string")
+		logger.Custom.Debugln("could not parse subnet.TrustedSubnet from string", err.Error())
+		subnet = nil
 	}
 	resultConfig := &ServerConfig{
-		Restore:             false,
-		StoreInterval:       1,
-		Addr:                "",
-		DBDsn:               "",
-		FileStorage:         "",
-		PayloadSignatureKey: "",
-		PrivateKeyFilePath:  "",
+		IsGrpc:              config.IsGrpc,
+		Restore:             config.Restore,
+		StoreInterval:       config.StoreInterval,
+		Addr:                config.Addr,
+		DBDsn:               config.DBDsn,
+		FileStorage:         config.FileStorage,
+		PayloadSignatureKey: config.PayloadSignatureKey,
+		PrivateKeyFilePath:  config.PrivateKeyFilePath,
 		TrustedSubnet:       subnet,
 	}
 	return resultConfig
 }
 
 func declareCLIFlags() *cliOrJSONConfig {
-	var addressFlag *string
-	var storeIntervalFlag *int
-	var fileStorageFlag *string
-	var restoreFlag *bool
-	var DBDsnFlag *string
-	var payloadSignatureKeyFlag *string
-	var privateKeyFlag *string
+	var isGrpcFlag bool
+	var addressFlag string
+	var storeIntervalFlag int
+	var fileStorageFlag string
+	var restoreFlag bool
+	var DBDsnFlag string
+	var payloadSignatureKeyFlag string
+	var privateKeyFlag string
 	var configFilePathFlag string
-	var trustedSubnetFlag *string
+	var trustedSubnetFlag string
 
+	if flag.Lookup("grpc") == nil {
+		flag.BoolVar(&isGrpcFlag,
+			"grpc",
+			false,
+			"true to use grpc, false to use HTTP",
+		)
+	}
 	if flag.Lookup("a") == nil {
-		addressFlag = flag.String(
+		flag.StringVar(&addressFlag,
 			"a",
 			"localhost:8080",
 			"[address] Net address host:port without protocol",
 		)
 	}
 	if flag.Lookup("i") == nil {
-		storeIntervalFlag = flag.Int(
+		flag.IntVar(&storeIntervalFlag,
 			"i",
 			300,
 			"[store interval] interval in seconds of saving metrics to disk. use 0 to write immediately",
 		)
 	}
 	if flag.Lookup("f") == nil {
-		fileStorageFlag = flag.String(
+		flag.StringVar(&fileStorageFlag,
 			"f",
 			"/tmp/metrics-db.json",
 			"[file storage] absolute path to json file for db to be saved into. on omission, don't write",
 		)
 	}
 	if flag.Lookup("r") == nil {
-		restoreFlag = flag.Bool(
+		flag.BoolVar(&restoreFlag,
 			"r",
 			true,
 			"[restore] on true, loads db from file on start",
 		)
 	}
 	if flag.Lookup("d") == nil {
-		DBDsnFlag = flag.String(
+		flag.StringVar(&DBDsnFlag,
 			"d",
 			"",
 			"[db dsn] format: `host=%s user=%s password=%s dbname=%s sslmode=%s` if empty, ram is used",
 		)
 	}
 	if flag.Lookup("k") == nil {
-		payloadSignatureKeyFlag = flag.String(
+		flag.StringVar(&payloadSignatureKeyFlag,
 			"k",
 			"",
 			"[key] used to check authenticity (bad request on failure) and to sign response hashes",
 		)
 	}
 	if flag.Lookup("crypto-key") == nil {
-		privateKeyFlag = flag.String(
+		flag.StringVar(&privateKeyFlag,
 			"crypto-key",
 			"",
 			"path to private key file used to decrypt response",
 		)
 	}
 	if flag.Lookup("t") == nil {
-		trustedSubnetFlag = flag.String(
+		flag.StringVar(&trustedSubnetFlag,
 			"t",
 			"",
 			"a single ip subnet that allowed to make requests",
@@ -163,15 +172,16 @@ func declareCLIFlags() *cliOrJSONConfig {
 	flag.Parse()
 
 	flags := &cliOrJSONConfig{
-		Addr:                *addressFlag,
-		StoreInterval:       *storeIntervalFlag,
-		FileStorage:         *fileStorageFlag,
-		Restore:             *restoreFlag,
-		DBDsn:               *DBDsnFlag,
-		PayloadSignatureKey: *payloadSignatureKeyFlag,
-		PrivateKeyFilePath:  *privateKeyFlag,
+		IsGrpc:              isGrpcFlag,
+		Addr:                addressFlag,
+		StoreInterval:       storeIntervalFlag,
+		FileStorage:         fileStorageFlag,
+		Restore:             restoreFlag,
+		DBDsn:               DBDsnFlag,
+		PayloadSignatureKey: payloadSignatureKeyFlag,
+		PrivateKeyFilePath:  privateKeyFlag,
 		ConfigFilePath:      configFilePathFlag,
-		TrustedSubnet:       *trustedSubnetFlag,
+		TrustedSubnet:       trustedSubnetFlag,
 	}
 
 	return flags
@@ -201,6 +211,7 @@ func overwriteWithFlags(resultConfig *cliOrJSONConfig, CLIFlags *cliOrJSONConfig
 	resultConfig.StoreInterval = generics.Overwrite(resultConfig.StoreInterval, CLIFlags.StoreInterval)
 	resultConfig.Restore = generics.Overwrite(resultConfig.Restore, CLIFlags.Restore)
 
+	resultConfig.IsGrpc = generics.Overwrite(resultConfig.IsGrpc, CLIFlags.IsGrpc)
 	resultConfig.Addr = generics.Overwrite(resultConfig.Addr, CLIFlags.Addr)
 	resultConfig.FileStorage = generics.Overwrite(resultConfig.FileStorage, CLIFlags.FileStorage)
 	resultConfig.DBDsn = generics.Overwrite(resultConfig.DBDsn, CLIFlags.DBDsn)
@@ -215,6 +226,7 @@ func overwriteWithEnv(resultConfig *cliOrJSONConfig) *cliOrJSONConfig {
 	resultConfig.StoreInterval = getStoreInterval(resultConfig.StoreInterval)
 	resultConfig.Restore = getRestore(resultConfig.Restore)
 
+	resultConfig.IsGrpc = getIsGrpc(resultConfig.IsGrpc)
 	resultConfig.Addr = getStringFromEnvOrFallback("ADDRESS", resultConfig.Addr)
 	resultConfig.FileStorage = getStringFromEnvOrFallback("FILE_STORAGE_PATH", resultConfig.FileStorage)
 	resultConfig.DBDsn = getStringFromEnvOrFallback("DATABASE_DSN", resultConfig.DBDsn)
@@ -223,6 +235,18 @@ func overwriteWithEnv(resultConfig *cliOrJSONConfig) *cliOrJSONConfig {
 	resultConfig.TrustedSubnet = getStringFromEnvOrFallback("TRUSTED_SUBNET", resultConfig.TrustedSubnet)
 
 	return resultConfig
+}
+
+func getIsGrpc(current bool) bool {
+	fromEnv, ok := os.LookupEnv("USE_GRPC")
+	if ok && (fromEnv == "true" || fromEnv == "TRUE" || fromEnv == "True" || fromEnv == "1") {
+		return true
+	}
+	if ok {
+		return false
+	}
+
+	return current
 }
 
 func getStoreInterval(current int) int {

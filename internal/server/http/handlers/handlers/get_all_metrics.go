@@ -5,18 +5,18 @@ import (
 	"net/http"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/middleware"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 	_ "github.com/gennadyterekhov/metrics-storage/swagger" // swagger
 )
 
 type GetController struct {
-	Service       services.GetMetricService
+	Service       *services.GetMetricService
 	MiddlewareSet *middleware.Set
 }
 
-func NewGetController(serv services.GetMetricService, middlewareSet *middleware.Set) GetController {
-	return GetController{
+func NewGetController(serv *services.GetMetricService, middlewareSet *middleware.Set) *GetController {
+	return &GetController{
 		Service:       serv,
 		MiddlewareSet: middlewareSet,
 	}
@@ -42,7 +42,7 @@ func (cont GetController) GetAllMetrics(res http.ResponseWriter, req *http.Reque
 	}
 }
 
-func GetAllMetricsHandler(cont GetController) http.Handler {
+func GetAllMetricsHandler(cont *GetController) http.Handler {
 	return cont.MiddlewareSet.CommonConveyor(
 		http.HandlerFunc(cont.GetAllMetrics),
 	)

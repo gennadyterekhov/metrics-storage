@@ -8,8 +8,8 @@ type PingService struct {
 	Repository repositories.RepositoryInterface
 }
 
-func NewPingService(repo repositories.RepositoryInterface) PingService {
-	return PingService{
+func NewPingService(repo repositories.RepositoryInterface) *PingService {
+	return &PingService{
 		Repository: repo,
 	}
 }

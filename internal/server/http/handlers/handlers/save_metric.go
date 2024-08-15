@@ -5,39 +5,39 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/requests"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/exceptions"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/validators"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/middleware"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/responses"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/validators"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 	_ "github.com/gennadyterekhov/metrics-storage/swagger" // swagger
 	"github.com/go-chi/chi/v5"
 )
 
 type SaveController struct {
-	Service       services.SaveMetricService
+	Service       *services.SaveMetricService
 	MiddlewareSet *middleware.Set
 }
 
-func NewSaveController(serv services.SaveMetricService, middlewareSet *middleware.Set) SaveController {
-	return SaveController{
+func NewSaveController(serv *services.SaveMetricService, middlewareSet *middleware.Set) *SaveController {
+	return &SaveController{
 		Service:       serv,
 		MiddlewareSet: middlewareSet,
 	}
 }
 
-func SaveMetricHandler(cont SaveController) http.Handler {
+func SaveMetricHandler(cont *SaveController) http.Handler {
 	return cont.MiddlewareSet.CommonConveyor(
 		http.HandlerFunc(cont.SaveMetric),
 	)
 }
 
-func SaveMetricJSONHandler(cont SaveController) http.Handler {
+func SaveMetricJSONHandler(cont *SaveController) http.Handler {
 	return cont.MiddlewareSet.CommonConveyor(
 		http.HandlerFunc(cont.SaveMetricJSON),
 	)

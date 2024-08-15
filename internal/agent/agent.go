@@ -25,7 +25,7 @@ type Agent struct {
 }
 
 func New() *Agent {
-	conf := config.GetConfig()
+	conf := config.New()
 	_, err := fmt.Printf("Agent started with server addr %v\n", conf.Addr)
 	if err != nil {
 		panic(err)

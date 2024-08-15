@@ -19,9 +19,9 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers/handlers"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/router"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/handlers/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/middleware"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/router"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/repositories"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
@@ -274,12 +274,12 @@ func TestAsymmetricEncryptionUsingKeyFiles(t *testing.T) {
 	}
 
 	repo := repositories.New(storage.New(""))
-	appCustomServer.SetRepository(&repo)
+	appCustomServer.SetRepository(repo)
 	servs := services.New(repo, &serverConfig)
 	middlewareSet := middleware.New(&serverConfig)
-	controllersStruct := handlers.NewControllers(&servs, middlewareSet)
+	controllersStruct := handlers.NewControllers(servs, middlewareSet)
 	testServer := httptest.NewServer(
-		router.New(&controllersStruct).ChiRouter,
+		router.New(controllersStruct).ChiRouter,
 	)
 	appCustomServer.SetServer(testServer)
 
