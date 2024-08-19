@@ -11,7 +11,7 @@ import (
 	"github.com/gennadyterekhov/metrics-storage/internal/server/http/requests"
 )
 
-func GetDataToSave(metricType string, metricName string, metricValue string) *requests.SaveMetricRequest {
+func GetDataToSave(metricType, metricName, metricValue string) *requests.SaveMetricRequest {
 	filledDto := &requests.SaveMetricRequest{}
 	if metricType == "" {
 		filledDto.Error = fmt.Errorf(exceptions.EmptyMetricType)
@@ -35,7 +35,7 @@ func GetDataToSave(metricType string, metricName string, metricValue string) *re
 	return filledDto
 }
 
-func GetDataToGet(metricType string, metricName string) (typ string, name string, err error) {
+func GetDataToGet(metricType, metricName string) (typ string, name string, err error) {
 	if metricType == "" {
 		return "", "", fmt.Errorf(exceptions.EmptyMetricType)
 	}
@@ -51,7 +51,7 @@ func GetDataToGet(metricType string, metricName string) (typ string, name string
 	return metricType, metricName, nil
 }
 
-func validateParameters(metricTypeRaw string, nameRaw string, valueRaw string) (int64, float64, error) {
+func validateParameters(metricTypeRaw, nameRaw, valueRaw string) (int64, float64, error) {
 	err := validateMetricType(metricTypeRaw)
 	if err != nil {
 		return 0, 0, err
@@ -82,7 +82,7 @@ func validateMetricName(nameRaw string) (err error) {
 	return nil
 }
 
-func validateMetricValue(metricTypeValidated string, valueRaw string) (counterValue int64, gaugeValue float64, err error) {
+func validateMetricValue(metricTypeValidated, valueRaw string) (counterValue int64, gaugeValue float64, err error) {
 	if metricTypeValidated == types.Counter {
 		val, err := strconv.ParseInt(valueRaw, 10, 64)
 		if err != nil {
