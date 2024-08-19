@@ -43,7 +43,6 @@ func getFirstNonPrivateIP() (net.IP, error) {
 }
 
 func isPrivateIP(ip net.IP) bool {
-	var privateIPBlocks []*net.IPNet
 	for _, cidr := range []string{
 		// don't check loopback ips
 		//"127.0.0.0/8",    // IPv4 loopback
@@ -54,10 +53,6 @@ func isPrivateIP(ip net.IP) bool {
 		"192.168.0.0/16", // RFC1918
 	} {
 		_, block, _ := net.ParseCIDR(cidr)
-		privateIPBlocks = append(privateIPBlocks, block)
-	}
-
-	for _, block := range privateIPBlocks {
 		if block.Contains(ip) {
 			return true
 		}
