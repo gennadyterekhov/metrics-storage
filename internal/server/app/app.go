@@ -7,13 +7,15 @@ import (
 	"os/signal"
 	"syscall"
 
-	grpcHandlers "github.com/gennadyterekhov/metrics-storage/internal/server/grpc/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/grpc/middleware/ipcontrol"
 
 	"google.golang.org/grpc"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
 	pb "github.com/gennadyterekhov/metrics-storage/internal/common/protobuf"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
+	grpcHandlers "github.com/gennadyterekhov/metrics-storage/internal/server/grpc/handlers"
+	loggerInterceptor "github.com/gennadyterekhov/metrics-storage/internal/server/grpc/middleware/logger"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/http/handlers/handlers"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/http/middleware"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/http/router"
@@ -110,7 +112,12 @@ func (a *App) gracefulShutdown(ctx context.Context, server *http.Server, grpcSer
 }
 
 func (a *App) initGrpcServer() *grpc.Server {
-	s := grpc.NewServer()
+	s := grpc.NewServer(
+		grpc.ChainUnaryInterceptor(
+			loggerInterceptor.LoggingInterceptor,
+			ipcontrol.New(a.Config.TrustedSubnet).IPControl,
+		),
+	)
 	pb.RegisterMetricsServer(s, &grpcHandlers.Server{
 		PingService:       a.Services.PingService,
 		GetMetricService:  a.Services.GetMetricService,

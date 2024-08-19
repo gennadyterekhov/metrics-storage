@@ -17,18 +17,21 @@ service Metrics {
 message PingRequest {}
 message PingResponse {
   string message = 1;
+  string error = 2;
 }
 
 
 message GetAllMetricsRequest {}
 message GetAllMetricsResponse {
   string Html = 1;
+  string error = 2;
 }
 
 
 enum MetricType {
-  COUNTER = 0;
-  GAUGE = 1;
+  UNKNOWN = 0;
+  COUNTER = 1;
+  GAUGE = 2;
 }
 message GetMetricRequest {
   MetricType type = 1;
@@ -38,6 +41,8 @@ message GetMetricResponse {
   MetricType type = 1;
   sint64 counter = 2;
   double gauge = 3;
+  string name = 4;
+  string error = 5;
 }
 
 
@@ -46,6 +51,7 @@ message SaveMetricListRequest {
 }
 message SaveMetricListResponse {
   string message = 1;
+  string error = 2;
 }
 
 
@@ -57,4 +63,5 @@ message SaveMetricRequest {
 }
 message SaveMetricResponse {
   string message = 1;
+  string error = 2;
 }

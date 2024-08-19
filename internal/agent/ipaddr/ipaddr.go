@@ -33,7 +33,7 @@ func getFirstNonPrivateIP() (net.IP, error) {
 				ip = v.IP
 			}
 
-			if !isPrivateIP(ip) {
+			if isPublicIP(ip) {
 				return ip, nil
 			}
 		}
@@ -42,7 +42,7 @@ func getFirstNonPrivateIP() (net.IP, error) {
 	return nil, fmt.Errorf("could not find public ip")
 }
 
-func isPrivateIP(ip net.IP) bool {
+func isPublicIP(ip net.IP) bool {
 	for _, cidr := range []string{
 		// don't check loopback ips
 		//"127.0.0.0/8",    // IPv4 loopback
@@ -54,9 +54,9 @@ func isPrivateIP(ip net.IP) bool {
 	} {
 		_, block, _ := net.ParseCIDR(cidr)
 		if block.Contains(ip) {
-			return true
+			return false
 		}
 	}
 
-	return false
+	return true
 }

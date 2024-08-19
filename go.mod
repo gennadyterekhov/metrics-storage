@@ -1,8 +1,7 @@
 module github.com/gennadyterekhov/metrics-storage
 
-go 1.21
+go 1.22
 
-toolchain go1.21.13
 
 require (
 	github.com/Rican7/retry v0.3.1

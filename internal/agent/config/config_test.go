@@ -9,7 +9,7 @@ import (
 )
 
 func TestDefaultConfigValues(t *testing.T) {
-	conf := New()
+	conf := Init()
 
 	assert.Equal(t, "localhost:8080", conf.Addr)
 	assert.Equal(t, true, conf.IsGzip)
@@ -29,7 +29,7 @@ func TestCanGetConfigFromFile(t *testing.T) {
 	err = os.Setenv("CONFIG", confPath)
 	assert.NoError(t, err)
 
-	conf := New()
+	conf := Init()
 	assert.Equal(t, 1, conf.ReportInterval)
 	assert.Equal(t, "hello test", conf.Addr)
 }
@@ -41,6 +41,6 @@ func TestEnvVarsOverwriteCliFlags(t *testing.T) {
 	err := os.Setenv("REPORT_INTERVAL", "1")
 	assert.NoError(t, err)
 
-	conf := New()
+	conf := Init()
 	assert.Equal(t, 1, conf.ReportInterval)
 }

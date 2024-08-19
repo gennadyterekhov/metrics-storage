@@ -39,11 +39,11 @@ type cliFlags struct {
 	ConfigFilePath            string
 }
 
-// New gets config from these places, each overwriting the previous one
+// Init gets config from these places, each overwriting the previous one
 // - config file (path taken from CONFIG env var or -config flag)
 // - cli flags
 // - env vars
-func New() *Config {
+func Init() *Config {
 	CLIFlags := declareCLIFlags()
 
 	resultConfig := getConfigFromFile(CLIFlags.ConfigFilePath)

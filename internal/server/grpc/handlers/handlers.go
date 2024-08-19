@@ -18,7 +18,7 @@ type Server struct {
 	PingService       *services.PingService
 }
 
-func (s *Server) Ping(ctx context.Context, request *pb.PingRequest) (*pb.PingResponse, error) {
+func (s *Server) Ping(_ context.Context, _ *pb.PingRequest) (*pb.PingResponse, error) {
 	if s.PingService.Repository == nil {
 		return nil, fmt.Errorf(http.StatusText(http.StatusInternalServerError))
 	}
@@ -28,7 +28,7 @@ func (s *Server) Ping(ctx context.Context, request *pb.PingRequest) (*pb.PingRes
 	}, nil
 }
 
-func (s *Server) GetAllMetrics(ctx context.Context, request *pb.GetAllMetricsRequest) (*pb.GetAllMetricsResponse, error) {
+func (s *Server) GetAllMetrics(ctx context.Context, _ *pb.GetAllMetricsRequest) (*pb.GetAllMetricsResponse, error) {
 	htmlPage := s.GetMetricService.GetMetricsListAsHTML(ctx)
 	resp := &pb.GetAllMetricsResponse{
 		Html: htmlPage,
@@ -85,9 +85,4 @@ func (s *Server) SaveMetric(ctx context.Context, request *pb.SaveMetricRequest) 
 	return &pb.SaveMetricResponse{
 		Message: "ok",
 	}, nil
-}
-
-func (s *Server) mustEmbedUnimplementedMetricsServer() {
-	// TODO implement me
-	panic("implement me")
 }
