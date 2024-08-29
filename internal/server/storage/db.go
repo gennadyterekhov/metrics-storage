@@ -125,15 +125,7 @@ func (strg *DBStorage) GetCounter(ctx context.Context, name string) (int64, erro
 }
 
 func (strg *DBStorage) GetGaugeOrZero(ctx context.Context, name string) float64 {
-	query := `select value from metrics where name = $1 and type = $2`
-
-	row := strg.DBConnection.QueryRowContext(ctx, query, name, types.Gauge)
-	if row.Err() != nil {
-		return 0
-	}
-
-	var gauge float64
-	err := row.Scan(&gauge)
+	gauge, err := strg.GetGauge(ctx, name)
 	if err != nil {
 		return 0
 	}
@@ -142,24 +134,16 @@ func (strg *DBStorage) GetGaugeOrZero(ctx context.Context, name string) float64 
 }
 
 func (strg *DBStorage) GetCounterOrZero(ctx context.Context, name string) int64 {
-	query := `select delta from metrics where name = $1 and type = $2`
-
-	row := strg.DBConnection.QueryRowContext(ctx, query, name, types.Counter)
-	if row.Err() != nil {
-		return 0
-	}
-
-	var counter int64
-	err := row.Scan(&counter)
+	cnt, err := strg.GetCounter(ctx, name)
 	if err != nil {
 		return 0
 	}
 
-	return counter
+	return cnt
 }
 
 func (strg *DBStorage) GetAllGauges(ctx context.Context) map[string]float64 {
-	query := `select name, value from metrics where type = $2`
+	query := `select name, value from metrics where type = $1`
 	gauges := make(map[string]float64, 0)
 
 	rows, err := strg.DBConnection.QueryContext(ctx, query, types.Gauge)
@@ -188,7 +172,7 @@ func (strg *DBStorage) GetAllGauges(ctx context.Context) map[string]float64 {
 }
 
 func (strg *DBStorage) GetAllCounters(ctx context.Context) map[string]int64 {
-	query := `select name, delta from metrics where type = $2`
+	query := `select name, delta from metrics where type = $1`
 	counters := make(map[string]int64, 0)
 
 	rows, err := strg.DBConnection.QueryContext(ctx, query, types.Counter)

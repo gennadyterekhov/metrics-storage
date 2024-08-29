@@ -28,10 +28,6 @@ func (cl *CustomLogger) Errorln(msg ...interface{}) {
 	log.Error().Msg(makeMessage(msg))
 }
 
-func (cl *CustomLogger) Warnln(msg ...interface{}) {
-	log.Warn().Msg(makeMessage(msg))
-}
-
 func (cl *CustomLogger) Panicln(msg ...interface{}) {
 	log.Panic().Msg(makeMessage(msg))
 }

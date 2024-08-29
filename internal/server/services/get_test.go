@@ -10,7 +10,7 @@ import (
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/requests"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/suite"
@@ -18,7 +18,7 @@ import (
 
 type getMetricServiceSuite struct {
 	tests.BaseSuite
-	Service services.GetMetricService
+	Service *services.GetMetricService
 }
 
 func (suite *getMetricServiceSuite) SetupSuite() {

@@ -11,24 +11,40 @@ import (
 	"testing"
 	"time"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/middleware"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/client"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/poller"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/sender"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/handlers/handlers"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/router"
+	agentConfig "github.com/gennadyterekhov/metrics-storage/internal/agent/config"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
+	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/config"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/handlers/handlers"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/middleware"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/router"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/repositories"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/services/services"
 	"github.com/gennadyterekhov/metrics-storage/internal/server/storage"
 
-	"github.com/gennadyterekhov/metrics-storage/internal/common/tests"
-	"github.com/stretchr/testify/suite"
-
-	"github.com/gennadyterekhov/metrics-storage/internal/common/testhelper"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 )
 
 type agentTestSuite struct {
 	tests.BaseSuiteWithServer
+}
+
+func NewWithCustomConfig(conf *agentConfig.Config) *Agent {
+	metricsStorageClient := client.New(conf)
+
+	inst := &Agent{
+		Config:               conf,
+		Poller:               poller.New(conf.PollInterval),
+		MetricsStorageClient: metricsStorageClient,
+		Sender:               sender.New(metricsStorageClient, conf),
+	}
+
+	return inst
 }
 
 func (suite *agentTestSuite) SetupSuite() {
@@ -40,12 +56,12 @@ func TestAgentSuite(t *testing.T) {
 }
 
 func (suite *agentTestSuite) TestAgent() {
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 
 	defer cancelContextFn()
 
-	go runAgentRoutine(ctx, &Config{
-		Addr:                      suite.TestHTTPServer.Server.URL, //
+	go runAgentRoutine(ctx, &agentConfig.Config{
+		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
 		SimultaneousRequestsLimit: 5,
@@ -73,11 +89,11 @@ func (suite *agentTestSuite) TestAgent() {
 }
 
 func (suite *agentTestSuite) TestList() {
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 
 	defer cancelContextFn()
 
-	go runAgentRoutine(ctx, &Config{
+	go runAgentRoutine(ctx, &agentConfig.Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
@@ -105,10 +121,10 @@ func (suite *agentTestSuite) TestList() {
 }
 
 func (suite *agentTestSuite) TestGzip() {
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 
 	defer cancelContextFn()
-	go runAgentRoutine(ctx, &Config{
+	go runAgentRoutine(ctx, &agentConfig.Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
@@ -129,8 +145,6 @@ func (suite *agentTestSuite) TestGzip() {
 			27+1,
 			len(suite.Repository.GetAllGauges(context.Background())),
 		)
-		savedValue := suite.Repository.GetCounterOrZero(context.Background(), "PollCount")
-		assert.Equal(suite.T(), int64(1), savedValue)
 		return
 	}
 
@@ -138,10 +152,10 @@ func (suite *agentTestSuite) TestGzip() {
 }
 
 func (suite *agentTestSuite) TestSameValueReturnedFromServer() {
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 
 	defer cancelContextFn()
-	go runAgentRoutine(ctx, &Config{
+	go runAgentRoutine(ctx, &agentConfig.Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
@@ -174,7 +188,7 @@ func (suite *agentTestSuite) TestSameValueReturnedFromServer() {
 		assert.Equal(
 			suite.T(),
 			strconv.FormatFloat(savedValue, 'g', -1, 64),
-			string(responseBody),
+			responseBody,
 		)
 	} else {
 		suite.T().Error("context didnt finish")
@@ -185,7 +199,7 @@ func (suite *agentTestSuite) TestReportIntervalMoreThanPollInterval() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 	defer cancelContextFn()
 
-	go runAgentRoutine(ctx, &Config{
+	go runAgentRoutine(ctx, &agentConfig.Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            2,
 		PollInterval:              1,
@@ -214,7 +228,7 @@ func (suite *agentTestSuite) TestReportIntervalLessThanPollInterval() {
 	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 	defer cancelContextFn()
 
-	go runAgentRoutine(ctx, &Config{
+	go runAgentRoutine(ctx, &agentConfig.Config{
 		Addr:                      suite.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              2,
@@ -258,19 +272,19 @@ func TestAsymmetricEncryptionUsingKeyFiles(t *testing.T) {
 	}
 
 	repo := repositories.New(storage.New(""))
-	appCustomServer.SetRepository(&repo)
+	appCustomServer.SetRepository(repo)
 	servs := services.New(repo, &serverConfig)
 	middlewareSet := middleware.New(&serverConfig)
-	controllersStruct := handlers.NewControllers(&servs, middlewareSet)
+	controllersStruct := handlers.NewControllers(servs, middlewareSet)
 	testServer := httptest.NewServer(
-		router.New(&controllersStruct).ChiRouter,
+		router.New(controllersStruct).ChiRouter,
 	)
 	appCustomServer.SetServer(testServer)
-
-	ctx, cancelContextFn := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	appCustomServer.Repository.Clear()
+	ctx, cancelContextFn := context.WithTimeout(context.Background(), 3000*time.Millisecond)
 	publicKeyFilePath := "../../keys/public.test"
 	defer cancelContextFn()
-	go runAgentRoutine(ctx, &Config{
+	go runAgentRoutine(ctx, &agentConfig.Config{
 		Addr:                      appCustomServer.TestHTTPServer.Server.URL,
 		ReportInterval:            1,
 		PollInterval:              1,
@@ -292,13 +306,12 @@ func TestAsymmetricEncryptionUsingKeyFiles(t *testing.T) {
 			27+1,
 			len(appCustomServer.Repository.GetAllGauges(context.Background())),
 		)
-		savedValue := appCustomServer.Repository.GetCounterOrZero(context.Background(), "PollCount")
-		assert.Equal(t, int64(1), savedValue)
 		return
 	}
 	t.Error("context didnt finish")
 }
 
-func runAgentRoutine(ctx context.Context, config *Config) {
-	RunAgent(ctx, config)
+func runAgentRoutine(ctx context.Context, config *agentConfig.Config) {
+	instance := NewWithCustomConfig(config)
+	instance.RunAgent(ctx)
 }

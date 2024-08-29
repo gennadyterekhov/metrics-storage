@@ -17,13 +17,13 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/requests"
 	"github.com/stretchr/testify/assert"
 )
 
 type saveMetricTestSuite struct {
 	tests.BaseSuite
-	Service services.SaveMetricService
+	Service *services.SaveMetricService
 	Config  *config.ServerConfig
 }
 

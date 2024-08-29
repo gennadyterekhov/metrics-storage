@@ -6,14 +6,14 @@ import (
 )
 
 type Services struct {
-	GetMetricService  GetMetricService
-	SaveMetricService SaveMetricService
-	TimeTracker       TimeTracker
-	PingService       PingService
+	GetMetricService  *GetMetricService
+	SaveMetricService *SaveMetricService
+	TimeTracker       *TimeTracker
+	PingService       *PingService
 }
 
-func New(repo repositories.RepositoryInterface, conf *config.ServerConfig) Services {
-	return Services{
+func New(repo repositories.RepositoryInterface, conf *config.ServerConfig) *Services {
+	return &Services{
 		GetMetricService:  NewGetMetricService(repo),
 		SaveMetricService: NewSaveMetricService(repo, conf),
 		TimeTracker:       NewTimeTracker(repo, conf),

@@ -5,6 +5,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/config"
+	"github.com/gennadyterekhov/metrics-storage/internal/agent/ipaddr"
+
 	"github.com/pkg/errors"
 
 	"github.com/Rican7/retry"
@@ -23,6 +26,18 @@ type MetricsStorageClient struct {
 	PayloadSignatureKey string
 	RestyClient         *resty.Client
 	PublicKeyFilePath   string
+	IP                  string
+}
+
+func New(conf *config.Config) *MetricsStorageClient {
+	return &MetricsStorageClient{
+		Address:             conf.Addr,
+		IsGzip:              conf.IsGzip,
+		PayloadSignatureKey: conf.PayloadSignatureKey,
+		RestyClient:         resty.New(),
+		PublicKeyFilePath:   conf.PublicKeyFilePath,
+		IP:                  ipaddr.GetHostIPAsString(),
+	}
 }
 
 func (msc *MetricsStorageClient) SendMetric(met metric.URLFormatter) (err error) {
@@ -59,11 +74,11 @@ func (msc *MetricsStorageClient) sendRequestToMetricsServer(body []byte, isBatch
 	if msc.IsGzip {
 		logger.Custom.Debugln("sending GZIP metric to server", http.MethodPost, fullURL, string(body))
 
-		err = sendBodyGzipCompressed(msc.RestyClient, fullURL, body, msc.PayloadSignatureKey)
+		err = msc.sendBodyGzipCompressed(fullURL, body)
 	} else {
 		logger.Custom.Debugln("sending metric to server", http.MethodPost, fullURL, string(body))
 
-		err = sendBody(msc.RestyClient, fullURL, body, msc.PayloadSignatureKey)
+		err = msc.sendBody(fullURL, body)
 	}
 	if err != nil {
 		return err
@@ -87,8 +102,8 @@ func getFullURL(domain string, isBatch bool) string {
 	return fullURL
 }
 
-func sendBody(client *resty.Client, url string, body []byte, key string) (err error) {
-	request, err := bodypreparer.PrepareRequest(client, body, false, key)
+func (msc *MetricsStorageClient) sendBody(url string, body []byte) (err error) {
+	request, err := bodypreparer.PrepareRequest(msc.RestyClient, body, false, msc.PayloadSignatureKey, msc.IP)
 	if err != nil {
 		return errors.Wrap(err, "error when preparing request")
 	}
@@ -101,8 +116,8 @@ func sendBody(client *resty.Client, url string, body []byte, key string) (err er
 	return err
 }
 
-func sendBodyGzipCompressed(client *resty.Client, url string, body []byte, key string) (err error) {
-	request, err := bodypreparer.PrepareRequest(client, body, true, key)
+func (msc *MetricsStorageClient) sendBodyGzipCompressed(url string, body []byte) (err error) {
+	request, err := bodypreparer.PrepareRequest(msc.RestyClient, body, true, msc.PayloadSignatureKey, msc.IP)
 	if err != nil {
 		return err
 	}

@@ -3,11 +3,7 @@
 package main
 
 import (
-	"context"
 	"fmt"
-	"os/signal"
-	"syscall"
-	"time"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/agent"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
@@ -23,21 +19,11 @@ var (
 func main() {
 	printBuildInfo()
 
-	config := getConfig()
-	_, err := fmt.Printf("Agent started with server addr %v\n", config.Addr)
+	instance := agent.New()
+	err := instance.Start()
 	if err != nil {
-		panic(err)
+		logger.Custom.Infoln(err.Error())
 	}
-	if config.IsGzip {
-		logger.Custom.Infoln("Attention, using gzip")
-	}
-
-	rootContext, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-	defer stop()
-
-	go gracefulShutdown(rootContext)
-
-	agent.RunAgent(rootContext, config)
 }
 
 func printBuildInfo() {
@@ -51,11 +37,4 @@ func printOrPanic(data string) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-// gracefulShutdown - this code runs if app gets any of (syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
-func gracefulShutdown(ctx context.Context) {
-	<-ctx.Done()
-	logger.Custom.Infoln("graceful shutdown. waiting a little")
-	time.Sleep(time.Second)
 }

@@ -4,10 +4,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
-
 	"github.com/gennadyterekhov/metrics-storage/internal/server/app"
 )
 
@@ -22,7 +22,7 @@ func main() {
 	printBuildInfo()
 
 	appInstance := app.New()
-	err := appInstance.StartServer()
+	err := appInstance.StartServer(context.Background())
 	if err != nil {
 		logger.Custom.Infoln(err.Error())
 	}

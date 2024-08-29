@@ -8,16 +8,16 @@ import (
 
 	"github.com/gennadyterekhov/metrics-storage/internal/common/constants/types"
 	"github.com/gennadyterekhov/metrics-storage/internal/common/logger"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/requests"
-	"github.com/gennadyterekhov/metrics-storage/internal/server/httpui/responses"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/requests"
+	"github.com/gennadyterekhov/metrics-storage/internal/server/http/responses"
 )
 
 type GetMetricService struct {
 	Repository repositories.RepositoryInterface
 }
 
-func NewGetMetricService(repo repositories.RepositoryInterface) GetMetricService {
-	return GetMetricService{
+func NewGetMetricService(repo repositories.RepositoryInterface) *GetMetricService {
+	return &GetMetricService{
 		Repository: repo,
 	}
 }
