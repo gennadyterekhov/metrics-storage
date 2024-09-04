@@ -731,6 +731,7 @@ var (
 		(*SaveMetricResponse)(nil),     // 10: protobuf.SaveMetricResponse
 	}
 )
+
 var file_contracts_proto_depIdxs = []int32{
 	0,  // 0: protobuf.GetMetricRequest.type:type_name -> protobuf.MetricType
 	0,  // 1: protobuf.GetMetricResponse.type:type_name -> protobuf.MetricType
